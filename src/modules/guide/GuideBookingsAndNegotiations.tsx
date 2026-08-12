@@ -76,9 +76,19 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
         {!isVerified && (
           <div className="mb-5 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
             <div className="flex items-center space-x-2.5 font-semibold">
-              <span className="material-symbols-outlined text-amber-600 text-xl shrink-0">lock</span>
+              <span className="material-symbols-outlined text-amber-600 text-xl shrink-0">
+                {guideProfile.kycStatus === 'pending' ? 'hourglass_top' : 'lock'}
+              </span>
               <span>
-                <strong>Verification Required to Bid:</strong> You must submit your Tour Guide License Card & CCCD to place bids on traveler posts.
+                {guideProfile.kycStatus === 'pending' ? (
+                  <>
+                    <strong>Verification Under Admin Review ⏳:</strong> Your Tour Guide License Card & CCCD submission is currently being reviewed. Bidding will be enabled upon approval.
+                  </>
+                ) : (
+                  <>
+                    <strong>Verification Required to Bid:</strong> You must submit your Tour Guide License Card & CCCD to place bids on traveler posts.
+                  </>
+                )}
               </span>
             </div>
             {onOpenKYCModal && (
@@ -86,7 +96,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                 onClick={onOpenKYCModal}
                 className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shrink-0 cursor-pointer transition-all shadow-sm"
               >
-                Submit Verification 📜
+                {guideProfile.kycStatus === 'pending' ? 'View Application ⏳' : 'Submit Verification 📜'}
               </button>
             )}
           </div>
@@ -168,8 +178,14 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
         {!isVerified && myNegotiations.length > 0 && (
           <div className="mb-4 p-3 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center space-x-2">
-            <span className="material-symbols-outlined text-amber-600 text-base shrink-0">lock</span>
-            <span>License verification is required to accept or send counter offers in negotiations.</span>
+            <span className="material-symbols-outlined text-amber-600 text-base shrink-0">
+              {guideProfile.kycStatus === 'pending' ? 'hourglass_top' : 'lock'}
+            </span>
+            <span>
+              {guideProfile.kycStatus === 'pending'
+                ? 'Your License Verification is currently under admin review. Accepting offers will be enabled once approved.'
+                : 'License verification is required to accept or send counter offers in negotiations.'}
+            </span>
           </div>
         )}
 

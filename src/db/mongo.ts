@@ -815,7 +815,12 @@ export function isMongoConnected(): boolean {
 
 export async function connectMongoDB() {
   mongoose.set('bufferCommands', false);
-  const uri = process.env.MONGODB_URI || "mongodb+srv://dratinitechnology_db_user:OJMifjmPuzjrnHLR@cluster0.iiapgvw.mongodb.net/tourguidehub?retryWrites=true&w=majority";
+  const uri = process.env.MONGODB_URI;
+
+  if (!uri) {
+    console.warn('⚡ MONGODB_URI not set. Using high-speed in-memory data store as seamless fallback.');
+    return;
+  }
 
   try {
     console.log('🍃 Connecting to MongoDB Atlas...');

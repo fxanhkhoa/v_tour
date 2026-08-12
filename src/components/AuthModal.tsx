@@ -47,7 +47,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       email: 'minh.tourguide@gmail.com',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       role: 'guide' as UserRole,
-      badge: language === 'vi' ? 'HDV Có Thẻ' : 'Licensed Guide'
+      badge: language === 'vi' ? 'HDV Đã Xác Minh 📜' : 'Verified Guide 📜'
+    },
+    {
+      name: 'Somchai Prasert',
+      email: 'somchai@example.com',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      role: 'guide' as UserRole,
+      badge: language === 'vi' ? 'HDV Đang Duyệt ⏳' : 'Guide (Under Review ⏳)'
     },
     {
       name: 'Alexander Wright',
