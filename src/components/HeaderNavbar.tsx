@@ -30,7 +30,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const cities = ['Ho Chi Minh City', 'Bangkok', 'Tokyo', 'Hanoi', 'Da Nang', 'Kyoto'];
+  const cities = ['All', 'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Hue', 'Nha Trang', 'Sapa', 'Phu Quoc', 'Ha Long Bay', 'Can Tho'];
   const t = translations[language];
 
   return (
@@ -137,8 +137,8 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             </button>
           )}
 
-          {/* City Dropdown (visible in traveler view or desktop) */}
-          <div className="hidden xl:flex items-center bg-slate-800/80 rounded-xl border border-slate-700/80 px-2.5 py-1 text-xs">
+          {/* City Dropdown (visible in navbar) */}
+          <div className="hidden sm:flex items-center bg-slate-800/80 rounded-xl border border-slate-700/80 px-2.5 py-1 text-xs">
             <span className="material-symbols-outlined text-teal-400 text-sm mr-1">location_on</span>
             <select
               value={selectedCity}

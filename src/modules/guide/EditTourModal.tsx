@@ -40,12 +40,12 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
   if (!isOpen || !tour) return null;
 
   // Double check if locked by active negotiations or bookings
-  const tourNegotiations = negotiations.filter(
+  const tourNegotiations = (negotiations || []).filter(
     n => (n.tourId === tour.id || (n.tourTitle && n.tourTitle.toLowerCase() === tour.title.toLowerCase())) &&
          n.status !== 'declined'
   );
 
-  const tourBookings = bookings.filter(
+  const tourBookings = (bookings || []).filter(
     b => (b.tourId === tour.id || (b.tourTitle && b.tourTitle.toLowerCase() === tour.title.toLowerCase())) &&
          b.status !== 'cancelled'
   );

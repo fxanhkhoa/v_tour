@@ -169,7 +169,7 @@ export const AITourPlannerModal: React.FC<AITourPlannerModalProps> = ({
               </div>
 
               {/* Day Breakdown */}
-              {itinerary.days.map((day) => (
+              {itinerary.days?.map((day) => (
                 <div key={day.dayNumber} className="space-y-3">
                   <div className="flex items-center space-x-2 border-b border-slate-200 pb-2">
                     <span className="w-6 h-6 rounded-full bg-slate-900 text-white text-xs font-bold flex items-center justify-center">
@@ -179,7 +179,7 @@ export const AITourPlannerModal: React.FC<AITourPlannerModalProps> = ({
                   </div>
 
                   <div className="space-y-3 pl-3 border-l-2 border-teal-500/30">
-                    {day.activities.map((act, i) => (
+                    {day.activities?.map((act, i) => (
                       <div key={`act-${day.dayNumber}-${i}`} className="p-3 bg-slate-50 rounded-xl border border-slate-100 text-xs">
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-extrabold text-teal-700">{act.time}</span>

@@ -1,4 +1,37 @@
 import mongoose from 'mongoose';
+import {
+  initFirebaseDatabase,
+  isFirebaseConnected,
+  fsFindUserByEmail,
+  fsFindUserById,
+  fsFindUserByToken,
+  fsSaveUser,
+  fsGetAllUsers,
+  fsFindGuideByUserIdOrName,
+  fsFindGuideById,
+  fsSaveGuide,
+  fsGetGuides,
+  fsGetOnlineGuide,
+  fsSaveKYC,
+  fsGetKYCList,
+  fsFindKYCById,
+  fsSaveTour,
+  fsGetTours,
+  fsFindTourById,
+  fsSavePost,
+  fsGetPosts,
+  fsFindPostById,
+  fsSaveNegotiation,
+  fsFindNegotiationByPostAndGuide,
+  fsFindNegotiationById,
+  fsGetNegotiationsByUser,
+  fsSaveBooking,
+  fsFindBookingById,
+  fsGetBookingsByUser,
+  fsGetAllBookings,
+  fsGetChatMessages,
+  fsSaveChatMessage
+} from './firebase.js';
 import { 
   User, 
   GuideProfile, 
@@ -221,12 +254,12 @@ export const initialUsers: User[] = [
   },
   {
     id: 'u_guide_2',
-    name: 'Somchai Prasert',
-    email: 'somchai@example.com',
+    name: 'Dang Van Phuoc',
+    email: 'phuoc.danang@gmail.com',
     role: 'guide',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-    phone: '+66 81 234 5678',
-    bio: 'Bangkok native specializing in floating markets and hidden temple architecture.',
+    phone: '+84 905 123 456',
+    bio: 'Da Nang & Son Tra peninsula local guide specializing in coastal scooters and night dragon bridge tours.',
     status: 'active'
   },
   {
@@ -287,6 +320,76 @@ export const initialUsers: User[] = [
     avatar: 'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?auto=format&fit=crop&w=200&q=80',
     phone: '+84 988 123 789',
     bio: 'Ha Long Bay sea kayak guide & cave exploration expert.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_9',
+    name: 'Bui Van Tam',
+    email: 'tam.nhatrang@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 905 111 222',
+    bio: 'Nha Trang island skipper, coral reef biologist & mud bath specialist.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_10',
+    name: 'Giang A Lu',
+    email: 'alu.sapa@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 913 222 333',
+    bio: 'Black Hmong indigenous guide in Sapa. Rice terrace trekking & cultural homestays.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_11',
+    name: 'Nguyen Thi Hong',
+    email: 'hong.cantho@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 939 333 444',
+    bio: 'Can Tho native, Cai Rang floating market sampan operator & street food host.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_12',
+    name: 'Tran Thi Xuan',
+    email: 'xuan.hue@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 905 555 666',
+    bio: 'Hue Imperial Citadel historian & Perfume River dragon boat captain.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_13',
+    name: 'Nguyen Van Duc',
+    email: 'duc.phuquoc@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 977 666 777',
+    bio: 'Phu Quoc islander, boat captain & coral reef snorkeling specialist.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_14',
+    name: 'Pham Hoang Quan',
+    email: 'quan.hanoi@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 912 777 888',
+    bio: 'Hanoi street food connoisseur, egg coffee master & West Lake Vespa rider.',
+    status: 'active'
+  },
+  {
+    id: 'u_guide_15',
+    name: 'Le Van Tai',
+    email: 'tai.hoian@gmail.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 935 888 999',
+    bio: 'Hoi An lantern artisan & Cam Thanh coconut basket boat rower.',
     status: 'active'
   }
 ];
@@ -449,24 +552,178 @@ export const initialGuides: GuideProfile[] = [
   {
     id: 'g_2',
     userId: 'u_guide_2',
-    fullName: 'Somchai Prasert',
+    fullName: 'Dang Van Phuoc',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
-    city: 'Bangkok',
+    city: 'Da Nang',
     rating: 4.90,
     reviewCount: 98,
     hourlyRateUSD: 25,
-    languages: ['English', 'Thai', 'Mandarin'],
-    bio: 'Passionate about Bangkok street art, hidden alleyways, and nighttime tuk-tuk food adventures!',
+    languages: ['English', 'Vietnamese'],
+    bio: 'Da Nang coastal scooter guide. Son Tra peninsula, Lady Buddha, and Dragon Bridge night fire show specialist.',
     tourTypes: ['scooter', 'car', 'food', 'culture'],
-    badges: ['TukTuk Master 🛺', 'Foodie Pro 🍜'],
+    badges: ['Dragon Bridge Pro 🐲', 'Scooter Guide 🛵', 'Licensed Guide 📜'],
     isOnline: true,
-    currentLat: 13.7563,
-    currentLng: 100.5018,
-    vehicleModel: 'Custom Electric TukTuk',
-    verified: false,
-    kycStatus: 'pending',
-    kycCardNumber: 'TH-TG-442109',
+    currentLat: 16.0544,
+    currentLng: 108.2022,
+    vehicleModel: 'Honda SH 150cc Scooter',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-442109',
     completedTours: 165
+  },
+  {
+    id: 'g_9',
+    userId: 'u_guide_9',
+    fullName: 'Bui Van Tam',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    city: 'Nha Trang',
+    rating: 4.96,
+    reviewCount: 134,
+    hourlyRateUSD: 22,
+    languages: ['English', 'Vietnamese', 'Russian'],
+    bio: 'Nha Trang island skipper, marine biologist & mud bath specialist. Exploring Mun Island coral reefs & emperor junk cruises.',
+    tourTypes: ['nature', 'car', 'food', 'photography'],
+    badges: ['Licensed Guide 📜', 'Marine Captain 🚤', 'Mud Bath Pro 🧖'],
+    isOnline: true,
+    currentLat: 12.2388,
+    currentLng: 109.1967,
+    vehicleModel: 'Toyota Innova 7-seater & Speedboat',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-221089',
+    completedTours: 188
+  },
+  {
+    id: 'g_10',
+    userId: 'u_guide_10',
+    fullName: 'Giang A Lu',
+    avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+    city: 'Sapa',
+    rating: 4.98,
+    reviewCount: 178,
+    hourlyRateUSD: 20,
+    languages: ['English', 'Vietnamese', 'Hmong'],
+    bio: 'Black Hmong indigenous guide in Sapa. Leading trek paths through Muong Hoa valley rice terraces and indigo craft homestays.',
+    tourTypes: ['nature', 'walking', 'culture', 'photography'],
+    badges: ['Hmong Culture Master 🏔️', 'High Trekker 🥾', 'Licensed Guide 📜'],
+    isOnline: true,
+    currentLat: 22.3364,
+    currentLng: 103.8438,
+    vehicleModel: 'Trekking Equipment & Private Jeep',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-110923',
+    completedTours: 245
+  },
+  {
+    id: 'g_11',
+    userId: 'u_guide_11',
+    fullName: 'Nguyen Thi Hong',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    city: 'Can Tho',
+    rating: 4.95,
+    reviewCount: 112,
+    hourlyRateUSD: 18,
+    languages: ['English', 'Vietnamese'],
+    bio: 'Can Tho native & Mekong Delta ambassador. Sunrise Cai Rang floating market boat trips, fruit orchard cycling, and canal sampan rowing.',
+    tourTypes: ['food', 'culture', 'nature', 'walking'],
+    badges: ['Floating Market Pro 🚣', 'Mekong Foodie 🥥', 'Licensed Guide 📜'],
+    isOnline: true,
+    currentLat: 10.0452,
+    currentLng: 105.7469,
+    vehicleModel: 'Private Wooden Sampan & Bicycle',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-990812',
+    completedTours: 160
+  },
+  {
+    id: 'g_12',
+    userId: 'u_guide_12',
+    fullName: 'Tran Thi Xuan',
+    avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+    city: 'Hue',
+    rating: 4.99,
+    reviewCount: 204,
+    hourlyRateUSD: 24,
+    languages: ['English', 'Vietnamese', 'French'],
+    bio: 'Hue Imperial Citadel historian & Perfume River dragon boat captain. Imperial court cuisine specialist.',
+    tourTypes: ['culture', 'history', 'food', 'walking'],
+    badges: ['Citadel Historian 🏯', 'Dragon Boat Skipper 🐉', 'Licensed Guide 📜'],
+    isOnline: true,
+    currentLat: 16.4637,
+    currentLng: 107.5909,
+    vehicleModel: 'Private Dragon Boat & Sedan',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-778899',
+    completedTours: 310
+  },
+  {
+    id: 'g_13',
+    userId: 'u_guide_13',
+    fullName: 'Nguyen Van Duc',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    city: 'Phu Quoc',
+    rating: 4.93,
+    reviewCount: 145,
+    hourlyRateUSD: 28,
+    languages: ['English', 'Vietnamese'],
+    bio: 'Phu Quoc boat captain & coral reef snorkeling specialist. An Thoi archipelago speedboat adventure guide.',
+    tourTypes: ['nature', 'car', 'food', 'photography'],
+    badges: ['Island Skipper ⛵', 'Snorkel Master 🥽', 'Licensed Guide 📜'],
+    isOnline: true,
+    currentLat: 10.2899,
+    currentLng: 103.9840,
+    vehicleModel: 'Speedboat & SUV',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-554433',
+    completedTours: 215
+  },
+  {
+    id: 'g_14',
+    userId: 'u_guide_14',
+    fullName: 'Pham Hoang Quan',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    city: 'Hanoi',
+    rating: 4.97,
+    reviewCount: 220,
+    hourlyRateUSD: 25,
+    languages: ['English', 'Vietnamese'],
+    bio: 'Hanoi Old Quarter local host. Hidden alleyway street food crawl, Egg Coffee whipping, & West Lake sunset Vespa tours.',
+    tourTypes: ['food', 'culture', 'walking', 'photography'],
+    badges: ['Foodie Master 🍜', 'Vespa Rider 🛵', 'Licensed Guide 📜'],
+    isOnline: true,
+    currentLat: 21.0285,
+    currentLng: 105.8542,
+    vehicleModel: 'Vintage Vespa Scooter & Sedan',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-901234',
+    completedTours: 340
+  },
+  {
+    id: 'g_15',
+    userId: 'u_guide_15',
+    fullName: 'Le Van Tai',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    city: 'Hoi An',
+    rating: 4.98,
+    reviewCount: 189,
+    hourlyRateUSD: 22,
+    languages: ['English', 'Vietnamese'],
+    bio: 'Hoi An lantern artisan & Cam Thanh coconut basket boat rower. Thu Bon river sunset sailing.',
+    tourTypes: ['culture', 'walking', 'history', 'nature'],
+    badges: ['Lantern Artisan 🏮', 'Basket Boat Rower 🥥', 'Licensed Guide 📜'],
+    isOnline: true,
+    currentLat: 15.8801,
+    currentLng: 108.3380,
+    vehicleModel: 'Wooden Boat & Bicycle',
+    verified: true,
+    kycStatus: 'verified',
+    kycCardNumber: 'VN-TG-890123',
+    completedTours: 280
   }
 ];
 
@@ -656,22 +913,22 @@ export const initialTourPackages: TourPackage[] = [
   },
   {
     id: 'tp_8',
-    title: 'Bangkok Old City Tuk Tuk Night Safari & Street Food Crawl',
-    city: 'Bangkok',
-    category: 'Food & TukTuk',
+    title: 'Da Nang Son Tra Peninsula & Dragon Bridge Night Scooter Tour',
+    city: 'Da Nang',
+    category: 'Scooter & Nightlife',
     durationHours: 4.0,
-    priceUSDPerPerson: 38,
+    priceUSDPerPerson: 35,
     imageUrl: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80',
-    description: 'Zip through Bangkok glowing streets in a private Tuk Tuk! Taste Michelin Bib Gourmand Pad Thai at Thip Samai, visit Wat Pho at night, and savor mango sticky rice.',
-    inclusions: ['Private Tuk Tuk & Licensed Guide', '6 Iconic Street Food Tastings', 'Wat Pho Night Entrance', 'Cold Herbal Drinks'],
-    itinerarySummary: 'Yaowarat Chinatown -> Thip Samai Pad Thai -> Wat Pho Illuminated Stupa -> Flower Market',
+    description: 'Zip through Da Nang coastal roads on a scooter! Explore Son Tra Peninsula, Lady Buddha pagoda, and witness the fire-and-water breathing Dragon Bridge show at night.',
+    inclusions: ['Private Scooter & Helmet', '5 Coastal Street Food Tastings', 'Lady Buddha Pagoda Entrance', 'Cold Coconut Water'],
+    itinerarySummary: 'My Khe Beach -> Son Tra Peninsula Lady Buddha -> Night Market Food Crawl -> Dragon Bridge Fire Show',
     scheduleSlots: [
       { id: 'slot_801', dateStr: '14/10/2026', startTime: '18:00', endTime: '22:00', displayLabel: '18:00 - 22:00 on 14/10/2026' },
       { id: 'slot_802', dateStr: '20/10/2026', startTime: '18:30', endTime: '22:30', displayLabel: '18:30 - 22:30 on 20/10/2026' }
     ],
-    guideId: 'g_4',
-    guideName: 'Hoang Tran',
-    guideAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+    guideId: 'g_2',
+    guideName: 'Dang Van Phuoc',
+    guideAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
     rating: 4.95,
     reviewsCount: 180,
     status: 'published',
@@ -722,6 +979,305 @@ export const initialTourPackages: TourPackage[] = [
     reviewsCount: 112,
     status: 'published',
     createdAt: '2026-03-01T10:00:00.000Z'
+  },
+  {
+    id: 'tp_11',
+    title: 'Nha Trang Coral Reef Snorkeling & Thap Ba Mineral Mud Bath Tour',
+    city: 'Nha Trang',
+    category: 'Nature & Adventure',
+    durationHours: 5.5,
+    priceUSDPerPerson: 38,
+    imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+    description: 'Cruise to Mun Island Marine Reserve for vibrant coral reef snorkeling, followed by a hot mineral mud bath at Thap Ba Springs and a fresh seafood feast.',
+    inclusions: ['Speedboat Captain & Guide', 'Snorkeling & Lifejacket Gear', 'Thap Ba Mineral Mud Bath Entrance', 'Seafood Lunch'],
+    itinerarySummary: 'Cau Da Port -> Hon Mun Marine Reserve -> Thap Ba Mud Bath -> Dam Market',
+    scheduleSlots: [
+      { id: 'slot_1101', dateStr: '11/10/2026', startTime: '08:00', endTime: '13:30', displayLabel: '08:00 - 13:30 on 11/10/2026' },
+      { id: 'slot_1102', dateStr: '17/10/2026', startTime: '08:30', endTime: '14:00', displayLabel: '08:30 - 14:00 on 17/10/2026' }
+    ],
+    guideId: 'g_9',
+    guideName: 'Bui Van Tam',
+    guideAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    rating: 4.96,
+    reviewsCount: 134,
+    status: 'published',
+    createdAt: '2026-03-02T08:00:00.000Z'
+  },
+  {
+    id: 'tp_12',
+    title: 'Nha Trang Emperor Junk Sunset Cocktail & Seafood Dinner Cruise',
+    city: 'Nha Trang',
+    category: 'Cruise & Food',
+    durationHours: 4.0,
+    priceUSDPerPerson: 52,
+    imageUrl: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=800&q=80',
+    description: 'Sail Nha Trang Bay on a luxury wooden junk as the sun sets over the sea. Free-flow tropical cocktails, live guitar performance, and 5-course lobster dinner.',
+    inclusions: ['Luxury Junk Boat Cruise', 'Free-Flow Cocktails & Wine', '5-Course Lobster & Seafood Dinner', 'Live Acoustic Music'],
+    itinerarySummary: 'Nha Trang Pier -> Vinpearl Bay Sunset -> Live Music Dinner -> Starry Bay Cruise',
+    scheduleSlots: [
+      { id: 'slot_1201', dateStr: '12/10/2026', startTime: '16:30', endTime: '20:30', displayLabel: '16:30 - 20:30 on 12/10/2026' },
+      { id: 'slot_1202', dateStr: '18/10/2026', startTime: '17:00', endTime: '21:00', displayLabel: '17:00 - 21:00 on 18/10/2026' }
+    ],
+    guideId: 'g_9',
+    guideName: 'Bui Van Tam',
+    guideAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    rating: 4.97,
+    reviewsCount: 95,
+    status: 'published',
+    createdAt: '2026-03-03T09:00:00.000Z'
+  },
+  {
+    id: 'tp_13',
+    title: 'Sapa Muong Hoa Valley Rice Terrace Trek & Fansipan Summit Peak',
+    city: 'Sapa',
+    category: 'Nature & Adventure',
+    durationHours: 7.0,
+    priceUSDPerPerson: 45,
+    imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80',
+    description: 'Trek through emerald terraced rice fields of Lao Chai & Ta Van with a local Black Hmong guide. Ride the Fansipan cable car to the Roof of Indochina peak.',
+    inclusions: ['Native Black Hmong Guide', 'Fansipan Cable Car Round-Trip Ticket', 'Local Family Homestay Lunch', 'Trekking Sticks'],
+    itinerarySummary: 'Sapa Town -> Y Linh Ho Valley -> Lao Chai Hmong Village -> Fansipan Cable Car Peak',
+    scheduleSlots: [
+      { id: 'slot_1301', dateStr: '13/10/2026', startTime: '08:00', endTime: '15:00', displayLabel: '08:00 - 15:00 on 13/10/2026' },
+      { id: 'slot_1302', dateStr: '19/10/2026', startTime: '08:30', endTime: '15:30', displayLabel: '08:30 - 15:30 on 19/10/2026' }
+    ],
+    guideId: 'g_10',
+    guideName: 'Giang A Lu',
+    guideAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+    rating: 4.99,
+    reviewsCount: 210,
+    status: 'published',
+    createdAt: '2026-03-04T10:00:00.000Z'
+  },
+  {
+    id: 'tp_14',
+    title: 'Sapa Indigo Craft Workshop & Red Dao Medicinal Herbal Bath',
+    city: 'Sapa',
+    category: 'Culture & Nature',
+    durationHours: 4.0,
+    priceUSDPerPerson: 32,
+    imageUrl: 'https://images.unsplash.com/photo-1509099836639-18ba1795216d?auto=format&fit=crop&w=800&q=80',
+    description: 'Master natural indigo dye techniques from Red Dao artisans in Ta Phin village. Soak in a fragrant medicinal wild herb bath in hand-carved cedar wooden tubs.',
+    inclusions: ['Red Dao Village Host', 'Natural Dye Workshop & Cloth Souvenir', 'Traditional Herbal Barrel Bath', 'Herbal Tea & Snacks'],
+    itinerarySummary: 'Ta Phin Village -> Indigo Dye House -> Red Dao Herbal Bath Spa -> Craft Gallery',
+    scheduleSlots: [
+      { id: 'slot_1401', dateStr: '14/10/2026', startTime: '09:00', endTime: '13:00', displayLabel: '09:00 - 13:00 on 14/10/2026' },
+      { id: 'slot_1402', dateStr: '20/10/2026', startTime: '13:30', endTime: '17:30', displayLabel: '13:30 - 17:30 on 20/10/2026' }
+    ],
+    guideId: 'g_10',
+    guideName: 'Giang A Lu',
+    guideAvatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80',
+    rating: 4.97,
+    reviewsCount: 125,
+    status: 'published',
+    createdAt: '2026-03-05T11:00:00.000Z'
+  },
+  {
+    id: 'tp_15',
+    title: 'Cai Rang Floating Market Sunrise Sampan & Noodle Making Workshop',
+    city: 'Can Tho',
+    category: 'Food & Culture',
+    durationHours: 4.0,
+    priceUSDPerPerson: 25,
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    description: 'Board a sunrise wooden sampan at Cai Rang floating market. Eat steaming Hu Tieu noodle soup served directly between river boats and make colorful tapioca noodles.',
+    inclusions: ['Private Sampan & Captain', 'Floating Market Noodle Breakfast', 'Traditional Rice Paper Workshop', 'Fresh Tropical Fruits'],
+    itinerarySummary: 'Ninh Kieu Wharf -> Cai Rang Floating Market -> Noodle Workshop -> Coconut Canal Ride',
+    scheduleSlots: [
+      { id: 'slot_1501', dateStr: '10/10/2026', startTime: '05:30', endTime: '09:30', displayLabel: '05:30 - 09:30 on 10/10/2026' },
+      { id: 'slot_1502', dateStr: '15/10/2026', startTime: '06:00', endTime: '10:00', displayLabel: '06:00 - 10:00 on 15/10/2026' }
+    ],
+    guideId: 'g_11',
+    guideName: 'Nguyen Thi Hong',
+    guideAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    rating: 4.98,
+    reviewsCount: 168,
+    status: 'published',
+    createdAt: '2026-03-06T08:00:00.000Z'
+  },
+  {
+    id: 'tp_16',
+    title: 'Mekong Delta Fruit Orchard Cycling & Private Canal Sampan Cruise',
+    city: 'Can Tho',
+    category: 'Nature & Bicycle',
+    durationHours: 5.0,
+    priceUSDPerPerson: 30,
+    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
+    description: 'Cycle along tropical island pathways in Son Islet. Taste fresh durian, rambutan, and jackfruit straight off trees, and row a sampan through palm-lined canals.',
+    inclusions: ['Bicycle Rental & Guide', 'Fruit Orchard Entrance & Tastings', 'Cacao Farm Tour & Hot Cocoa', 'Canal Sampan Rowing'],
+    itinerarySummary: 'Son Islet Ferry -> Fruit Orchard Cycling -> Cacao Plantation -> Countryside Lunch',
+    scheduleSlots: [
+      { id: 'slot_1601', dateStr: '12/10/2026', startTime: '08:30', endTime: '13:30', displayLabel: '08:30 - 13:30 on 12/10/2026' },
+      { id: 'slot_1602', dateStr: '18/10/2026', startTime: '09:00', endTime: '14:00', displayLabel: '09:00 - 14:00 on 18/10/2026' }
+    ],
+    guideId: 'g_11',
+    guideName: 'Nguyen Thi Hong',
+    guideAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    rating: 4.95,
+    reviewsCount: 110,
+    status: 'published',
+    createdAt: '2026-03-07T09:00:00.000Z'
+  },
+  {
+    id: 'tp_17',
+    title: 'Hue Imperial Citadel & Perfume River Dragon Boat Tour',
+    city: 'Hue',
+    category: 'Culture & History',
+    durationHours: 6.5,
+    priceUSDPerPerson: 42,
+    imageUrl: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=800&q=80',
+    description: 'Explore the grand Hue Imperial Citadel, Forbidden Purple City, and sail down the Perfume River on a traditional dragon boat to Thien Mu Pagoda.',
+    inclusions: ['Imperial Historian Guide', 'Citadel & Pagoda Entrance Tickets', 'Perfume River Dragon Boat Ride', 'Royal Court Cuisine Lunch'],
+    itinerarySummary: 'Ngo Mon Gate -> Imperial Citadel -> Perfume River Boat Ride -> Thien Mu Pagoda',
+    scheduleSlots: [
+      { id: 'slot_1701', dateStr: '11/10/2026', startTime: '08:00', endTime: '14:30', displayLabel: '08:00 - 14:30 on 11/10/2026' },
+      { id: 'slot_1702', dateStr: '16/10/2026', startTime: '08:30', endTime: '15:00', displayLabel: '08:30 - 15:00 on 16/10/2026' }
+    ],
+    guideId: 'g_12',
+    guideName: 'Tran Thi Xuan',
+    guideAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+    rating: 4.99,
+    reviewsCount: 245,
+    status: 'published',
+    createdAt: '2026-03-08T10:00:00.000Z'
+  },
+  {
+    id: 'tp_18',
+    title: 'Hue Royal Tombs & Imperial Court Cuisine Night Safari',
+    city: 'Hue',
+    category: 'Food & History',
+    durationHours: 3.5,
+    priceUSDPerPerson: 32,
+    imageUrl: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80',
+    description: 'Visit Khai Dinh royal tomb surrounded by pine forests. Indulge in authentic Hue royal multi-course dining with live court musical performance.',
+    inclusions: ['Royal Tomb Entrance Ticket', 'Imperial Court Multi-Course Dinner', 'Traditional Music Performance', 'Private Sedan Transfer'],
+    itinerarySummary: 'Khai Dinh Tomb -> Pine Forest Sunset -> Imperial Royal Restaurant -> Perfume River Walk',
+    scheduleSlots: [
+      { id: 'slot_1801', dateStr: '12/10/2026', startTime: '16:30', endTime: '20:00', displayLabel: '16:30 - 20:00 on 12/10/2026' },
+      { id: 'slot_1802', dateStr: '19/10/2026', startTime: '17:00', endTime: '20:30', displayLabel: '17:00 - 20:30 on 19/10/2026' }
+    ],
+    guideId: 'g_12',
+    guideName: 'Tran Thi Xuan',
+    guideAvatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+    rating: 4.98,
+    reviewsCount: 180,
+    status: 'published',
+    createdAt: '2026-03-09T11:00:00.000Z'
+  },
+  {
+    id: 'tp_19',
+    title: 'Phu Quoc An Thoi Archipelago Speedboat & Coral Reef Snorkeling',
+    city: 'Phu Quoc',
+    category: 'Adventure & Nature',
+    durationHours: 7.5,
+    priceUSDPerPerson: 58,
+    imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+    description: 'Speedboat across An Thoi archipelago to Fingernail & May Rut islands. Snorkel in coral gardens, walk along white sand beaches, and enjoy a seafood feast.',
+    inclusions: ['Speedboat Cruise & Skipper', 'Snorkeling & Lifejacket Gear', 'Beachfront Seafood Buffet Lunch', 'Island Transfer SUV'],
+    itinerarySummary: 'An Thoi Harbor -> Fingernail Island -> May Rut Coral Reef -> Thom Island Cable Car',
+    scheduleSlots: [
+      { id: 'slot_1901', dateStr: '11/10/2026', startTime: '07:30', endTime: '15:00', displayLabel: '07:30 - 15:00 on 11/10/2026' },
+      { id: 'slot_1902', dateStr: '17/10/2026', startTime: '08:00', endTime: '15:30', displayLabel: '08:00 - 15:30 on 17/10/2026' }
+    ],
+    guideId: 'g_13',
+    guideName: 'Nguyen Van Duc',
+    guideAvatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    rating: 4.94,
+    reviewsCount: 162,
+    status: 'published',
+    createdAt: '2026-03-10T08:00:00.000Z'
+  },
+  {
+    id: 'tp_20',
+    title: 'Phu Quoc Night Squid Fishing & Sunset Seafood BBQ Cruise',
+    city: 'Phu Quoc',
+    category: 'Food & Cruise',
+    durationHours: 3.5,
+    priceUSDPerPerson: 30,
+    imageUrl: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80',
+    description: 'Sail into the Gulf of Thailand at golden hour. Learn traditional squid fishing under boat spotlights and enjoy a fresh night seafood BBQ.',
+    inclusions: ['Sunset Boat Cruise & Captain', 'Squid Fishing Rods & Bait', 'Fresh Seafood & Grilled Squid Dinner', 'Cold Beers & Soft Drinks'],
+    itinerarySummary: 'Duong Dong Pier -> Sunset Cocktail Cruise -> Squid Spotlights Fishing -> Onboard BBQ Dinner',
+    scheduleSlots: [
+      { id: 'slot_2001', dateStr: '13/10/2026', startTime: '16:30', endTime: '20:00', displayLabel: '16:30 - 20:00 on 13/10/2026' },
+      { id: 'slot_2002', dateStr: '20/10/2026', startTime: '17:00', endTime: '20:30', displayLabel: '17:00 - 20:30 on 20/10/2026' }
+    ],
+    guideId: 'g_13',
+    guideName: 'Nguyen Van Duc',
+    guideAvatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    rating: 4.92,
+    reviewsCount: 98,
+    status: 'published',
+    createdAt: '2026-03-11T09:00:00.000Z'
+  },
+  {
+    id: 'tp_21',
+    title: 'Hanoi Hidden Alleyways Street Food Crawl & Egg Coffee Workshop',
+    city: 'Hanoi',
+    category: 'Food & Culture',
+    durationHours: 4.0,
+    priceUSDPerPerson: 32,
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80',
+    description: 'Sample iconic Bun Cha, Pho Cuon, and Banh Mi through Hanoi Old Quarter secret alleyways. Learn to whip authentic Egg Coffee at a hidden balcony cafe.',
+    inclusions: ['Hanoi Native Foodie Host', '7 Gourmet Street Food Tastings', 'Egg Coffee Whipping Workshop', 'Old Quarter Hidden Map'],
+    itinerarySummary: 'Dong Xuan Market -> Hidden Alleyway Bun Cha -> Cafe Giang Egg Coffee Class -> Hoan Kiem Lake',
+    scheduleSlots: [
+      { id: 'slot_2101', dateStr: '10/10/2026', startTime: '09:00', endTime: '13:00', displayLabel: '09:00 - 13:00 on 10/10/2026' },
+      { id: 'slot_2102', dateStr: '15/10/2026', startTime: '16:00', endTime: '20:00', displayLabel: '16:00 - 20:00 on 15/10/2026' }
+    ],
+    guideId: 'g_14',
+    guideName: 'Pham Hoang Quan',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    rating: 4.98,
+    reviewsCount: 260,
+    status: 'published',
+    createdAt: '2026-03-12T10:00:00.000Z'
+  },
+  {
+    id: 'tp_22',
+    title: 'Hanoi West Lake Sunset Vespa Tour & Craft Beer Trail',
+    city: 'Hanoi',
+    category: 'Scooter & Food',
+    durationHours: 3.5,
+    priceUSDPerPerson: 38,
+    imageUrl: 'https://images.unsplash.com/photo-1508009603885-50cf7c579365?auto=format&fit=crop&w=800&q=80',
+    description: 'Ride along scenic West Lake on a vintage Vespa scooter. Visit Tran Quoc Pagoda and taste local craft beers at lakeside microbreweries.',
+    inclusions: ['Vintage Vespa & Driver Guide', '3 Craft Beer Flight Tastings', 'Tran Quoc Pagoda Entry', 'Lakeside BBQ Snacks'],
+    itinerarySummary: 'Tran Quoc Pagoda -> West Lake Ride -> Local Microbrewery -> St. Joseph Cathedral',
+    scheduleSlots: [
+      { id: 'slot_2201', dateStr: '12/10/2026', startTime: '17:00', endTime: '20:30', displayLabel: '17:00 - 20:30 on 12/10/2026' },
+      { id: 'slot_2202', dateStr: '18/10/2026', startTime: '17:30', endTime: '21:00', displayLabel: '17:30 - 21:00 on 18/10/2026' }
+    ],
+    guideId: 'g_14',
+    guideName: 'Pham Hoang Quan',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    rating: 4.96,
+    reviewsCount: 195,
+    status: 'published',
+    createdAt: '2026-03-13T11:00:00.000Z'
+  },
+  {
+    id: 'tp_23',
+    title: 'Hoi An Lantern Crafting & Coconut Forest Basket Boat Tour',
+    city: 'Hoi An',
+    category: 'Culture & Nature',
+    durationHours: 4.0,
+    priceUSDPerPerson: 28,
+    imageUrl: 'https://images.unsplash.com/photo-1528127269322-539801943592?auto=format&fit=crop&w=800&q=80',
+    description: 'Paddle traditional bamboo basket boats through Cam Thanh coconut palm forest. Craft your own silk lantern at a historic Hoi An artisan workshop.',
+    inclusions: ['Hoi An Local Guide', 'Bamboo Basket Boat Ride & Spinning Show', 'Silk Lantern Making Class & Souvenir', 'Fresh Herbal Tea'],
+    itinerarySummary: 'Cam Thanh Coconut Forest Basket Boat -> Silk Lantern Workshop -> Japanese Bridge Sunset',
+    scheduleSlots: [
+      { id: 'slot_2301', dateStr: '11/10/2026', startTime: '08:00', endTime: '12:00', displayLabel: '08:00 - 12:00 on 11/10/2026' },
+      { id: 'slot_2302', dateStr: '16/10/2026', startTime: '14:00', endTime: '18:00', displayLabel: '14:00 - 18:00 on 16/10/2026' }
+    ],
+    guideId: 'g_15',
+    guideName: 'Le Van Tai',
+    guideAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    rating: 4.99,
+    reviewsCount: 280,
+    status: 'published',
+    createdAt: '2026-03-14T08:00:00.000Z'
   }
 ];
 
@@ -742,6 +1298,78 @@ export const initialTravelerPosts: TravelerPostRequest[] = [
     preferredLanguages: ['English', 'French'],
     status: 'open',
     createdAt: new Date(Date.now() - 4 * 3600000).toISOString(),
+    bidsCount: 2
+  },
+  {
+    id: 'post_102',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    title: 'Private SUV Guide for Ba Na Hills Golden Bridge & Marble Mountains Day Trip',
+    city: 'Da Nang',
+    preferredDate: 'In 3 days at 08:00 AM',
+    durationHours: 7,
+    groupSize: 3,
+    minBudgetUSD: 80,
+    maxBudgetUSD: 130,
+    description: 'Need a licensed English guide with 7-seater car to beat cable car queues at Ba Na Hills Golden Bridge and take professional family photos.',
+    preferredLanguages: ['English'],
+    status: 'open',
+    createdAt: new Date(Date.now() - 12 * 3600000).toISOString(),
+    bidsCount: 1
+  },
+  {
+    id: 'post_103',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    title: 'Seeking Local Historian Guide for Hue Citadel & Perfume River Boat Tour',
+    city: 'Hue',
+    preferredDate: 'Next Tuesday at 08:30 AM',
+    durationHours: 6,
+    groupSize: 2,
+    minBudgetUSD: 50,
+    maxBudgetUSD: 90,
+    description: 'Want a friendly local guide for a day trip through Hue Imperial Citadel, royal tombs, followed by Perfume River dragon boat cruise.',
+    preferredLanguages: ['English'],
+    status: 'open',
+    createdAt: new Date(Date.now() - 18 * 3600000).toISOString(),
+    bidsCount: 0
+  },
+  {
+    id: 'post_104',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    title: 'Indigenous Hmong Guide Needed for 2-Day Sapa Rice Terrace Trekking',
+    city: 'Sapa',
+    preferredDate: 'Next Friday at 07:30 AM',
+    durationHours: 12,
+    groupSize: 2,
+    minBudgetUSD: 70,
+    maxBudgetUSD: 120,
+    description: 'Looking for a native local guide to lead us through off-the-beaten-track mountain villages, homestay with Dao family, and indigo dyeing.',
+    preferredLanguages: ['English'],
+    status: 'open',
+    createdAt: new Date(Date.now() - 24 * 3600000).toISOString(),
+    bidsCount: 1
+  },
+  {
+    id: 'post_105',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    title: 'Hanoi Foodie Host for Old Quarter Street Food Crawl & Egg Coffee Class',
+    city: 'Hanoi',
+    preferredDate: 'Next Month at 09:00 AM',
+    durationHours: 5,
+    groupSize: 2,
+    minBudgetUSD: 50,
+    maxBudgetUSD: 90,
+    description: 'Looking for an enthusiastic Hanoi host to show us secret street food spots in Old Quarter and guide us in making Egg Coffee.',
+    preferredLanguages: ['English', 'Vietnamese'],
+    status: 'open',
+    createdAt: new Date(Date.now() - 36 * 3600000).toISOString(),
     bidsCount: 2
   }
 ];
@@ -814,11 +1442,16 @@ export function isMongoConnected(): boolean {
 }
 
 export async function connectMongoDB() {
+  // First initialize Firebase Firestore database if credentials/project configured
+  await initFirebaseDatabase();
+
   mongoose.set('bufferCommands', false);
   const uri = process.env.MONGODB_URI;
 
   if (!uri) {
-    console.warn('⚡ MONGODB_URI not set. Using high-speed in-memory data store as seamless fallback.');
+    if (!isFirebaseConnected()) {
+      console.warn('⚡ MONGODB_URI and FIREBASE credentials not set. Using high-speed in-memory data store as seamless fallback.');
+    }
     return;
   }
 
@@ -847,7 +1480,6 @@ export async function connectMongoDB() {
   } catch (err: any) {
     console.warn('⚠️ MongoDB Atlas connection restricted or timed out.');
     console.warn('👉 Note: To enable cloud persistence, add 0.0.0.0/0 to your MongoDB Atlas Network Access IP whitelist.');
-    console.warn('⚡ Using high-speed in-memory data store as seamless fallback.');
   }
 }
 
@@ -855,6 +1487,10 @@ export async function connectMongoDB() {
 
 // User operations
 export async function dbFindUserByEmail(email: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindUserByEmail(email);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await UserModel.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') }).lean();
@@ -864,6 +1500,10 @@ export async function dbFindUserByEmail(email: string) {
 }
 
 export async function dbFindUserById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindUserById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await UserModel.findOne({ id }).lean();
@@ -874,6 +1514,10 @@ export async function dbFindUserById(id: string) {
 
 export async function dbFindUserByToken(token: string) {
   if (!token) return null;
+  if (isFirebaseConnected()) {
+    const res = await fsFindUserByToken(token);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       const u = await UserModel.findOne({ token }).lean();
@@ -887,6 +1531,9 @@ export async function dbFindUserByToken(token: string) {
 export async function dbSaveUser(userData: any) {
   if (!userData.createdAt) {
     userData.createdAt = new Date().toISOString();
+  }
+  if (isFirebaseConnected()) {
+    await fsSaveUser(userData);
   }
   if (isMongoConnected()) {
     try {
@@ -903,6 +1550,10 @@ export async function dbSaveUser(userData: any) {
 }
 
 export async function dbGetAllUsers() {
+  if (isFirebaseConnected()) {
+    const res = await fsGetAllUsers();
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       const users = await UserModel.find({}).sort({ _id: -1 }).lean();
@@ -914,6 +1565,10 @@ export async function dbGetAllUsers() {
 
 // Guide Profile operations
 export async function dbFindGuideByUserIdOrName(userId: string, name?: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindGuideByUserIdOrName(userId, name);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       const query: any[] = [{ userId }];
@@ -925,6 +1580,10 @@ export async function dbFindGuideByUserIdOrName(userId: string, name?: string) {
 }
 
 export async function dbFindGuideById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindGuideById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await GuideProfileModel.findOne({ id }).lean();
@@ -934,6 +1593,9 @@ export async function dbFindGuideById(id: string) {
 }
 
 export async function dbSaveGuide(guideData: any) {
+  if (isFirebaseConnected()) {
+    await fsSaveGuide(guideData);
+  }
   if (isMongoConnected()) {
     try {
       await GuideProfileModel.findOneAndUpdate({ id: guideData.id }, guideData, { upsert: true, new: true });
@@ -949,6 +1611,10 @@ export async function dbSaveGuide(guideData: any) {
 }
 
 export async function dbGetGuides(city?: string, verifiedOnly?: boolean) {
+  if (isFirebaseConnected()) {
+    const res = await fsGetGuides(city, verifiedOnly);
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       const query: any = {};
@@ -965,6 +1631,10 @@ export async function dbGetGuides(city?: string, verifiedOnly?: boolean) {
 }
 
 export async function dbGetOnlineGuide() {
+  if (isFirebaseConnected()) {
+    const res = await fsGetOnlineGuide();
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       let g = await GuideProfileModel.findOne({ isOnline: true }).lean();
@@ -979,6 +1649,9 @@ export async function dbGetOnlineGuide() {
 
 // KYC operations
 export async function dbSaveKYC(kycData: any) {
+  if (isFirebaseConnected()) {
+    await fsSaveKYC(kycData);
+  }
   if (isMongoConnected()) {
     try {
       await KYCApplicationModel.findOneAndUpdate({ id: kycData.id }, kycData, { upsert: true, new: true });
@@ -994,6 +1667,10 @@ export async function dbSaveKYC(kycData: any) {
 }
 
 export async function dbGetKYCList() {
+  if (isFirebaseConnected()) {
+    const res = await fsGetKYCList();
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await KYCApplicationModel.find({}).sort({ createdAt: -1 }).lean();
@@ -1003,6 +1680,10 @@ export async function dbGetKYCList() {
 }
 
 export async function dbFindKYCById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindKYCById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await KYCApplicationModel.findOne({ id }).lean();
@@ -1013,6 +1694,9 @@ export async function dbFindKYCById(id: string) {
 
 // Tour Package operations
 export async function dbSaveTour(tourData: any) {
+  if (isFirebaseConnected()) {
+    await fsSaveTour(tourData);
+  }
   if (isMongoConnected()) {
     try {
       await TourPackageModel.findOneAndUpdate({ id: tourData.id }, tourData, { upsert: true, new: true });
@@ -1028,6 +1712,10 @@ export async function dbSaveTour(tourData: any) {
 }
 
 export async function dbGetTours(city?: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsGetTours(city);
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       const query: any = {};
@@ -1039,6 +1727,10 @@ export async function dbGetTours(city?: string) {
 }
 
 export async function dbFindTourById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindTourById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await TourPackageModel.findOne({ id }).lean();
@@ -1049,6 +1741,9 @@ export async function dbFindTourById(id: string) {
 
 // Traveler Posts
 export async function dbSavePost(postData: any) {
+  if (isFirebaseConnected()) {
+    await fsSavePost(postData);
+  }
   if (isMongoConnected()) {
     try {
       await TravelerPostRequestModel.findOneAndUpdate({ id: postData.id }, postData, { upsert: true, new: true });
@@ -1064,6 +1759,10 @@ export async function dbSavePost(postData: any) {
 }
 
 export async function dbGetPosts(city?: string, status?: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsGetPosts(city, status);
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       const query: any = {};
@@ -1080,6 +1779,10 @@ export async function dbGetPosts(city?: string, status?: string) {
 }
 
 export async function dbFindPostById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindPostById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await TravelerPostRequestModel.findOne({ id }).lean();
@@ -1090,6 +1793,9 @@ export async function dbFindPostById(id: string) {
 
 // Negotiation Offers
 export async function dbSaveNegotiation(negData: any) {
+  if (isFirebaseConnected()) {
+    await fsSaveNegotiation(negData);
+  }
   if (isMongoConnected()) {
     try {
       await NegotiationOfferModel.findOneAndUpdate({ id: negData.id }, negData, { upsert: true, new: true });
@@ -1105,6 +1811,10 @@ export async function dbSaveNegotiation(negData: any) {
 }
 
 export async function dbFindNegotiationByPostAndGuide(postId: string, guideId: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindNegotiationByPostAndGuide(postId, guideId);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await NegotiationOfferModel.findOne({ postId, guideId }).lean();
@@ -1114,6 +1824,10 @@ export async function dbFindNegotiationByPostAndGuide(postId: string, guideId: s
 }
 
 export async function dbFindNegotiationById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindNegotiationById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await NegotiationOfferModel.findOne({ id }).lean();
@@ -1123,6 +1837,10 @@ export async function dbFindNegotiationById(id: string) {
 }
 
 export async function dbGetNegotiationsByUser(userId: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsGetNegotiationsByUser(userId);
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       const query = userId === 'all' ? {} : { $or: [{ travelerId: userId }, { guideId: userId }] };
@@ -1134,6 +1852,9 @@ export async function dbGetNegotiationsByUser(userId: string) {
 
 // Bookings
 export async function dbSaveBooking(bookingData: any) {
+  if (isFirebaseConnected()) {
+    await fsSaveBooking(bookingData);
+  }
   if (isMongoConnected()) {
     try {
       await TourBookingModel.findOneAndUpdate({ id: bookingData.id }, bookingData, { upsert: true, new: true });
@@ -1149,6 +1870,10 @@ export async function dbSaveBooking(bookingData: any) {
 }
 
 export async function dbFindBookingById(id: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsFindBookingById(id);
+    if (res) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await TourBookingModel.findOne({ id }).lean();
@@ -1158,6 +1883,10 @@ export async function dbFindBookingById(id: string) {
 }
 
 export async function dbGetBookingsByUser(userId: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsGetBookingsByUser(userId);
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       const query = userId === 'all' ? {} : { $or: [{ travelerId: userId }, { guideId: userId }] };
@@ -1168,6 +1897,10 @@ export async function dbGetBookingsByUser(userId: string) {
 }
 
 export async function dbGetAllBookings() {
+  if (isFirebaseConnected()) {
+    const res = await fsGetAllBookings();
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await TourBookingModel.find({}).lean();
@@ -1178,6 +1911,10 @@ export async function dbGetAllBookings() {
 
 // Chat Messages
 export async function dbGetChatMessages(bookingId: string) {
+  if (isFirebaseConnected()) {
+    const res = await fsGetChatMessages(bookingId);
+    if (res && res.length > 0) return res;
+  }
   if (isMongoConnected()) {
     try {
       return await ChatMessageModel.find({ bookingId }).sort({ timestamp: 1 }).lean();
@@ -1187,6 +1924,9 @@ export async function dbGetChatMessages(bookingId: string) {
 }
 
 export async function dbSaveChatMessage(msgData: any) {
+  if (isFirebaseConnected()) {
+    await fsSaveChatMessage(msgData);
+  }
   if (isMongoConnected()) {
     try {
       await ChatMessageModel.findOneAndUpdate({ id: msgData.id }, msgData, { upsert: true, new: true });

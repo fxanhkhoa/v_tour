@@ -27,6 +27,13 @@ You can test all roles (Traveler, Verified Guide, Under Review Guide, Admin) usi
 | **Pham Quoc Bao** | `baopham.hue@gmail.com` | Hue | Verified 📜 | `VN-TG-552190` |
 | **Nguyen Linh Chi** | `linhchi.phuquoc@gmail.com` | Phu Quoc | Verified 📜 | `VN-TG-443210` |
 | **Hoang Van Nam** | `namhoang.halong@gmail.com` | Ha Long Bay | Verified 📜 | `VN-TG-331002` |
+| **Bui Van Tam** | `tam.nhatrang@gmail.com` | Nha Trang | Verified 📜 | `VN-TG-221089` |
+| **Giang A Lu** | `alu.sapa@gmail.com` | Sapa | Verified 📜 | `VN-TG-110923` |
+| **Nguyen Thi Hong** | `hong.cantho@gmail.com` | Can Tho | Verified 📜 | `VN-TG-990812` |
+| **Kanyanat "Nok" Suwan** | `nok.chiangmai@gmail.com` | Chiang Mai | Verified 📜 | `TH-TG-778899` |
+| **Anan Chatchai** | `anan.phuket@gmail.com` | Phuket | Verified 📜 | `TH-TG-554433` |
+| **Kenji Sato** | `kenji.tokyo@gmail.com` | Tokyo | Verified 📜 | `JP-TG-901234` |
+| **Yuki Tanaka** | `yuki.kyoto@gmail.com` | Kyoto | Verified 📜 | `JP-TG-890123` |
 
 ---
 

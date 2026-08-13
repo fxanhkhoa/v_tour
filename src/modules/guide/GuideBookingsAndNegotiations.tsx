@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { GuideProfile, TourBooking, TravelerPostRequest, NegotiationOffer } from '../../types';
+import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
 
 interface GuideBookingsAndNegotiationsProps {
   guideProfile: GuideProfile;
@@ -33,13 +34,79 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   const [counteringOfferId, setCounteringOfferId] = useState<string | null>(null);
   const [counterPrice, setCounterPrice] = useState<number>(45);
 
-  const myBookings = bookings.filter(
+  const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
+
+  // Search & Filter State for Custom Requests
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('all');
+  const [maxBudget, setMaxBudget] = useState<string>('');
+  const [minGroupSize, setMinGroupSize] = useState<string>('');
+  const [sortBy, setSortBy] = useState<'newest' | 'budget_high' | 'budget_low'>('newest');
+
+  const myBookings = (bookings || []).filter(
     b => b.guideId === guideProfile.id || b.guideName?.toLowerCase() === guideProfile.fullName?.toLowerCase()
   );
-  const cityPosts = posts.filter(
-    p => p.city.toLowerCase() === guideProfile.city.toLowerCase() || p.city === 'Ho Chi Minh City'
-  );
-  const myNegotiations = negotiations.filter(
+
+  // Extract all unique cities from posts + guide city
+  const availableCities = React.useMemo(() => {
+    const citySet = new Set<string>();
+    if (guideProfile.city) citySet.add(guideProfile.city);
+    (posts || []).forEach(p => {
+      if (p.city) citySet.add(p.city);
+    });
+    return Array.from(citySet).sort();
+  }, [posts, guideProfile.city]);
+
+  // Filter posts with full search criteria
+  const filteredPosts = React.useMemo(() => {
+    return (posts || []).filter(post => {
+      // City filter
+      if (selectedCity !== 'all') {
+        if (post.city?.toLowerCase() !== selectedCity.toLowerCase()) return false;
+      }
+
+      // Max Budget filter
+      if (maxBudget !== '' && !isNaN(Number(maxBudget))) {
+        if (post.minBudgetUSD > Number(maxBudget)) return false;
+      }
+
+      // Group Size filter
+      if (minGroupSize !== '' && !isNaN(Number(minGroupSize))) {
+        if (post.groupSize < Number(minGroupSize)) return false;
+      }
+
+      // Keyword search (title, description, travelerName, city, languages)
+      if (searchQuery.trim() !== '') {
+        const q = searchQuery.toLowerCase().trim();
+        const matchTitle = post.title?.toLowerCase().includes(q);
+        const matchDesc = post.description?.toLowerCase().includes(q);
+        const matchName = post.travelerName?.toLowerCase().includes(q);
+        const matchCity = post.city?.toLowerCase().includes(q);
+        const matchLang = post.preferredLanguages?.some(l => l.toLowerCase().includes(q));
+        if (!matchTitle && !matchDesc && !matchName && !matchCity && !matchLang) {
+          return false;
+        }
+      }
+
+      return true;
+    }).sort((a, b) => {
+      if (sortBy === 'budget_high') return b.maxBudgetUSD - a.maxBudgetUSD;
+      if (sortBy === 'budget_low') return a.minBudgetUSD - b.minBudgetUSD;
+      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+    });
+  }, [posts, selectedCity, maxBudget, minGroupSize, searchQuery, sortBy]);
+
+  const hasActiveFilters = searchQuery !== '' || selectedCity !== 'all' || maxBudget !== '' || minGroupSize !== '' || sortBy !== 'newest';
+
+  const handleResetFilters = () => {
+    setSearchQuery('');
+    setSelectedCity('all');
+    setMaxBudget('');
+    setMinGroupSize('');
+    setSortBy('newest');
+  };
+
+  const myNegotiations = (negotiations || []).filter(
     n => n.guideId === guideProfile.id || n.guideName?.toLowerCase() === guideProfile.fullName?.toLowerCase()
   );
 
@@ -64,13 +131,153 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
               Answer Travelers & Tour Company Custom Requests
             </h3>
             <p className="text-xs text-slate-500">
-              Travelers post custom trip requirements. Send direct price offers & negotiate directly.
+              Travelers post custom trip requirements. Search by city, budget, or keywords and send direct price offers.
             </p>
           </div>
 
-          <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-bold border">
-            {cityPosts.length} Open Requests in {guideProfile.city}
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-bold border">
+              Showing {filteredPosts.length} of {posts.length} Custom Requests
+            </span>
+          </div>
+        </div>
+
+        {/* Search & Criteria Filter Bar */}
+        <div className="mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-12 gap-3">
+            {/* Search Keyword */}
+            <div className="md:col-span-5 relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">
+                search
+              </span>
+              <input
+                type="text"
+                placeholder="Search request title, details, traveler name, languages..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold cursor-pointer"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* City Filter */}
+            <div className="md:col-span-3">
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer"
+              >
+                <option value="all">📍 All Cities ({posts.length})</option>
+                {guideProfile.city && (
+                  <option value={guideProfile.city.toLowerCase()}>
+                    ⭐ My City ({guideProfile.city})
+                  </option>
+                )}
+                {availableCities
+                  .filter(c => c.toLowerCase() !== guideProfile.city?.toLowerCase())
+                  .map(c => (
+                    <option key={c} value={c.toLowerCase()}>
+                      📍 {c}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {/* Sort Order */}
+            <div className="md:col-span-4">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer"
+              >
+                <option value="newest">🕒 Sort: Newest First</option>
+                <option value="budget_high">💰 Sort: Highest Budget First</option>
+                <option value="budget_low">🏷️ Sort: Lowest Budget First</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Detailed Criteria Options */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2.5 border-t border-slate-200/70 text-xs">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Quick City Buttons */}
+              <div className="flex items-center space-x-1.5">
+                <span className="font-bold text-slate-500 text-[11px]">Quick Location:</span>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCity('all')}
+                  className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer ${
+                    selectedCity === 'all'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                  }`}
+                >
+                  All Cities
+                </button>
+                {guideProfile.city && (
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCity(guideProfile.city.toLowerCase())}
+                    className={`px-2.5 py-1 rounded-lg text-[11px] font-bold transition-all cursor-pointer flex items-center space-x-1 ${
+                      selectedCity === guideProfile.city.toLowerCase()
+                        ? 'bg-teal-700 text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span>⭐ {guideProfile.city}</span>
+                  </button>
+                )}
+              </div>
+
+              {/* Max Budget Filter */}
+              <div className="flex items-center space-x-1.5 pl-3 border-l border-slate-200">
+                <span className="text-[11px] font-bold text-slate-500">Max Budget:</span>
+                <input
+                  type="number"
+                  placeholder="e.g. 150"
+                  value={maxBudget}
+                  onChange={(e) => setMaxBudget(e.target.value)}
+                  className="w-20 px-2 py-0.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-800 placeholder-slate-400 focus:outline-none"
+                />
+                <span className="text-[11px] text-slate-400 font-semibold">USD</span>
+              </div>
+
+              {/* Group Size Filter */}
+              <div className="flex items-center space-x-1.5 pl-3 border-l border-slate-200">
+                <span className="text-[11px] font-bold text-slate-500">Group Size:</span>
+                <select
+                  value={minGroupSize}
+                  onChange={(e) => setMinGroupSize(e.target.value)}
+                  className="px-2 py-0.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none cursor-pointer"
+                >
+                  <option value="">Any</option>
+                  <option value="1">1+ Traveler</option>
+                  <option value="2">2+ Travelers</option>
+                  <option value="4">4+ Travelers</option>
+                  <option value="6">6+ Travelers</option>
+                </select>
+              </div>
+            </div>
+
+            {hasActiveFilters && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="text-[11px] text-rose-600 hover:text-rose-700 font-extrabold flex items-center space-x-1 cursor-pointer bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200"
+              >
+                <span className="material-symbols-outlined text-xs">restart_alt</span>
+                <span>Reset Filters</span>
+              </button>
+            )}
+          </div>
         </div>
 
         {!isVerified && (
@@ -102,68 +309,186 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {cityPosts.map((post) => (
-            <div key={post.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center space-x-2">
-                    <img
-                      src={post.travelerAvatar}
-                      alt={post.travelerName}
-                      className="w-7 h-7 rounded-full object-cover border border-slate-200"
-                    />
-                    <span className="font-bold text-xs text-slate-900">{post.travelerName}</span>
+        {filteredPosts.length === 0 ? (
+          <div className="p-10 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
+            <span className="material-symbols-outlined text-slate-400 text-4xl mb-2">find_in_page</span>
+            <p className="text-slate-600 font-bold text-sm">No custom requests found matching your filter criteria.</p>
+            <p className="text-xs text-slate-400 mt-1 mb-4">Try clearing your keyword search or adjusting location and budget constraints.</p>
+            {hasActiveFilters && (
+              <button
+                onClick={handleResetFilters}
+                className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-slate-800 transition-all cursor-pointer"
+              >
+                Reset Search Filters
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredPosts.map((post) => {
+              const matchingNegotiations = (negotiations || []).filter(n => {
+                if (!n) return false;
+                if (n.postId && post.id && String(n.postId) === String(post.id)) return true;
+                
+                if (!n.postId) {
+                  const isTravelerMatch = (n.travelerId && post.travelerId && n.travelerId === post.travelerId) ||
+                                          (n.travelerName && post.travelerName && n.travelerName.toLowerCase().trim() === post.travelerName.toLowerCase().trim());
+                  if (isTravelerMatch && n.tourTitle && post.title) {
+                    const nTitle = n.tourTitle.toLowerCase();
+                    const pTitle = post.title.toLowerCase();
+                    if (nTitle === pTitle || nTitle.includes(pTitle) || pTitle.includes(nTitle)) return true;
+                  }
+                }
+
+                return false;
+              });
+
+              const myNeg = matchingNegotiations.find(n => n.guideId === guideProfile.id);
+              const existingNegotiation = myNeg || matchingNegotiations[0] || null;
+
+              return (
+                <div key={post.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center space-x-2">
+                        <img
+                          src={post.travelerAvatar}
+                          alt={post.travelerName}
+                          className="w-7 h-7 rounded-full object-cover border border-slate-200"
+                        />
+                        <span className="font-bold text-xs text-slate-900">{post.travelerName}</span>
+                      </div>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-800 text-[10px] font-black uppercase flex items-center space-x-1">
+                          <span className="material-symbols-outlined text-xs text-teal-700">location_on</span>
+                          <span>{post.city}</span>
+                        </span>
+                        <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-black uppercase">
+                          Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD}
+                        </span>
+                      </div>
+                    </div>
+
+                  <h4 className="font-bold text-slate-900 text-sm mb-1">{post.title}</h4>
+                  <p className="text-xs text-slate-600 line-clamp-3 mb-3">{post.description}</p>
+
+                  <div className="flex flex-wrap gap-2 text-[11px] text-slate-500 font-medium">
+                    <span>📅 {post.preferredDate}</span>
+                    <span>⏱️ {post.durationHours} Hours</span>
+                    <span>👥 {post.groupSize} Travelers</span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full bg-teal-100 text-teal-800 text-[10px] font-extrabold uppercase">
-                    Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD}
-                  </span>
+
+                  {existingNegotiation && (
+                    <div className={`mt-3 p-3 rounded-2xl border text-xs space-y-1.5 ${
+                      existingNegotiation.lastSenderRole === 'traveler'
+                        ? 'bg-amber-500/15 border-amber-500/40 text-amber-950'
+                        : existingNegotiation.status === 'accepted'
+                        ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-950'
+                        : 'bg-teal-500/10 border-teal-500/30 text-teal-950'
+                    }`}>
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold flex items-center space-x-1">
+                          <span>{existingNegotiation.lastSenderRole === 'traveler' ? '📩 Traveler Negotiated:' : '🤝 Active Bid:'}</span>
+                          <span className="text-emerald-700 font-black">${existingNegotiation.offeredPriceUSD} USD</span>
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
+                          existingNegotiation.status === 'accepted' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' :
+                          existingNegotiation.lastSenderRole === 'traveler' ? 'bg-amber-100 text-amber-900 border border-amber-300 animate-pulse' :
+                          'bg-teal-100 text-teal-900 border border-teal-300'
+                        }`}>
+                          {existingNegotiation.status === 'accepted'
+                            ? 'Accepted'
+                            : existingNegotiation.lastSenderRole === 'traveler'
+                            ? 'Awaiting Your Response ⏳'
+                            : 'Offer Sent ⏳'}
+                        </span>
+                      </div>
+                      {existingNegotiation.messages && existingNegotiation.messages.length > 0 && (
+                        <p className="text-[11px] text-slate-700 italic line-clamp-2">
+                          "{existingNegotiation.messages[existingNegotiation.messages.length - 1]?.text}"
+                        </p>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                <h4 className="font-bold text-slate-900 text-sm mb-1">{post.title}</h4>
-                <p className="text-xs text-slate-600 line-clamp-3 mb-3">{post.description}</p>
+                <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
+                  <span className="text-xs font-bold text-teal-700">{post.bidsCount || (existingNegotiation ? 1 : 0)} Bids Received</span>
+                  
+                  <div className="flex items-center space-x-2">
+                    {existingNegotiation ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => setHistoryModalNegotiation(existingNegotiation)}
+                          className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center space-x-1"
+                        >
+                          <span className="material-symbols-outlined text-sm">history_edu</span>
+                          <span>History & Chat</span>
+                        </button>
 
-                <div className="flex flex-wrap gap-2 text-[11px] text-slate-500 font-medium">
-                  <span>📅 {post.preferredDate}</span>
-                  <span>⏱️ {post.durationHours} Hours</span>
-                  <span>👥 {post.groupSize} Travelers</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isVerified) {
+                              if (onOpenKYCModal) onOpenKYCModal();
+                              return;
+                            }
+                            if (existingNegotiation.lastSenderRole === 'traveler') {
+                              setHistoryModalNegotiation(existingNegotiation);
+                            } else {
+                              setSelectedPost(post);
+                              setBidPrice(existingNegotiation.offeredPriceUSD);
+                            }
+                          }}
+                          className="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs cursor-pointer shadow-xs flex items-center space-x-1"
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            {existingNegotiation.lastSenderRole === 'traveler' ? 'question_answer' : 'edit_note'}
+                          </span>
+                          <span>
+                            {existingNegotiation.lastSenderRole === 'traveler' ? 'Respond / Counter' : 'Update Bid'}
+                          </span>
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (!isVerified) {
+                            if (onOpenKYCModal) onOpenKYCModal();
+                            return;
+                          }
+                          setSelectedPost(post);
+                          setBidPrice(post.maxBudgetUSD);
+                        }}
+                        className={`px-4 py-2 rounded-xl font-bold text-xs shadow transition-all cursor-pointer flex items-center space-x-1 ${
+                          isVerified
+                            ? 'bg-slate-900 hover:bg-slate-800 text-white'
+                            : guideProfile.kycStatus === 'pending'
+                            ? 'bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100'
+                            : 'bg-amber-100 border border-amber-300 text-amber-900 hover:bg-amber-200'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          {isVerified ? 'payments' : guideProfile.kycStatus === 'pending' ? 'hourglass_top' : 'lock'}
+                        </span>
+                        <span>
+                          {isVerified
+                            ? 'Send Price Bid'
+                            : guideProfile.kycStatus === 'pending'
+                            ? 'Under Review ⏳'
+                            : 'Verification Required'}
+                        </span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
-
-              <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between">
-                <span className="text-xs font-bold text-teal-700">{post.bidsCount} Bids Received</span>
-                <button
-                  onClick={() => {
-                    if (!isVerified) {
-                      if (onOpenKYCModal) onOpenKYCModal();
-                      return;
-                    }
-                    setSelectedPost(post);
-                    setBidPrice(post.maxBudgetUSD);
-                  }}
-                  className={`px-4 py-2 rounded-xl font-bold text-xs shadow transition-all cursor-pointer flex items-center space-x-1 ${
-                    isVerified
-                      ? 'bg-slate-900 hover:bg-slate-800 text-white'
-                      : guideProfile.kycStatus === 'pending'
-                      ? 'bg-amber-50 border border-amber-300 text-amber-900 hover:bg-amber-100'
-                      : 'bg-amber-100 border border-amber-300 text-amber-900 hover:bg-amber-200'
-                  }`}
-                >
-                  <span className="material-symbols-outlined text-sm">
-                    {isVerified ? 'payments' : guideProfile.kycStatus === 'pending' ? 'hourglass_top' : 'lock'}
-                  </span>
-                  <span>
-                    {isVerified
-                      ? 'Send Price Bid'
-                      : guideProfile.kycStatus === 'pending'
-                      ? 'Under Review ⏳'
-                      : 'Verification Required'}
-                  </span>
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
+        )}
       </div>
 
       {/* SECTION 2: Active Price Negotiations & Offers */}
@@ -208,53 +533,71 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                   <p className="text-xs text-slate-700">
                     Current Offer Price: <strong className="text-emerald-700 text-sm">${neg.offeredPriceUSD} USD</strong>
                   </p>
-                  {neg.messages.length > 0 && (
+                  {neg.messages && neg.messages.length > 0 && (
                     <p className="text-xs text-slate-500 italic bg-white p-2 rounded-xl border border-slate-200">
-                      "{neg.messages[neg.messages.length - 1].text}"
+                      "{neg.messages[neg.messages.length - 1]?.text}"
                     </p>
                   )}
                 </div>
 
                 <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setHistoryModalNegotiation(neg)}
+                    className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs cursor-pointer shadow-xs flex items-center space-x-1"
+                  >
+                    <span className="material-symbols-outlined text-sm">history_edu</span>
+                    <span>History & Chat</span>
+                  </button>
+
                   {neg.status !== 'accepted' && (
                     <>
-                      <button
-                        onClick={() => {
-                          if (!isVerified) {
-                            if (onOpenKYCModal) onOpenKYCModal();
-                            return;
-                          }
-                          onRespondNegotiation(neg.id, 'accept', undefined, 'Accepted offer price!');
-                        }}
-                        className={`px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer shadow-sm ${
-                          isVerified
-                            ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
-                            : guideProfile.kycStatus === 'pending'
-                            ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
-                            : 'bg-amber-100 text-amber-900 border border-amber-300'
-                        }`}
-                      >
-                        {isVerified
-                          ? `Accept $${neg.offeredPriceUSD}`
-                          : guideProfile.kycStatus === 'pending'
-                          ? '⏳ Under Review'
-                          : '🔒 Verify First'}
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (!isVerified) {
-                            if (onOpenKYCModal) onOpenKYCModal();
-                            return;
-                          }
-                          setCounteringOfferId(neg.id);
-                          setCounterPrice(neg.offeredPriceUSD + 5);
-                        }}
-                        className={`px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer shadow-sm ${
-                          isVerified ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-200 text-slate-600'
-                        }`}
-                      >
-                        Counter Offer
-                      </button>
+                      {neg.lastSenderRole === 'guide' ? (
+                        <div className="text-xs text-amber-700 font-bold bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center space-x-1">
+                          <span className="material-symbols-outlined text-sm font-bold animate-pulse">hourglass_empty</span>
+                          <span>Awaiting traveler response...</span>
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => {
+                              if (!isVerified) {
+                                if (onOpenKYCModal) onOpenKYCModal();
+                                return;
+                              }
+                              onRespondNegotiation(neg.id, 'accept', undefined, 'Accepted offer price!');
+                            }}
+                            className={`px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer shadow-sm ${
+                              isVerified
+                                ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                                : guideProfile.kycStatus === 'pending'
+                                ? 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                                : 'bg-amber-100 text-amber-900 border border-amber-300'
+                            }`}
+                          >
+                            {isVerified
+                              ? `Accept $${neg.offeredPriceUSD}`
+                              : guideProfile.kycStatus === 'pending'
+                              ? '⏳ Under Review'
+                              : '🔒 Verify First'}
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (!isVerified) {
+                                if (onOpenKYCModal) onOpenKYCModal();
+                                return;
+                              }
+                              setCounteringOfferId(neg.id);
+                              setCounterPrice(neg.offeredPriceUSD + 5);
+                            }}
+                            className={`px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer shadow-sm ${
+                              isVerified ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-200 text-slate-600'
+                            }`}
+                          >
+                            Counter Offer
+                          </button>
+                        </>
+                      )}
                     </>
                   )}
                 </div>
@@ -342,8 +685,8 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
       {/* Bid Modal */}
       {selectedPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full max-h-[88vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative border border-slate-100 space-y-4 my-auto">
             <button
               onClick={() => setSelectedPost(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -386,8 +729,8 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
       {/* Counter Offer Modal */}
       {counteringOfferId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100 space-y-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full max-h-[88vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative border border-slate-100 space-y-4 my-auto">
             <button
               onClick={() => setCounteringOfferId(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
@@ -418,6 +761,17 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
           </div>
         </div>
       )}
+
+      {/* Negotiation History & Chat Modal */}
+      <NegotiationHistoryModal
+        isOpen={!!historyModalNegotiation}
+        onClose={() => setHistoryModalNegotiation(null)}
+        negotiation={historyModalNegotiation}
+        currentUserRole="guide"
+        isVerifiedGuide={isVerified}
+        onRespondNegotiation={onRespondNegotiation}
+        onOpenKYCModal={onOpenKYCModal}
+      />
 
     </div>
   );

@@ -9,7 +9,7 @@ interface TourCatalogProps {
 }
 
 export const TourCatalog: React.FC<TourCatalogProps> = ({
-  tours,
+  tours = [],
   selectedCity,
   currentUser,
   onBookingCreated
@@ -19,7 +19,9 @@ export const TourCatalog: React.FC<TourCatalogProps> = ({
   const [groupSize, setGroupSize] = useState<number>(1);
   const [isBooking, setIsBooking] = useState<boolean>(false);
 
-  const filteredTours = tours.filter(t => t.city.toLowerCase() === selectedCity.toLowerCase()) || tours;
+  const safeTours = tours || [];
+  const filteredTours = safeTours.filter(t => !selectedCity || selectedCity === 'All' || (t.city && t.city.toLowerCase() === selectedCity.toLowerCase()));
+  const displayTours = filteredTours.length > 0 ? filteredTours : safeTours;
 
   const handleBookPackage = async (tour: TourPackage) => {
     setIsBooking(true);
@@ -68,7 +70,7 @@ export const TourCatalog: React.FC<TourCatalogProps> = ({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTours.map((tour) => (
+        {displayTours.map((tour) => (
           <div
             key={tour.id}
             className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-lg transition-all flex flex-col justify-between"
@@ -122,7 +124,7 @@ export const TourCatalog: React.FC<TourCatalogProps> = ({
                 {/* Inclusions List */}
                 <div className="space-y-1 mb-3">
                   <p className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">Inclusions:</p>
-                  {tour.inclusions.slice(0, 3).map((inc, i) => (
+                  {(tour.inclusions || []).slice(0, 3).map((inc, i) => (
                     <div key={`${tour.id}-inc-${i}`} className="flex items-center space-x-1.5 text-xs text-slate-600">
                       <span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
                       <span>{inc}</span>
@@ -171,8 +173,8 @@ export const TourCatalog: React.FC<TourCatalogProps> = ({
 
       {/* Booking Modal */}
       {selectedTour && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-md w-full max-h-[88vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative border border-slate-100 my-auto">
             <button
               onClick={() => setSelectedTour(null)}
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"

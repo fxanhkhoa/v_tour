@@ -6,7 +6,10 @@ interface TourModerationProps {
   posts: TravelerPostRequest[];
 }
 
-export const TourModeration: React.FC<TourModerationProps> = ({ tours, posts }) => {
+export const TourModeration: React.FC<TourModerationProps> = ({ tours = [], posts = [] }) => {
+  const safeTours = tours || [];
+  const safePosts = posts || [];
+
   return (
     <div className="space-y-6">
       
@@ -14,14 +17,14 @@ export const TourModeration: React.FC<TourModerationProps> = ({ tours, posts }) 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <h3 className="font-extrabold text-slate-900 text-lg mb-1 flex items-center space-x-2">
           <span className="material-symbols-outlined text-teal-600">travel_explore</span>
-          <span>Created Tour Packages Moderation ({tours.length})</span>
+          <span>Created Tour Packages Moderation ({safeTours.length})</span>
         </h3>
         <p className="text-xs text-slate-500 mb-4">
           Monitor custom tours published by verified tourist guides.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {tours.map((t) => (
+          {safeTours.map((t) => (
             <div key={t.id} className="p-4 rounded-2xl border border-slate-200 flex space-x-4 bg-slate-50/50">
               <img
                 src={t.imageUrl}
@@ -47,14 +50,14 @@ export const TourModeration: React.FC<TourModerationProps> = ({ tours, posts }) 
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <h3 className="font-extrabold text-slate-900 text-lg mb-1 flex items-center space-x-2">
           <span className="material-symbols-outlined text-amber-500">campaign</span>
-          <span>Traveler Post Requests ({posts.length})</span>
+          <span>Traveler Post Requests ({safePosts.length})</span>
         </h3>
         <p className="text-xs text-slate-500 mb-4">
           Public tour requests posted by travelers seeking custom guides.
         </p>
 
         <div className="space-y-3">
-          {posts.map((p) => (
+          {safePosts.map((p) => (
             <div key={p.id} className="p-4 rounded-2xl border border-slate-200 flex items-center justify-between bg-slate-50/50">
               <div>
                 <div className="flex items-center space-x-2 mb-1">

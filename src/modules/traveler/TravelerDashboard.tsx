@@ -8,6 +8,7 @@ import { Language, translations } from '../../lib/translations';
 interface TravelerDashboardProps {
   currentUser: User | null;
   selectedCity: string;
+  onCityChange?: (city: string) => void;
   guides: GuideProfile[];
   posts: TravelerPostRequest[];
   negotiations: NegotiationOffer[];
@@ -32,6 +33,7 @@ interface TravelerDashboardProps {
 export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
   currentUser,
   selectedCity,
+  onCityChange,
   guides,
   posts,
   negotiations,
@@ -47,9 +49,15 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
   const [activeTab, setActiveTab] = useState<'guides' | 'my_posts' | 'bookings'>('my_posts');
   const [isPostModalOpen, setIsPostModalOpen] = useState<boolean>(false);
 
-  const myPosts = posts.filter(p => p.travelerId === currentUser?.id || p.travelerId === 'u_traveler_1');
-  const myNegotiations = negotiations.filter(n => n.travelerId === currentUser?.id || n.travelerId === 'u_traveler_1');
-  const myBookings = bookings.filter(b => b.travelerId === currentUser?.id || b.travelerId === 'u_traveler_1');
+  const myPosts = (posts || []).filter(p => !currentUser || p.travelerId === currentUser.id || p.travelerId === 'u_traveler_1');
+  const myPostIds = new Set(myPosts.map(p => String(p.id)));
+  const myNegotiations = (negotiations || []).filter(n => 
+    !currentUser || 
+    n.travelerId === currentUser.id || 
+    n.travelerId === 'u_traveler_1' ||
+    (n.postId && myPostIds.has(String(n.postId)))
+  );
+  const myBookings = (bookings || []).filter(b => !currentUser || b.travelerId === currentUser.id || b.travelerId === 'u_traveler_1');
 
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
@@ -135,8 +143,10 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
           tours={tours}
           guides={guides}
           selectedCity={selectedCity}
+          onCityChange={onCityChange}
           onNegotiateWithGuide={onNegotiateWithGuide}
           language={language}
+          negotiations={negotiations}
         />
       )}
 

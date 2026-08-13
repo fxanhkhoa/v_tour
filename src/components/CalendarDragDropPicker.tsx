@@ -44,6 +44,56 @@ const dateToSlash = (d: Date): string => {
   return `${day}/${month}/${year}`;
 };
 
+// Get today's date normalized to 00:00:00
+const getTodayDate = (): Date => {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+};
+
+const getTodayISO = (): string => dateToISO(getTodayDate());
+
+// Check if a date string (YYYY-MM-DD or DD/MM/YYYY) is strictly before today
+const isPastDate = (dateStr: string): boolean => {
+  if (!dateStr) return false;
+  let y: number, m: number, d: number;
+  if (dateStr.includes('/')) {
+    const parts = dateStr.split('/').map(Number);
+    d = parts[0];
+    m = parts[1] - 1;
+    y = parts[2];
+  } else if (dateStr.includes('-')) {
+    const parts = dateStr.split('-').map(Number);
+    y = parts[0];
+    m = parts[1] - 1;
+    d = parts[2];
+  } else {
+    return false;
+  }
+  const cellDate = new Date(y, m, d);
+  return cellDate < getTodayDate();
+};
+
+// Check if a date string corresponds to Today
+const isTodayDate = (dateStr: string): boolean => {
+  if (!dateStr) return false;
+  let y: number, m: number, d: number;
+  if (dateStr.includes('/')) {
+    const parts = dateStr.split('/').map(Number);
+    d = parts[0];
+    m = parts[1] - 1;
+    y = parts[2];
+  } else if (dateStr.includes('-')) {
+    const parts = dateStr.split('-').map(Number);
+    y = parts[0];
+    m = parts[1] - 1;
+    d = parts[2];
+  } else {
+    return false;
+  }
+  const cellDate = new Date(y, m, d);
+  return cellDate.getTime() === getTodayDate().getTime();
+};
+
 export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   value = [],
   onChange,
@@ -54,10 +104,8 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   // Hours displayed on vertical grid (6 AM to 10 PM)
   const HOURS = Array.from({ length: 16 }, (_, i) => i + 6); // [6, 7, ..., 21]
 
-  // Default initial date: Oct 10, 2026 for demonstration, or current date
-  const [currentStartDate, setCurrentStartDate] = useState<Date>(() => {
-    return new Date(2026, 9, 8); // October 8, 2026 (shows Oct 8 - Oct 14, 2026)
-  });
+  // Default initial date: Today's date
+  const [currentStartDate, setCurrentStartDate] = useState<Date>(() => getTodayDate());
 
   // Compute 7-day columns based on currentStartDate
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -82,7 +130,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   const [dragWasSaved, setDragWasSaved] = useState<boolean>(false);
 
   // Manual input state
-  const [manualDate, setManualDate] = useState<string>('2026-10-10');
+  const [manualDate, setManualDate] = useState<string>(getTodayISO());
   const [manualStart, setManualStart] = useState<number>(8);
   const [manualEnd, setManualEnd] = useState<number>(10);
 
@@ -162,6 +210,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   }, [isDragging, dragDateStr, dragStartHour, dragCurrentHour, dragWasSaved, value]);
 
   const commitDragSelection = (dateStr: string, startH: number, currH: number) => {
+    if (isPastDate(dateStr)) return;
     const minH = Math.min(startH, currH);
     const maxH = Math.max(startH, currH);
 
@@ -188,6 +237,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   };
 
   const handleCellMouseDown = (dateStr: string, hour: number) => {
+    if (isPastDate(dateStr)) return;
     const saved = isCellInSavedSlot(dateStr, hour);
     setIsDragging(true);
     setDragWasSaved(saved);
@@ -197,6 +247,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   };
 
   const handleCellMouseEnter = (dateStr: string, hour: number) => {
+    if (isPastDate(dateStr)) return;
     if (isDragging && datesMatch(dragDateStr || '', dateStr)) {
       setDragCurrentHour(hour);
     }
@@ -219,8 +270,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
     onChange([]);
   };
 
-  // Quick preset loader matching example from user prompt:
-  // 8AM to 10AM on 10/10/2026 and 4PM to 5PM on 12/10/2026
+  // Quick preset loader
   const loadExamplePreset = () => {
     const slot1: ScheduleSlot = {
       id: `slot_preset_1`,
@@ -237,15 +287,18 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
       displayLabel: '4:00 PM - 5:00 PM on 12/10/2026'
     };
 
-    // Jump view to Oct 8, 2026 so 10/10/2026 and 12/10/2026 are both visible in week grid
     setCurrentStartDate(new Date(2026, 9, 8));
-
     onChange([slot1, slot2]);
   };
 
   const handleManualAdd = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
     if (!manualDate || manualStart >= manualEnd) return;
+
+    if (isPastDate(manualDate)) {
+      alert(isVi ? 'Không thể chọn ngày trong quá khứ!' : 'Cannot select a date in the past!');
+      return;
+    }
 
     const formattedDate = formatDisplayDate(manualDate);
     const startTime = formatHour12(manualStart);
@@ -319,7 +372,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
       </div>
 
       {/* Date Navigation Toolbar */}
-      <div className="flex items-center justify-between bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800 text-xs">
+      <div className="flex items-center justify-between bg-slate-950/60 p-2.5 rounded-2xl border border-slate-800 text-xs gap-2 flex-wrap">
         <div className="flex items-center space-x-2">
           <button
             type="button"
@@ -331,10 +384,12 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
           </button>
           <button
             type="button"
-            onClick={() => setCurrentStartDate(new Date(2026, 9, 8))}
-            className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-[11px] cursor-pointer"
+            onClick={() => setCurrentStartDate(getTodayDate())}
+            className="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 font-extrabold text-[11px] cursor-pointer flex items-center space-x-1 shadow-sm transition-all"
+            title={isVi ? 'Về Tuần Hiện Tại (Hôm Nay)' : 'Jump to Current Week (Today)'}
           >
-            {isVi ? 'Tháng 10/2026' : 'Oct 2026'}
+            <span>⭐</span>
+            <span>{isVi ? 'Hôm Nay' : 'Today'}</span>
           </button>
           <button
             type="button"
@@ -352,6 +407,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
           </span>
           <input
             type="date"
+            min={getTodayISO()}
             onChange={jumpToDateInput}
             value={dateToISO(currentStartDate)}
             className="bg-slate-800 border border-slate-700 text-slate-200 text-[10px] rounded-lg p-1 focus:outline-none focus:ring-1 focus:ring-teal-500 cursor-pointer"
@@ -370,18 +426,39 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
             {days.map((day) => {
               const daySlots = (value || []).filter(slot => datesMatch(slot.dateStr, day.slashStr));
               const hasSlots = daySlots.length > 0;
+              const isPast = isPastDate(day.slashStr);
+              const isToday = isTodayDate(day.slashStr);
+
               return (
                 <div
                   key={day.isoStr}
-                  className={`py-1.5 px-1 rounded-xl flex flex-col items-center justify-center font-bold transition-all ${
-                    hasSlots
+                  className={`py-1.5 px-1 rounded-xl flex flex-col items-center justify-center font-bold transition-all relative ${
+                    isToday
+                      ? 'bg-amber-500/20 text-amber-200 border-2 border-amber-400 shadow-lg ring-2 ring-amber-400/30'
+                      : isPast
+                      ? 'bg-slate-950/40 text-slate-600 border border-slate-900/60 opacity-50'
+                      : hasSlots
                       ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
                       : 'bg-slate-900 text-slate-300 border border-slate-800/50'
                   }`}
                 >
-                  <span className="uppercase text-[9px] text-slate-400">{day.dayName}</span>
-                  <span className="text-xs">{day.dateNum}/{day.monthNum}</span>
-                  {hasSlots ? (
+                  {isToday && (
+                    <span className="mb-0.5 px-1.5 py-0.2 bg-amber-400 text-slate-950 font-black text-[9px] rounded-full uppercase tracking-wider shadow flex items-center space-x-0.5 animate-pulse">
+                      <span>⭐</span>
+                      <span>{isVi ? 'HÔM NAY' : 'TODAY'}</span>
+                    </span>
+                  )}
+                  <span className={`uppercase text-[9px] ${isToday ? 'text-amber-300 font-black' : 'text-slate-400'}`}>
+                    {day.dayName}
+                  </span>
+                  <span className={`text-xs ${isToday ? 'text-amber-100 font-extrabold text-sm' : ''}`}>
+                    {day.dateNum}/{day.monthNum}
+                  </span>
+                  {isPast ? (
+                    <span className="text-[8px] bg-slate-900 text-slate-500 px-1 rounded-full font-mono mt-0.5 border border-slate-800">
+                      {isVi ? 'Đã qua' : 'Past'}
+                    </span>
+                  ) : hasSlots ? (
                     <span key={`slot_badge_${day.isoStr}`} className="text-[8px] bg-teal-500/40 text-teal-200 px-1 rounded-full font-mono mt-0.5">
                       {daySlots.length} {daySlots.length === 1 ? 'slot' : 'slots'}
                     </span>
@@ -404,22 +481,36 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
                 {days.map((day) => {
                   const activeDrag = isCellInActiveDrag(day.slashStr, hour);
                   const isSaved = isCellInSavedSlot(day.slashStr, hour);
+                  const isPast = isPastDate(day.slashStr);
+                  const isToday = isTodayDate(day.slashStr);
 
                   return (
                     <div
                       key={`cell_${day.isoStr}_${hour}`}
-                      onMouseDown={() => handleCellMouseDown(day.slashStr, hour)}
-                      onMouseEnter={() => handleCellMouseEnter(day.slashStr, hour)}
-                      className={`h-8 rounded-lg border text-[10px] font-bold flex items-center justify-center cursor-pointer transition-all ${
-                        activeDrag
-                          ? 'bg-teal-500/50 border-teal-300 text-white shadow-lg scale-95'
+                      onMouseDown={() => !isPast && handleCellMouseDown(day.slashStr, hour)}
+                      onMouseEnter={() => !isPast && handleCellMouseEnter(day.slashStr, hour)}
+                      className={`h-8 rounded-lg border text-[10px] font-bold flex items-center justify-center transition-all ${
+                        isPast
+                          ? 'bg-slate-950/30 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-30 select-none'
+                          : activeDrag
+                          ? 'bg-teal-500/50 border-teal-300 text-white shadow-lg scale-95 cursor-pointer'
                           : isSaved
-                          ? 'bg-emerald-600/50 border-emerald-400 text-emerald-100 hover:bg-rose-600/60 hover:border-rose-400 hover:text-rose-100 group'
-                          : 'bg-slate-900/60 border-slate-800/80 text-slate-600 hover:bg-teal-950/40 hover:border-teal-700/60 hover:text-teal-400'
+                          ? 'bg-emerald-600/50 border-emerald-400 text-emerald-100 hover:bg-rose-600/60 hover:border-rose-400 hover:text-rose-100 group cursor-pointer'
+                          : isToday
+                          ? 'bg-slate-900/90 border-amber-500/40 text-amber-300/60 hover:bg-teal-950/40 hover:border-teal-700/60 hover:text-teal-400 cursor-pointer'
+                          : 'bg-slate-900/60 border-slate-800/80 text-slate-600 hover:bg-teal-950/40 hover:border-teal-700/60 hover:text-teal-400 cursor-pointer'
                       }`}
-                      title={isSaved ? `Click to remove slot (${day.slashStr} at ${formatHour12(hour)})` : `Click or drag to select: ${day.slashStr} at ${formatHour12(hour)}`}
+                      title={
+                        isPast
+                          ? (isVi ? 'Không thể chọn ngày trong quá khứ' : 'Past date cannot be selected')
+                          : isSaved
+                          ? `Click to remove slot (${day.slashStr} at ${formatHour12(hour)})`
+                          : `Click or drag to select: ${day.slashStr} at ${formatHour12(hour)}`
+                      }
                     >
-                      {activeDrag ? (
+                      {isPast ? (
+                        <span key="icon_past" className="text-[10px] text-slate-800">🚫</span>
+                      ) : activeDrag ? (
                         <span key="icon_drag" className="animate-pulse text-xs">✓</span>
                       ) : isSaved ? (
                         <span key="icon_saved" className="flex items-center space-x-0.5 text-[9px] uppercase tracking-wider font-extrabold">
@@ -451,6 +542,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
             <input
               type="date"
               value={manualDate}
+              min={getTodayISO()}
               onChange={(e) => setManualDate(e.target.value)}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl p-1.5 text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
@@ -500,11 +592,11 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
         <div className="flex items-center justify-between mb-2">
           <span className="text-xs font-bold text-slate-300 flex items-center space-x-1">
             <span className="material-symbols-outlined text-sm text-teal-400">event_available</span>
-            <span>{isVi ? `Danh Sách Khung Giờ Đã Chọn (${value.length})` : `Selected Schedule Slots (${value.length})`}</span>
+            <span>{isVi ? `Danh Sách Khung Giờ Đã Chọn (${(value || []).length})` : `Selected Schedule Slots (${(value || []).length})`}</span>
           </span>
         </div>
 
-        {value.length === 0 ? (
+        {(value || []).length === 0 ? (
           <p className="text-xs text-slate-500 italic bg-slate-950/40 p-3 rounded-2xl border border-slate-800/80 text-center">
             {isVi 
               ? 'Chưa chọn khung giờ nào. Kéo thả trên lịch hoặc nhấn nút Mẫu ở trên.' 
@@ -512,7 +604,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {value.map((slot) => (
+            {(value || []).map((slot) => (
               <div
                 key={slot.id}
                 onClick={() => removeSlot(slot.id)}

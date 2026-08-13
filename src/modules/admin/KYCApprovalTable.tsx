@@ -8,7 +8,8 @@ interface KYCApprovalTableProps {
   language?: Language;
 }
 
-export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList, onReviewKYC, language = 'en' }) => {
+export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = [], onReviewKYC, language = 'en' }) => {
+  const safeKycList = kycList || [];
   const t = translations[language] || translations.en;
   const [selectedKycDoc, setSelectedKycDoc] = useState<KYCApplication | null>(null);
   const [declineModalKyc, setDeclineModalKyc] = useState<KYCApplication | null>(null);
@@ -97,11 +98,11 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList, onR
           </div>
 
           <span className="px-3.5 py-1.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
-            {kycList.filter(k => k.status === 'pending').length} Pending Approval
+            {safeKycList.filter(k => k.status === 'pending').length} Pending Approval
           </span>
         </div>
 
-        {kycList.length === 0 ? (
+        {safeKycList.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">verified_user</span>
             <p className="text-sm font-bold text-slate-700">No Applications Pending Review</p>

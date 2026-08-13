@@ -24,12 +24,12 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
   if (!isOpen || !tour) return null;
 
   // Filter negotiations & bookings related to this specific tour
-  const tourNegotiations = negotiations.filter(
+  const tourNegotiations = (negotiations || []).filter(
     n => (n.tourId === tour.id || (n.tourTitle && n.tourTitle.toLowerCase() === tour.title.toLowerCase())) &&
          n.status !== 'declined'
   );
 
-  const tourBookings = bookings.filter(
+  const tourBookings = (bookings || []).filter(
     b => (b.tourId === tour.id || (b.tourTitle && b.tourTitle.toLowerCase() === tour.title.toLowerCase())) &&
          b.status !== 'cancelled'
   );

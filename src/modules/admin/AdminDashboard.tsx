@@ -19,11 +19,19 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
-  stats,
-  kycList,
-  users,
-  tours,
-  posts,
+  stats = {
+    totalUsers: 0,
+    totalGuides: 0,
+    totalPendingKYC: 0,
+    totalActivePosts: 0,
+    totalTours: 0,
+    totalBookings: 0,
+    totalRevenueUSD: 0
+  },
+  kycList = [],
+  users = [],
+  tours = [],
+  posts = [],
   bookings = [],
   onReviewKYC,
   onToggleUserStatus,

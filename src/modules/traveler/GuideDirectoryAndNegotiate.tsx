@@ -1,11 +1,12 @@
 import React, { useState, useMemo } from 'react';
-import { GuideProfile, TourPackage, ScheduleSlot } from '../../types';
+import { GuideProfile, TourPackage, ScheduleSlot, NegotiationOffer } from '../../types';
 import { Language, translations } from '../../lib/translations';
 
 interface GuideDirectoryAndNegotiateProps {
   tours?: TourPackage[];
   guides: GuideProfile[];
   selectedCity: string;
+  onCityChange?: (city: string) => void;
   onNegotiateWithGuide: (
     guide: GuideProfile,
     offeredPriceUSD: number,
@@ -17,23 +18,22 @@ interface GuideDirectoryAndNegotiateProps {
     originalPriceUSD?: number
   ) => void;
   language?: Language;
+  negotiations?: NegotiationOffer[];
 }
 
 export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProps> = ({
   tours = [],
   guides,
   selectedCity,
+  onCityChange,
   onNegotiateWithGuide,
-  language = 'en'
+  language = 'en',
+  negotiations = []
 }) => {
   const t = translations[language] || translations.en;
 
-  // View Mode: 'tours' (default created tours) vs 'guides'
-  const [viewMode, setViewMode] = useState<'tours' | 'guides'>('tours');
-
   // Filters State
   const [searchQuery, setSearchQuery] = useState<string>('');
-  const [cityFilter, setCityFilter] = useState<string>('All');
   const [categoryFilter, setCategoryFilter] = useState<string>('All');
   const [maxPriceUSD, setMaxPriceUSD] = useState<number>(100);
   const [filterVerifiedOnly, setFilterVerifiedOnly] = useState<boolean>(false);
@@ -49,58 +49,40 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
   const [offeredPrice, setOfferedPrice] = useState<number>(50);
   const [offerMessage, setOfferMessage] = useState<string>('');
 
-  // Guide Negotiation Modal State (Direct)
-  const [selectedGuideDirect, setSelectedGuideDirect] = useState<GuideProfile | null>(null);
-  const [guideDirectPrice, setGuideDirectPrice] = useState<number>(30);
-  const [guideDirectMessage, setGuideDirectMessage] = useState<string>('');
-
   // Unique categories
   const categories = ['All', 'Food', 'Culture', 'Scooter', 'Nature', 'History', 'Adventure', 'Photography'];
-  const cities = ['All', 'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Hue', 'Phu Quoc', 'Ha Long Bay', 'Bangkok'];
+  const cities = ['All', 'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Hue', 'Nha Trang', 'Sapa', 'Phu Quoc', 'Ha Long Bay', 'Can Tho'];
 
   // Filtered Tours
   const filteredTours = useMemo(() => {
-    return tours.filter((tour) => {
+    return (tours || []).filter((tour) => {
       // City match
-      const c = cityFilter === 'All' ? selectedCity : cityFilter;
-      const cityMatch = !c || c === 'All' || tour.city.toLowerCase() === c.toLowerCase();
+      const cityMatch = !selectedCity || selectedCity === 'All' || (tour.city && tour.city.toLowerCase() === selectedCity.toLowerCase());
       
       // Category match
-      const catMatch = categoryFilter === 'All' || tour.category.toLowerCase().includes(categoryFilter.toLowerCase());
+      const catMatch = categoryFilter === 'All' || (tour.category && tour.category.toLowerCase().includes(categoryFilter.toLowerCase()));
 
       // Query match
       const q = searchQuery.toLowerCase().trim();
       const queryMatch = !q ||
-        tour.title.toLowerCase().includes(q) ||
-        tour.description.toLowerCase().includes(q) ||
-        tour.guideName.toLowerCase().includes(q) ||
-        tour.category.toLowerCase().includes(q) ||
-        tour.city.toLowerCase().includes(q);
+        (tour.title && tour.title.toLowerCase().includes(q)) ||
+        (tour.description && tour.description.toLowerCase().includes(q)) ||
+        (tour.guideName && tour.guideName.toLowerCase().includes(q)) ||
+        (tour.category && tour.category.toLowerCase().includes(q)) ||
+        (tour.city && tour.city.toLowerCase().includes(q));
 
       // Price match
       const priceMatch = tour.priceUSDPerPerson <= maxPriceUSD;
 
       // Guide verification match
       if (filterVerifiedOnly) {
-        const guide = guides.find(g => g.id === tour.guideId || g.fullName === tour.guideName);
+        const guide = (guides || []).find(g => g.id === tour.guideId || g.fullName === tour.guideName);
         if (guide && !guide.verified && guide.kycStatus !== 'verified') return false;
       }
 
       return cityMatch && catMatch && queryMatch && priceMatch;
     });
-  }, [tours, guides, selectedCity, cityFilter, categoryFilter, searchQuery, maxPriceUSD, filterVerifiedOnly]);
-
-  // Filtered Direct Guides
-  const filteredGuides = useMemo(() => {
-    return guides.filter((g) => {
-      const c = cityFilter === 'All' ? selectedCity : cityFilter;
-      const cityMatch = !c || c === 'All' || g.city.toLowerCase() === c.toLowerCase();
-      const kycMatch = filterVerifiedOnly ? g.verified || g.kycStatus === 'verified' : true;
-      const q = searchQuery.toLowerCase().trim();
-      const queryMatch = !q || g.fullName.toLowerCase().includes(q) || g.city.toLowerCase().includes(q) || g.bio.toLowerCase().includes(q);
-      return cityMatch && kycMatch && queryMatch;
-    });
-  }, [guides, selectedCity, cityFilter, filterVerifiedOnly, searchQuery]);
+  }, [tours, guides, selectedCity, categoryFilter, searchQuery, maxPriceUSD, filterVerifiedOnly]);
 
   // Open modal for tour
   const handleOpenTourNegotiation = (tour: TourPackage) => {
@@ -188,22 +170,6 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
     setSelectedTour(null);
   };
 
-  // Confirm Direct Guide Offer
-  const handleConfirmDirectGuideOffer = () => {
-    if (!selectedGuideDirect) return;
-    onNegotiateWithGuide(
-      selectedGuideDirect,
-      guideDirectPrice,
-      guideDirectMessage || 'Hello! I would like to negotiate a custom private tour rate with you.',
-      undefined,
-      'Direct Custom Guide Hire',
-      undefined,
-      1,
-      selectedGuideDirect.hourlyRateUSD * 2
-    );
-    setSelectedGuideDirect(null);
-  };
-
   return (
     <div className="space-y-6">
 
@@ -224,32 +190,6 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
                 ? 'Tìm kiếm các tour do HDV bản địa đăng tải, chọn khung giờ phù hợp và đề xuất mức giá thương lượng trực tiếp.'
                 : 'Filter guide-created itineraries by city, category, or budget. Pick an available schedule slot and negotiate custom prices directly.'}
             </p>
-          </div>
-
-          {/* Toggle View Mode Buttons */}
-          <div className="flex items-center bg-slate-100 p-1.5 rounded-2xl border border-slate-200 self-start lg:self-auto">
-            <button
-              onClick={() => setViewMode('tours')}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1.5 ${
-                viewMode === 'tours'
-                  ? 'bg-teal-600 text-white shadow'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">map</span>
-              <span>{language === 'vi' ? 'Tour HDV Tạo' : 'Created Tours'} ({filteredTours.length})</span>
-            </button>
-            <button
-              onClick={() => setViewMode('guides')}
-              className={`px-4 py-2 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1.5 ${
-                viewMode === 'guides'
-                  ? 'bg-teal-600 text-white shadow'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <span className="material-symbols-outlined text-base">badge</span>
-              <span>{language === 'vi' ? 'HDV Trực Tiếp' : 'Direct Guides'} ({filteredGuides.length})</span>
-            </button>
           </div>
         </div>
 
@@ -274,8 +214,12 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
             {/* City Filter */}
             <div>
               <select
-                value={cityFilter}
-                onChange={(e) => setCityFilter(e.target.value)}
+                value={selectedCity || 'All'}
+                onChange={(e) => {
+                  if (onCityChange) {
+                    onCityChange(e.target.value);
+                  }
+                }}
                 className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 <option value="All">{language === 'vi' ? '🏙️ Tất cả thành phố' : '🏙️ All Cities'}</option>
@@ -336,17 +280,21 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
         </div>
 
         {/* RESULTS GRID - TOURS VIEW */}
-        {viewMode === 'tours' && (
-          <div>
-            {filteredTours.length === 0 ? (
-              <div className="p-12 text-center text-slate-500 border border-dashed border-slate-200 rounded-3xl space-y-3">
-                <span className="material-symbols-outlined text-4xl text-slate-300">travel_explore</span>
-                <p className="text-sm font-bold">{language === 'vi' ? 'Không tìm thấy tour phù hợp với bộ lọc' : 'No tours found matching your search criteria'}</p>
-                <p className="text-xs text-slate-400">{language === 'vi' ? 'Thử giảm giá, đổi từ khóa hoặc chọn thành phố khác.' : 'Try adjusting your max price slider or keyword search.'}</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredTours.map((tour) => (
+        <div>
+          {filteredTours.length === 0 ? (
+            <div className="p-12 text-center text-slate-500 border border-dashed border-slate-200 rounded-3xl space-y-3">
+              <span className="material-symbols-outlined text-4xl text-slate-300">travel_explore</span>
+              <p className="text-sm font-bold">{language === 'vi' ? 'Không tìm thấy tour phù hợp với bộ lọc' : 'No tours found matching your search criteria'}</p>
+              <p className="text-xs text-slate-400">{language === 'vi' ? 'Thử giảm giá, đổi từ khóa hoặc chọn thành phố khác.' : 'Try adjusting your max price slider or keyword search.'}</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTours.map((tour) => {
+                const existingNegotiation = negotiations?.find(
+                  (n) => n.tourId === tour.id && (n.status === 'pending' || n.status === 'countered')
+                );
+
+                return (
                   <div
                     key={tour.id}
                     className="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl hover:border-teal-500/50 transition-all flex flex-col justify-between group"
@@ -362,6 +310,12 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
                         <div className="absolute top-3 left-3 bg-slate-950/80 backdrop-blur-md text-white px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide border border-white/20">
                           {tour.category}
                         </div>
+                        {existingNegotiation && (
+                          <div className="absolute top-12 left-3 bg-amber-500 text-slate-950 px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide border border-white/20 flex items-center space-x-1 shadow-md z-10">
+                            <span className="material-symbols-outlined text-[12px] font-black">pending_actions</span>
+                            <span>{language === 'vi' ? 'Đã Gửi Đề Xuất' : 'Offer Sent'}</span>
+                          </div>
+                        )}
                         <div className="absolute top-3 right-3 bg-teal-500 text-slate-950 font-black px-3 py-1 rounded-full text-xs shadow-md">
                           ${tour.priceUSDPerPerson} <span className="text-[10px] font-bold">/person</span>
                         </div>
@@ -409,95 +363,40 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
 
                     {/* Action Button */}
                     <div className="p-5 pt-0">
-                      <button
-                        onClick={() => handleOpenTourNegotiation(tour)}
-                        className="w-full py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2 active:scale-95"
-                      >
-                        <span className="material-symbols-outlined text-sm">handshake</span>
-                        <span>{language === 'vi' ? 'Chọn Tour & Thương Lượng Giá' : 'Select Tour & Negotiate Slot'}</span>
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* RESULTS GRID - DIRECT GUIDES VIEW */}
-        {viewMode === 'guides' && (
-          <div>
-            {filteredGuides.length === 0 ? (
-              <p className="text-xs text-slate-400 italic text-center py-8">{t.noGuidesFound}</p>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                {filteredGuides.map((guide) => (
-                  <div key={guide.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col justify-between space-y-4 hover:shadow-md transition-all">
-                    <div>
-                      <div className="flex items-center space-x-3 mb-3">
-                        <img
-                          src={guide.avatar}
-                          alt={guide.fullName}
-                          className="w-14 h-14 rounded-2xl object-cover border border-slate-200 shadow-sm"
-                        />
-                        <div>
-                          <div className="flex items-center space-x-1">
-                            <h4 className="font-extrabold text-slate-900 text-sm">{guide.fullName}</h4>
-                            {guide.verified && (
-                              <span className="text-teal-600 material-symbols-outlined text-base" title="Verified License Card">verified</span>
-                            )}
-                          </div>
-                          <p className="text-xs text-slate-500">📍 {guide.city}</p>
-                          <p className="text-xs font-bold text-amber-500 mt-0.5">★ {guide.rating} ({guide.reviewCount} {t.reviewsLabel})</p>
+                      {existingNegotiation ? (
+                        <div className="w-full py-2.5 rounded-2xl bg-amber-50 text-amber-800 font-extrabold text-xs border border-amber-200 flex items-center justify-center space-x-2">
+                          <span className="material-symbols-outlined text-sm text-amber-500 font-bold">check_circle</span>
+                          <span>{language === 'vi' ? `Đã Gửi Đề Xuất ($${existingNegotiation.offeredPriceUSD})` : `Offer Sent ($${existingNegotiation.offeredPriceUSD})`}</span>
                         </div>
-                      </div>
-
-                      <p className="text-xs text-slate-600 line-clamp-2 mb-3">{guide.bio}</p>
-
-                      <div className="flex flex-wrap gap-1 mb-3">
-                        {guide.badges.map((b, i) => (
-                          <span key={i} className="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 text-[10px] font-bold border border-teal-200">
-                            {b}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between">
-                      <div>
-                        <p className="text-[10px] text-slate-400 font-bold uppercase">{t.standardRate}</p>
-                        <p className="text-sm font-extrabold text-slate-900">${guide.hourlyRateUSD}/hr</p>
-                      </div>
-
-                      <button
-                        onClick={() => {
-                          setSelectedGuideDirect(guide);
-                          setGuideDirectPrice(guide.hourlyRateUSD * 2);
-                        }}
-                        className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs shadow transition-all cursor-pointer flex items-center space-x-1"
-                      >
-                        <span className="material-symbols-outlined text-sm">handshake</span>
-                        <span>{t.negotiatePriceBtn}</span>
-                      </button>
+                      ) : (
+                        <button
+                          onClick={() => handleOpenTourNegotiation(tour)}
+                          className="w-full py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2 active:scale-95"
+                        >
+                          <span className="material-symbols-outlined text-sm">handshake</span>
+                          <span>{language === 'vi' ? 'Chọn Tour & Thương Lượng Giá' : 'Select Tour & Negotiate Slot'}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
 
       </div>
 
       {/* TOUR DETAILS & NEGOTIATION MODAL */}
       {selectedTour && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 shadow-2xl relative border border-slate-100 space-y-6 my-8">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative border border-slate-100 space-y-5 my-auto">
             
             {/* Close Button */}
             <button
               onClick={() => setSelectedTour(null)}
-              className="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-all z-10"
+              className="sticky top-0 float-right -mt-1 -mr-1 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center cursor-pointer transition-all z-20 shadow-sm"
+              title="Close"
             >
               <span className="material-symbols-outlined text-lg">close</span>
             </button>
@@ -618,6 +517,7 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
                       <label className="block text-[10px] font-extrabold text-slate-700 mb-0.5">{language === 'vi' ? 'Ngày' : 'Date'}</label>
                       <input
                         type="date"
+                        min={new Date().toISOString().split('T')[0]}
                         value={customDateStr}
                         onChange={(e) => setCustomDateStr(e.target.value)}
                         className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
@@ -736,50 +636,6 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
               </button>
             </div>
 
-          </div>
-        </div>
-      )}
-
-      {/* DIRECT GUIDE NEGOTIATION MODAL */}
-      {selectedGuideDirect && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl relative border border-slate-100 space-y-4">
-            <button
-              onClick={() => setSelectedGuideDirect(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-
-            <h4 className="font-extrabold text-slate-900 text-lg">{t.negotiateModalTitle}</h4>
-            <p className="text-xs text-slate-500">{t.guideLabel}: {selectedGuideDirect.fullName} (${selectedGuideDirect.hourlyRateUSD}/hr)</p>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">{t.proposedPriceLabel}</label>
-              <input
-                type="number"
-                min="10"
-                value={guideDirectPrice}
-                onChange={(e) => setGuideDirectPrice(Number(e.target.value))}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">{t.offerMessageLabel}</label>
-              <textarea
-                value={guideDirectMessage}
-                onChange={(e) => setGuideDirectMessage(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 h-20 focus:outline-none"
-              />
-            </div>
-
-            <button
-              onClick={handleConfirmDirectGuideOffer}
-              className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-lg cursor-pointer"
-            >
-              {t.sendOfferBtn}
-            </button>
           </div>
         </div>
       )}

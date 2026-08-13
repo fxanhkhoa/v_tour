@@ -58,7 +58,7 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
   const [selectedTourForDetail, setSelectedTourForDetail] = useState<TourPackage | null>(null);
   const [selectedTourForEdit, setSelectedTourForEdit] = useState<TourPackage | null>(null);
 
-  const myTours = tours.filter(
+  const myTours = (tours || []).filter(
     t => t.guideId === guideProfile.id || t.guideName?.toLowerCase() === guideProfile.fullName?.toLowerCase()
   );
 
@@ -248,12 +248,12 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {myTours.map((t) => {
               // Lock condition check
-              const tourNegotiations = negotiations.filter(
+              const tourNegotiations = (negotiations || []).filter(
                 n => (n.tourId === t.id || (n.tourTitle && n.tourTitle.toLowerCase() === t.title.toLowerCase())) &&
                      n.status !== 'declined'
               );
 
-              const tourBookings = bookings.filter(
+              const tourBookings = (bookings || []).filter(
                 b => (b.tourId === t.id || (b.tourTitle && b.tourTitle.toLowerCase() === t.title.toLowerCase())) &&
                      b.status !== 'cancelled'
               );

@@ -3,7 +3,7 @@ import path from 'path';
 import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { 
-  connectMongoDB, 
+  initFirebaseDatabase, 
   dbFindUserByEmail,
   dbFindUserById,
   dbFindUserByToken,
@@ -33,7 +33,7 @@ import {
   dbGetAllBookings,
   dbGetChatMessages,
   dbSaveChatMessage
-} from './src/db/mongo.js';
+} from './src/db/firebase.js';
 import { AdminSystemStats } from './src/types.js';
 
 // Initialize Express App
@@ -373,7 +373,7 @@ app.get('/api/admin/stats', async (req, res) => {
       totalActivePosts: posts.length,
       totalTours: tours.length,
       totalBookings: allBookings.length,
-      totalRevenueUSD: allBookings.reduce((sum: number, b: any) => sum + (b.totalPriceUSD || 0), 0)
+      totalRevenueUSD: (allBookings as any[]).reduce((sum: number, b: any) => sum + (b.totalPriceUSD || 0), 0)
     };
     res.json({ stats });
   } catch (err: any) {
@@ -695,8 +695,10 @@ app.post('/api/negotiations/offer', async (req, res) => {
     }
 
     let offer: any = null;
+    let post: any = null;
     if (postId) {
       offer = await dbFindNegotiationByPostAndGuide(postId, guide.id);
+      post = await dbFindPostById(postId);
     } else if (tourId) {
       const allNegs = await dbGetNegotiationsByUser('all');
       offer = allNegs.find(n => n.tourId === tourId && n.travelerId === (travelerId || 'u_traveler_1') && n.status !== 'declined');
@@ -707,11 +709,11 @@ app.post('/api/negotiations/offer', async (req, res) => {
         id: 'neg_' + Date.now(),
         postId,
         tourId,
-        tourTitle,
+        tourTitle: tourTitle || post?.title,
         selectedSlot,
         groupSize: groupSize || 1,
-        travelerId: travelerId || 'u_traveler_1',
-        travelerName: travelerName || 'Sarah Jenkins',
+        travelerId: post?.travelerId || travelerId || 'u_traveler_1',
+        travelerName: post?.travelerName || travelerName || 'Sarah Jenkins',
         guideId: guide.id,
         guideName: guide.fullName,
         guideAvatar: guide.avatar,
@@ -724,12 +726,15 @@ app.post('/api/negotiations/offer', async (req, res) => {
         updatedAt: new Date().toISOString()
       };
 
-      if (postId) {
-        const post = await dbFindPostById(postId);
-        if (post) {
-          post.bidsCount = (post.bidsCount || 0) + 1;
-          await dbSavePost(post);
-        }
+      if (post) {
+        post.bidsCount = (post.bidsCount || 0) + 1;
+        await dbSavePost(post);
+      }
+    } else {
+      if (post) {
+        if (post.travelerId) offer.travelerId = post.travelerId;
+        if (post.travelerName) offer.travelerName = post.travelerName;
+        if (post.title) offer.tourTitle = post.title;
       }
     }
 
@@ -1172,8 +1177,8 @@ app.all('/api/*', (req, res) => {
 // ==================== VITE & SERVING CONFIGURATION ====================
 
 async function startServer() {
-  // Connect to MongoDB Atlas (or fallback store)
-  await connectMongoDB();
+  // Connect to Firebase Firestore database (or fallback store)
+  await initFirebaseDatabase();
 
   if (process.env.NODE_ENV !== 'production') {
     const vite = await createViteServer({

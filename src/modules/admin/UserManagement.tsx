@@ -7,11 +7,12 @@ interface UserManagementProps {
   onRefreshUsers?: () => void;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ users, onToggleUserStatus, onRefreshUsers }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onToggleUserStatus, onRefreshUsers }) => {
+  const safeUsers = users || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'traveler' | 'guide' | 'admin'>('all');
 
-  const filteredUsers = users.filter((u) => {
+  const filteredUsers = safeUsers.filter((u) => {
     const matchesSearch = 
       u.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       u.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -49,7 +50,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users, onToggleU
           )}
 
           <span className="px-3 py-1.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200">
-            {filteredUsers.length} of {users.length} Users
+            {filteredUsers.length} of {safeUsers.length} Users
           </span>
         </div>
       </div>

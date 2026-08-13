@@ -20,7 +20,9 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
 }) => {
   if (!isOpen) return null;
 
-  const [selectedBooking, setSelectedBooking] = useState<TourBooking | null>(bookings[0] || null);
+  const safeBookings = bookings || [];
+
+  const [selectedBooking, setSelectedBooking] = useState<TourBooking | null>(safeBookings[0] || null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [chatInput, setChatInput] = useState<string>('');
 
@@ -34,7 +36,7 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
     try {
       const res = await fetch(`/api/chat/${bookingId}`);
       const data = await res.json();
-      if (data.messages) {
+      if (Array.isArray(data.messages)) {
         setMessages(data.messages);
       }
     } catch (err) {
@@ -60,7 +62,7 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
 
       const data = await res.json();
       if (data.message) {
-        setMessages([...messages, data.message]);
+        setMessages(prev => [...(prev || []), data.message]);
         setChatInput('');
       }
     } catch (err) {
@@ -90,7 +92,7 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
           </button>
         </div>
 
-        {bookings.length === 0 ? (
+        {safeBookings.length === 0 ? (
           <div className="p-10 text-center text-slate-500 space-y-3">
             <span className="material-symbols-outlined text-5xl text-slate-300">search_off</span>
             <p className="text-sm font-bold">No active bookings yet</p>
@@ -101,7 +103,7 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
             
             {/* Bookings List Sidebar */}
             <div className="w-full md:w-64 bg-slate-50 border-r border-slate-200 p-3 overflow-y-auto space-y-2">
-              {bookings.map((bk) => (
+              {safeBookings.map((bk) => (
                 <button
                   key={bk.id}
                   onClick={() => setSelectedBooking(bk)}

@@ -28,7 +28,22 @@ export default function App() {
   // Localization State initialized with browser default locale
   const [language, setLanguage] = useState<Language>(() => getDefaultLanguage());
 
-  const [selectedCity, setSelectedCity] = useState<string>('Ho Chi Minh City');
+  const [selectedCity, setSelectedCity] = useState<string>(() => {
+    try {
+      return localStorage.getItem('app_selected_city') || 'All';
+    } catch {
+      return 'All';
+    }
+  });
+
+  const handleCityChange = (city: string) => {
+    setSelectedCity(city);
+    try {
+      localStorage.setItem('app_selected_city', city);
+    } catch {
+      // Ignore localStorage write errors
+    }
+  };
 
   // Default to normal guest/unauthenticated state (not logged in)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -99,11 +114,10 @@ export default function App() {
       if (dataPosts.posts) setPosts(dataPosts.posts);
 
       // 4. Negotiations & Bookings
-      const userId = activeUser ? activeUser.id : 'all';
-      const dataNeg = await safeFetchJson(`/api/negotiations/user/${userId}`);
+      const dataNeg = await safeFetchJson(`/api/negotiations/user/all`);
       if (dataNeg.negotiations) setNegotiations(dataNeg.negotiations);
 
-      const dataBookings = await safeFetchJson(`/api/bookings/user/${userId}`);
+      const dataBookings = await safeFetchJson(`/api/bookings/user/all`);
       if (dataBookings.bookings) setBookings(dataBookings.bookings);
 
     } catch (err) {
@@ -298,7 +312,8 @@ export default function App() {
       });
       const data = await res.json();
       if (data.post) {
-        setPosts([data.post, ...posts]);
+        setPosts(prev => [data.post, ...prev.filter(p => p.id !== data.post.id)]);
+        fetchAllData();
       }
     } catch (err) {
       console.error(err);
@@ -307,13 +322,16 @@ export default function App() {
 
   const handleSendBidToPost = async (postId: string, offerPrice: number, message: string) => {
     try {
+      const targetPost = posts.find(p => String(p.id) === String(postId));
       const res = await fetch('/api/negotiations/offer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postId,
-          travelerId: 'u_traveler_1',
-          guideId: 'g_1',
+          travelerId: targetPost?.travelerId || 'u_traveler_1',
+          travelerName: targetPost?.travelerName || 'Traveler',
+          tourTitle: targetPost?.title,
+          guideId: currentGuideProfile ? currentGuideProfile.id : 'g_1',
           offeredPriceUSD: offerPrice,
           message,
           senderRole: 'guide'
@@ -321,7 +339,7 @@ export default function App() {
       });
       const data = await res.json();
       if (data.offer) {
-        setNegotiations([data.offer, ...negotiations.filter(n => n.id !== data.offer.id)]);
+        setNegotiations(prev => [data.offer, ...prev.filter(n => n.id !== data.offer.id)]);
         fetchAllData();
       }
     } catch (err) {
@@ -359,7 +377,8 @@ export default function App() {
       });
       const data = await res.json();
       if (data.offer) {
-        setNegotiations([data.offer, ...negotiations.filter(n => n.id !== data.offer.id)]);
+        setNegotiations(prev => [data.offer, ...prev.filter(n => n.id !== data.offer.id)]);
+        fetchAllData();
       }
     } catch (err) {
       console.error(err);
@@ -380,7 +399,7 @@ export default function App() {
           action,
           counterPriceUSD: counterPrice,
           message,
-          senderRole: currentUser?.role || 'traveler'
+          senderRole: (currentUser?.role === 'guide' || currentGuideProfile) ? 'guide' : 'traveler'
         })
       });
       const data = await res.json();
@@ -516,7 +535,7 @@ export default function App() {
         onOpenExportRepo={() => setIsExportRepoOpen(true)}
         onOpenTracker={() => setIsTrackerOpen(true)}
         onLogout={handleLogout}
-        pendingKYCCount={kycList.filter(k => k.status === 'pending').length}
+        pendingKYCCount={(kycList || []).filter(k => k.status === 'pending').length}
         language={language}
         onLanguageChange={handleLanguageChange}
       />
@@ -532,6 +551,8 @@ export default function App() {
                 guides={guides}
                 onOpenAuth={() => setIsAuthOpen(true)}
                 language={language}
+                selectedCity={selectedCity}
+                onCityChange={setSelectedCity}
               />
             }
           />
@@ -543,6 +564,7 @@ export default function App() {
                 <TravelerDashboard
                   currentUser={currentUser}
                   selectedCity={selectedCity}
+                  onCityChange={setSelectedCity}
                   guides={guides}
                   posts={posts}
                   negotiations={negotiations}

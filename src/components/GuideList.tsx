@@ -8,12 +8,13 @@ interface GuideListProps {
 }
 
 export const GuideList: React.FC<GuideListProps> = ({
-  guides,
+  guides = [],
   selectedCity,
   onSelectGuide
 }) => {
-  const filtered = guides.filter(g => !selectedCity || selectedCity === 'All' || g.city.toLowerCase() === selectedCity.toLowerCase());
-  const cityGuides = filtered.length > 0 ? filtered : guides;
+  const safeGuides = guides || [];
+  const filtered = safeGuides.filter(g => !selectedCity || selectedCity === 'All' || (g.city && g.city.toLowerCase() === selectedCity.toLowerCase()));
+  const cityGuides = filtered.length > 0 ? filtered : safeGuides;
 
   return (
     <section className="py-10 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto border-t border-slate-200">
@@ -74,7 +75,7 @@ export const GuideList: React.FC<GuideListProps> = ({
 
               {/* Languages Spoken */}
               <div className="flex flex-wrap justify-center gap-1 mb-3">
-                {guide.languages.map((lang, i) => (
+                {(guide.languages || []).map((lang, i) => (
                   <span key={`${guide.id}-lang-${i}`} className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 text-[10px] font-semibold">
                     🗣️ {lang}
                   </span>
@@ -88,7 +89,7 @@ export const GuideList: React.FC<GuideListProps> = ({
 
               {/* Badges */}
               <div className="flex flex-wrap justify-center gap-1 mb-4">
-                {guide.badges.map((b, i) => (
+                {(guide.badges || []).map((b, i) => (
                   <span key={`${guide.id}-badge-${i}`} className="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 text-[10px] font-bold border border-teal-200/60">
                     {b}
                   </span>

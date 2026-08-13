@@ -8,19 +8,29 @@ interface HomepageProps {
   guides: GuideProfile[];
   onOpenAuth: () => void;
   language: Language;
+  selectedCity?: string;
+  onCityChange?: (city: string) => void;
 }
 
 export const Homepage: React.FC<HomepageProps> = ({
   currentUser,
   guides,
   onOpenAuth,
-  language
+  language,
+  selectedCity: propSelectedCity,
+  onCityChange
 }) => {
   const t = translations[language];
   const navigate = useNavigate();
-  const [selectedCity, setSelectedCity] = React.useState<string>('All');
+  const [localCity, setLocalCity] = React.useState<string>('All');
 
-  const popularCities = ['All', 'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Hue', 'Phu Quoc', 'Ha Long Bay', 'Bangkok'];
+  const selectedCity = propSelectedCity !== undefined ? propSelectedCity : localCity;
+  const setSelectedCity = (city: string) => {
+    setLocalCity(city);
+    if (onCityChange) onCityChange(city);
+  };
+
+  const popularCities = ['All', 'Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hoi An', 'Hue', 'Nha Trang', 'Sapa', 'Phu Quoc', 'Ha Long Bay', 'Can Tho'];
 
   const filteredGuides = guides.filter(g => {
     if (selectedCity === 'All') return true;
