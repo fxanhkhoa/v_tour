@@ -110,6 +110,12 @@ export interface TravelerPostRequest {
   status: RequestPostStatus;
   createdAt: string;
   bidsCount: number;
+  // Escrow Deposit & Payment Gateway Fields
+  depositAmountUSD?: number;
+  depositStatus?: 'paid_in_escrow' | 'refunded' | 'transferred_to_booking';
+  depositPaymentMethod?: 'visa' | 'mastercard' | 'momo' | 'vnpay_qr' | 'vietqr' | 'apple_pay' | 'paypal' | string;
+  depositTxId?: string;
+  depositPaidAt?: string;
 }
 
 export type NegotiationStatus = 'pending' | 'countered' | 'accepted' | 'declined';

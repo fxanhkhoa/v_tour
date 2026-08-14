@@ -650,7 +650,26 @@ app.get('/api/tours', async (req, res) => {
 // ---------------- TRAVELER MODULE API ----------------
 app.post('/api/traveler/posts', async (req, res) => {
   try {
-    const { travelerId, travelerName, travelerAvatar, title, city, preferredDate, scheduleSlots, durationHours, groupSize, minBudgetUSD, maxBudgetUSD, description, preferredLanguages } = req.body;
+    const {
+      travelerId,
+      travelerName,
+      travelerAvatar,
+      title,
+      city,
+      preferredDate,
+      scheduleSlots,
+      durationHours,
+      groupSize,
+      minBudgetUSD,
+      maxBudgetUSD,
+      description,
+      preferredLanguages,
+      depositAmountUSD,
+      depositStatus,
+      depositPaymentMethod,
+      depositTxId,
+      depositPaidAt
+    } = req.body;
 
     if (!title || !city) {
       return res.status(400).json({ error: 'Title and city are required' });
@@ -759,7 +778,12 @@ app.post('/api/traveler/posts', async (req, res) => {
       preferredLanguages: preferredLanguages || ['English'],
       status: 'open',
       createdAt: new Date().toISOString(),
-      bidsCount: 0
+      bidsCount: 0,
+      depositAmountUSD: Number(depositAmountUSD) || Number(maxBudgetUSD) || 60,
+      depositStatus: (depositStatus as any) || 'paid_in_escrow',
+      depositPaymentMethod: depositPaymentMethod || 'visa',
+      depositTxId: depositTxId || ('ESCROW_DEP_' + Date.now()),
+      depositPaidAt: depositPaidAt || new Date().toISOString()
     };
 
     await dbSavePost(newPost);
@@ -787,6 +811,9 @@ app.post('/api/traveler/posts/:id/close', async (req, res) => {
       return res.status(404).json({ error: 'Traveler post request not found' });
     }
     post.status = 'closed';
+    if (post.depositStatus === 'paid_in_escrow') {
+      post.depositStatus = 'refunded';
+    }
     await dbSavePost(post);
     res.json({ success: true, post });
   } catch (err: any) {
@@ -983,6 +1010,12 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
         const post = await dbFindPostById(offer.postId);
         if (post) {
           post.status = 'booked';
+          if (post.depositStatus === 'paid_in_escrow') {
+            post.depositStatus = 'transferred_to_booking';
+            if (post.depositTxId) {
+              newBooking.escrowHoldTxId = post.depositTxId;
+            }
+          }
           await dbSavePost(post);
         }
 

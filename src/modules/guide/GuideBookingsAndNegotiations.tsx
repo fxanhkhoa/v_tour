@@ -457,6 +457,18 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-black uppercase">
                           Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD}
                         </span>
+                        {post.depositAmountUSD && (
+                          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase flex items-center space-x-1 ${
+                            post.depositStatus === 'paid_in_escrow'
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : post.depositStatus === 'transferred_to_booking'
+                              ? 'bg-teal-100 text-teal-800 border border-teal-300'
+                              : 'bg-slate-100 text-slate-600'
+                          }`}>
+                            <span className="material-symbols-outlined text-xs text-emerald-600">verified_user</span>
+                            <span>Escrow: ${post.depositAmountUSD}</span>
+                          </span>
+                        )}
                       </div>
                     </div>
 

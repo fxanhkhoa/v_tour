@@ -354,6 +354,26 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                       <span className="text-teal-700 font-bold">
                         💰 Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD} USD
                       </span>
+                      {post.depositAmountUSD ? (
+                        <span className={`inline-flex items-center space-x-1 px-2 py-0.5 rounded text-[10.5px] font-extrabold ${
+                          post.depositStatus === 'paid_in_escrow'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : post.depositStatus === 'transferred_to_booking'
+                            ? 'bg-teal-100 text-teal-800 border border-teal-300'
+                            : 'bg-slate-100 text-slate-600 border border-slate-200'
+                        }`}>
+                          <span className="material-symbols-outlined text-[13px]">
+                            {post.depositStatus === 'paid_in_escrow' ? 'shield_locked' : post.depositStatus === 'transferred_to_booking' ? 'verified' : 'currency_exchange'}
+                          </span>
+                          <span>
+                            {post.depositStatus === 'paid_in_escrow'
+                              ? (language === 'vi' ? `🛡️ Đã Ký Quỹ: $${post.depositAmountUSD}` : `🛡️ Escrow Deposited: $${post.depositAmountUSD}`)
+                              : post.depositStatus === 'transferred_to_booking'
+                              ? (language === 'vi' ? `Ký Quỹ Đã Khóa Vào Tour: $${post.depositAmountUSD}` : `Escrow Transferred to Tour: $${post.depositAmountUSD}`)
+                              : (language === 'vi' ? `Đã Hoàn Ký Quỹ: $${post.depositAmountUSD}` : `Deposit Refunded: $${post.depositAmountUSD}`)}
+                          </span>
+                        </span>
+                      ) : null}
                       <span className="text-slate-600 font-extrabold bg-slate-100 px-2 py-0.5 rounded">
                         🏷️ {totalBids} {t.bidsReceived}
                       </span>
@@ -968,13 +988,23 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
               </p>
             </div>
 
-            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 space-y-1.5">
               <p className="text-xs font-black text-slate-900 line-clamp-1">{postToClose.title}</p>
-              <div className="flex items-center space-x-2 text-[11px] text-slate-500 mt-1">
+              <div className="flex items-center space-x-2 text-[11px] text-slate-500">
                 <span>📍 {postToClose.city}</span>
                 <span>•</span>
                 <span>Budget: ${postToClose.minBudgetUSD}-${postToClose.maxBudgetUSD}</span>
               </div>
+              {postToClose.depositAmountUSD && postToClose.depositStatus === 'paid_in_escrow' && (
+                <div className="mt-2 p-2 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-800 text-[11px] font-bold flex items-center space-x-1.5">
+                  <span className="material-symbols-outlined text-sm text-emerald-600">currency_exchange</span>
+                  <span>
+                    {language === 'vi'
+                      ? `Khoản tiền ký quỹ $${postToClose.depositAmountUSD} USD sẽ được hoàn trả tự động 100% vào tài khoản thanh toán của bạn.`
+                      : `Your $${postToClose.depositAmountUSD} USD escrow deposit will be automatically refunded 100% to your original payment method.`}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex items-center justify-end space-x-2 pt-2">

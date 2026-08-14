@@ -391,7 +391,12 @@ export const initialTravelerPosts: TravelerPostRequest[] = [
     preferredLanguages: ['English'],
     status: 'booked',
     createdAt: '2026-08-12T14:00:00.000Z',
-    bidsCount: 2
+    bidsCount: 2,
+    depositAmountUSD: 70,
+    depositStatus: 'transferred_to_booking',
+    depositPaymentMethod: 'visa',
+    depositTxId: 'ESCROW_DEP_1001',
+    depositPaidAt: '2026-08-12T14:00:00.000Z'
   },
   {
     id: 'post_102',
@@ -412,7 +417,12 @@ export const initialTravelerPosts: TravelerPostRequest[] = [
     preferredLanguages: ['English'],
     status: 'negotiating',
     createdAt: '2026-08-13T09:00:00.000Z',
-    bidsCount: 1
+    bidsCount: 1,
+    depositAmountUSD: 55,
+    depositStatus: 'paid_in_escrow',
+    depositPaymentMethod: 'mastercard',
+    depositTxId: 'ESCROW_DEP_1002',
+    depositPaidAt: '2026-08-13T09:00:00.000Z'
   },
   {
     id: 'post_103',
@@ -433,7 +443,12 @@ export const initialTravelerPosts: TravelerPostRequest[] = [
     preferredLanguages: ['English'],
     status: 'open',
     createdAt: '2026-08-13T16:00:00.000Z',
-    bidsCount: 1
+    bidsCount: 1,
+    depositAmountUSD: 120,
+    depositStatus: 'paid_in_escrow',
+    depositPaymentMethod: 'visa',
+    depositTxId: 'ESCROW_DEP_1003',
+    depositPaidAt: '2026-08-13T16:00:00.000Z'
   }
 ];
 
