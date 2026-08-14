@@ -5,42 +5,27 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
 
-	"go.mongodb.org/mongo-driver/v2/mongo"
-	"go.mongodb.org/mongo-driver/v2/mongo/options"
+	"cloud.google.com/go/firestore"
 )
 
-var DB *mongo.Database
+var DB *firestore.Client
 
-// ConnectDB initializes connection to MongoDB
-func ConnectDB() *mongo.Database {
-	mongoURI := os.Getenv("MONGO_URI")
-	if mongoURI == "" {
-		mongoURI = "mongodb://localhost:27017"
+// ConnectDB initializes connection to Firebase Firestore
+func ConnectDB() *firestore.Client {
+	projectID := os.Getenv("FIREBASE_PROJECT_ID")
+	if projectID == "" {
+		projectID = "tour-guide-hub-firebase"
 	}
 
-	dbName := os.Getenv("MONGO_DB_NAME")
-	if dbName == "" {
-		dbName = "tour_guide_hub"
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
-
-	clientOpts := options.Client().ApplyURI(mongoURI)
-	client, err := mongo.Connect(clientOpts)
+	ctx := context.Background()
+	client, err := firestore.NewClient(ctx, projectID)
 	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
-	}
-
-	err = client.Ping(ctx, nil)
-	if err != nil {
-		log.Printf("MongoDB Ping Warning (using mock or local instance): %v", err)
+		log.Printf("Firebase Firestore Client Notice (using memory fallback if unconfigured): %v", err)
 	} else {
-		fmt.Println("✅ Successfully connected to MongoDB database:", dbName)
+		fmt.Println("✅ Successfully connected to Firebase Firestore database project:", projectID)
 	}
 
-	DB = client.Database(dbName)
+	DB = client
 	return DB
 }

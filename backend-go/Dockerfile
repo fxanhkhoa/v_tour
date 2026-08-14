@@ -18,6 +18,6 @@ COPY --from=builder /app/tour-guide-backend .
 
 EXPOSE 8080
 ENV PORT=8080
-ENV MONGO_URI="mongodb://localhost:27017"
+ENV FIREBASE_PROJECT_ID="tour-guide-hub-firebase"
 
 CMD ["./tour-guide-backend"]

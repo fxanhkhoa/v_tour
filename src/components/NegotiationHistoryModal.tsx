@@ -11,7 +11,8 @@ interface NegotiationHistoryModalProps {
     offerId: string,
     action: 'accept' | 'counter' | 'decline',
     counterPrice?: number,
-    message?: string
+    message?: string,
+    senderRole?: 'traveler' | 'guide'
   ) => void;
   onOpenKYCModal?: () => void;
 }
@@ -32,43 +33,57 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
   );
   const [customMessage, setCustomMessage] = useState<string>('');
   const [showCounterInput, setShowCounterInput] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [justAccepted, setJustAccepted] = useState<boolean>(false);
 
   const messages = negotiation.messages || [];
-  const isAccepted = negotiation.status === 'accepted';
+  const isAccepted = negotiation.status === 'accepted' || justAccepted;
   const isDeclined = negotiation.status === 'declined';
   const isMyTurnToRespond = negotiation.lastSenderRole !== currentUserRole && !isAccepted && !isDeclined;
 
-  const handleAction = (action: 'accept' | 'counter' | 'decline') => {
+  const handleAction = async (action: 'accept' | 'counter' | 'decline') => {
     if (currentUserRole === 'guide' && !isVerifiedGuide) {
       if (onOpenKYCModal) onOpenKYCModal();
       return;
     }
 
-    if (action === 'counter') {
-      if (counterPrice <= 0) return;
-      onRespondNegotiation(
-        negotiation.id,
-        'counter',
-        counterPrice,
-        customMessage || `Counter-offered $${counterPrice} USD`
-      );
-    } else if (action === 'accept') {
-      onRespondNegotiation(
-        negotiation.id,
-        'accept',
-        undefined,
-        customMessage || `Accepted price offer of $${negotiation.offeredPriceUSD} USD!`
-      );
-    } else if (action === 'decline') {
-      onRespondNegotiation(
-        negotiation.id,
-        'decline',
-        undefined,
-        customMessage || 'Declined offer'
-      );
+    setIsSubmitting(true);
+    try {
+      if (action === 'counter') {
+        if (counterPrice <= 0) {
+          setIsSubmitting(false);
+          return;
+        }
+        await onRespondNegotiation(
+          negotiation.id,
+          'counter',
+          counterPrice,
+          customMessage || `Counter-offered $${counterPrice} USD`,
+          currentUserRole
+        );
+      } else if (action === 'accept') {
+        setJustAccepted(true);
+        await onRespondNegotiation(
+          negotiation.id,
+          'accept',
+          undefined,
+          customMessage || `Accepted price offer of $${negotiation.offeredPriceUSD} USD!`,
+          currentUserRole
+        );
+      } else if (action === 'decline') {
+        await onRespondNegotiation(
+          negotiation.id,
+          'decline',
+          undefined,
+          customMessage || 'Declined offer',
+          currentUserRole
+        );
+      }
+      setCustomMessage('');
+      setShowCounterInput(false);
+    } finally {
+      setIsSubmitting(false);
     }
-    setCustomMessage('');
-    setShowCounterInput(false);
   };
 
   return (
@@ -197,8 +212,23 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
         {/* Interactive Response Controls Footer */}
         <div className="p-4 bg-white border-t border-slate-200 shrink-0">
           {isAccepted ? (
-            <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold text-center">
-              🎉 Negotiation completed! This price agreement of ${negotiation.offeredPriceUSD} USD has been confirmed into a tour booking.
+            <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs font-bold space-y-2 text-center animate-fade-in shadow-xs">
+              <div className="flex items-center justify-center space-x-1.5 text-emerald-800 text-sm font-extrabold">
+                <span className="material-symbols-outlined text-xl text-emerald-600">verified</span>
+                <span>🎉 Offer Successfully Accepted!</span>
+              </div>
+              <p className="text-[11px] text-emerald-800 font-medium">
+                This agreed tour offer of <strong className="font-black text-emerald-900">${negotiation.offeredPriceUSD} USD</strong> has been confirmed into a tour booking and added to your calendar schedule.
+              </p>
+              <div className="pt-2 flex items-center justify-center space-x-2">
+                <button
+                  onClick={onClose}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs cursor-pointer shadow-md transition-all flex items-center space-x-1.5"
+                >
+                  <span className="material-symbols-outlined text-sm">calendar_month</span>
+                  <span>View in Calendar / Close</span>
+                </button>
+              </div>
             </div>
           ) : isDeclined ? (
             <div className="p-3 rounded-2xl bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold text-center">
@@ -291,10 +321,14 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
                         className="w-24 p-1.5 bg-white border border-amber-300 rounded-xl text-xs font-bold text-slate-900 focus:outline-none focus:ring-1 focus:ring-amber-500 text-center"
                       />
                       <button
+                        disabled={isSubmitting}
                         onClick={() => handleAction('counter')}
-                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-xs cursor-pointer transition-all"
+                        className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 disabled:opacity-60 text-slate-950 font-black text-xs rounded-xl shadow-xs cursor-pointer transition-all flex items-center space-x-1"
                       >
-                        Send Counter
+                        {isSubmitting ? (
+                          <span className="material-symbols-outlined text-xs animate-spin">progress_activity</span>
+                        ) : null}
+                        <span>Send Counter</span>
                       </button>
                     </div>
                   </div>
@@ -304,8 +338,9 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
               {/* Response Action Buttons */}
               <div className="flex items-center justify-between gap-2 pt-1">
                 <button
+                  disabled={isSubmitting}
                   onClick={() => handleAction('decline')}
-                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 font-bold text-xs cursor-pointer border border-slate-200 transition-colors"
+                  className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 disabled:opacity-50 font-bold text-xs cursor-pointer border border-slate-200 transition-colors"
                 >
                   Decline
                 </button>
@@ -313,6 +348,7 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
                 <div className="flex items-center space-x-2">
                   {!showCounterInput ? (
                     <button
+                      disabled={isSubmitting}
                       onClick={() => {
                         setShowCounterInput(true);
                         setCounterPrice(negotiation.offeredPriceUSD);
@@ -331,10 +367,21 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
                   )}
 
                   <button
+                    disabled={isSubmitting}
                     onClick={() => handleAction('accept')}
-                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs cursor-pointer shadow-sm transition-all flex items-center space-x-1"
+                    className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-60 text-white font-black text-xs cursor-pointer shadow-sm transition-all flex items-center space-x-1.5"
                   >
-                    <span>Accept Offer (${negotiation.offeredPriceUSD})</span>
+                    {isSubmitting ? (
+                      <>
+                        <span className="material-symbols-outlined text-sm animate-spin">progress_activity</span>
+                        <span>Accepting...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="material-symbols-outlined text-sm">check_circle</span>
+                        <span>Accept Offer (${negotiation.offeredPriceUSD})</span>
+                      </>
+                    )}
                   </button>
                 </div>
               </div>

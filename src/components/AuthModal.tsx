@@ -25,7 +25,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [showGoogleNotice, setShowGoogleNotice] = useState<boolean>(false);
 
   // Form states
-  const [loginEmail, setLoginEmail] = useState<string>('sarah@example.com');
+  const [loginEmail, setLoginEmail] = useState<string>('sarah.j@example.com');
   const [loginPassword, setLoginPassword] = useState<string>('password123');
 
   const [signupName, setSignupName] = useState<string>('');
@@ -37,29 +37,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const sampleDemoAccounts = [
     {
       name: 'Sarah Jenkins',
-      email: 'sarah@example.com',
+      email: 'sarah.j@example.com',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
       role: 'traveler' as UserRole,
       badge: language === 'vi' ? 'Du Khách' : 'Traveler Profile'
     },
     {
-      name: 'Nguyen Van Minh',
-      email: 'minh.tourguide@gmail.com',
+      name: 'Minh Nguyen',
+      email: 'minh.guide@example.com',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
       role: 'guide' as UserRole,
       badge: language === 'vi' ? 'HDV Đã Xác Minh 📜' : 'Verified Guide 📜'
     },
     {
-      name: 'Somchai Prasert',
-      email: 'somchai@example.com',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      name: 'Hoang Nam',
+      email: 'hoangnam@example.com',
+      avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
       role: 'guide' as UserRole,
       badge: language === 'vi' ? 'HDV Đang Duyệt ⏳' : 'Guide (Under Review ⏳)'
     },
     {
       name: 'Alexander Wright',
       email: 'admin@tourguidehub.com',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
       role: 'admin' as UserRole,
       badge: language === 'vi' ? 'Quản Trị Viên' : 'Platform Admin'
     }

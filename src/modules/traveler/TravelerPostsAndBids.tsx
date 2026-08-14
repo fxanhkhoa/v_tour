@@ -2,14 +2,18 @@ import React, { useState } from 'react';
 import { TravelerPostRequest, NegotiationOffer, TourBooking } from '../../types';
 import { Language, translations } from '../../lib/translations';
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
+import { TourBookingHubModal } from '../../components/TourBookingHubModal';
 
 interface TravelerPostsAndBidsProps {
   posts: TravelerPostRequest[];
   negotiations: NegotiationOffer[];
   bookings: TourBooking[];
-  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string) => void;
+  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string, senderRole?: 'traveler' | 'guide') => void;
   onOpenNewPostModal: () => void;
+  onClosePost?: (postId: string) => void;
+  onUpdatePostStatus?: (postId: string, status: 'open' | 'negotiating' | 'booked' | 'closed') => void;
   onConfirmCompletion?: (bookingId: string, role: 'traveler' | 'guide') => void;
+  onUpdateStatus?: (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => void;
   language?: Language;
 }
 
@@ -19,7 +23,10 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
   bookings,
   onRespondNegotiation,
   onOpenNewPostModal,
+  onClosePost,
+  onUpdatePostStatus,
   onConfirmCompletion,
+  onUpdateStatus,
   language = 'en'
 }) => {
   const t = translations[language] || translations.en;
@@ -31,7 +38,11 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
   const [counteringBidId, setCounteringBidId] = useState<string | null>(null);
   const [bidCounterPrice, setBidCounterPrice] = useState<number>(0);
 
+  // Close post confirmation state
+  const [postToClose, setPostToClose] = useState<TravelerPostRequest | null>(null);
+
   const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
+  const [selectedHubBooking, setSelectedHubBooking] = useState<TourBooking | null>(null);
 
   // Filter and sort state for open posts
   const [postSearchQuery, setPostSearchQuery] = useState<string>('');
@@ -283,41 +294,111 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
               const totalBids = matchingBids.length;
 
               return (
-                <div key={post.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-bold text-slate-900 text-sm">{post.title}</h4>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                        post.status === 'open' ? 'bg-teal-100 text-teal-800' :
-                        post.status === 'negotiating' ? 'bg-amber-100 text-amber-800' :
-                        post.status === 'booked' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-700'
+                <div key={post.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-colors flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-2xs">
+                  <div className="space-y-2 flex-1">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                      <h4 className="font-extrabold text-slate-900 text-sm sm:text-base">{post.title}</h4>
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
+                        post.status === 'open' ? 'bg-teal-100 text-teal-800 border border-teal-200' :
+                        post.status === 'negotiating' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                        post.status === 'booked' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' : 'bg-slate-200 text-slate-700'
                       }`}>
                         {post.status}
                       </span>
                     </div>
+                    
                     <p className="text-xs text-slate-600 line-clamp-2">{post.description}</p>
                     
-                    {post.preferredDate && (
-                      <div className="inline-flex items-center space-x-1 text-[11px] bg-slate-100 px-2 py-0.5 rounded text-slate-600 font-bold">
-                        <span className="material-symbols-outlined text-xs">calendar_today</span>
-                        <span>{post.preferredDate}</span>
-                      </div>
-                    )}
+                    {/* Time Slot & Hourly Schedule Badges */}
+                    <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                      {post.scheduleSlots && post.scheduleSlots.length > 0 ? (
+                        post.scheduleSlots.map((slot, idx) => {
+                          const slotText = (slot.startTime && slot.endTime && slot.dateStr)
+                            ? `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`
+                            : (slot.displayLabel || `${slot.startTime || ''} - ${slot.endTime || ''} on ${slot.dateStr || post.preferredDate || ''}`);
 
-                    <p className="text-[11px] text-slate-400">
-                      📍 {post.city} • Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD} USD • {totalBids} {t.bidsReceived}
-                    </p>
+                          return (
+                            <div
+                              key={slot.id || idx}
+                              className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-50 border border-teal-200/90 text-teal-900 px-2.5 py-1 rounded-lg font-bold shadow-2xs"
+                            >
+                              <span className="material-symbols-outlined text-xs text-teal-700">schedule</span>
+                              <span>{slotText}</span>
+                              {post.durationHours > 0 && (
+                                <span className="text-teal-800 font-extrabold">
+                                  • ⏱️ {post.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+                                </span>
+                              )}
+                            </div>
+                          );
+                        })
+                      ) : post.preferredDate ? (
+                        <div className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-50 border border-teal-200 text-teal-900 px-2.5 py-1 rounded-lg font-bold shadow-2xs">
+                          <span className="material-symbols-outlined text-xs text-teal-700">calendar_clock</span>
+                          <span>{post.preferredDate}</span>
+                          {post.durationHours > 0 && (
+                            <span className="text-teal-800 font-extrabold">
+                              • ⏱️ {post.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+                            </span>
+                          )}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-500 font-medium pt-0.5">
+                      <span className="flex items-center space-x-1 font-bold text-slate-700">
+                        <span className="material-symbols-outlined text-xs text-teal-600">location_on</span>
+                        <span>{post.city}</span>
+                      </span>
+                      <span>👥 {post.groupSize} {language === 'vi' ? 'Khách' : 'Travelers'}</span>
+                      <span className="text-teal-700 font-bold">
+                        💰 Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD} USD
+                      </span>
+                      <span className="text-slate-600 font-extrabold bg-slate-100 px-2 py-0.5 rounded">
+                        🏷️ {totalBids} {t.bidsReceived}
+                      </span>
+                    </div>
                   </div>
 
-                  <div className="flex items-center space-x-2 shrink-0">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0 self-start md:self-center">
                     <button
                       type="button"
                       onClick={() => setViewingBidsPost(post)}
-                      className="px-4 py-2 bg-teal-600 hover:bg-teal-500 text-white text-xs font-extrabold rounded-xl shadow-xs transition-colors cursor-pointer flex items-center space-x-1"
+                      className="px-4 py-2.5 bg-teal-600 hover:bg-teal-500 text-white text-xs font-extrabold rounded-xl shadow-xs transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95"
                     >
                       <span className="material-symbols-outlined text-sm">visibility</span>
                       <span>{language === 'vi' ? `Xem Báo Giá (${totalBids})` : `View Bids (${totalBids})`}</span>
                     </button>
+
+                    {post.status === 'closed' ? (
+                      <div className="flex items-center space-x-1.5">
+                        <span className="px-3 py-2 rounded-xl bg-slate-200 text-slate-700 text-xs font-extrabold uppercase tracking-wide flex items-center space-x-1 border border-slate-300">
+                          <span className="material-symbols-outlined text-xs">lock</span>
+                          <span>{t.postClosedBadge || 'Closed'}</span>
+                        </span>
+                        {onUpdatePostStatus && (
+                          <button
+                            type="button"
+                            onClick={() => onUpdatePostStatus(post.id, 'open')}
+                            className="px-3 py-2 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
+                            title={language === 'vi' ? 'Mở lại yêu cầu để tiếp tục nhận báo giá' : 'Reopen post to receive bids again'}
+                          >
+                            <span className="material-symbols-outlined text-xs text-teal-600">lock_open</span>
+                            <span>{t.reopenPostBtn || 'Reopen'}</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setPostToClose(post)}
+                        className="px-3.5 py-2.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 hover:text-rose-800 text-xs font-extrabold rounded-xl shadow-2xs transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95"
+                        title={language === 'vi' ? 'Đóng yêu cầu khi không còn nhu cầu nhận báo giá mới' : 'Close this request if you no longer need new bids'}
+                      >
+                        <span className="material-symbols-outlined text-sm">archive</span>
+                        <span>{t.closePostBtn || 'Close Request'}</span>
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -353,13 +434,30 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                     </span>
                   </div>
 
-                  {/* Slot & Group size info if tour based */}
-                  {neg.selectedSlot && (
-                    <div className="flex items-center space-x-2 text-[11px] text-teal-800 font-bold bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 w-fit">
-                      <span>🗓️ {neg.selectedSlot.displayLabel || `${neg.selectedSlot.dateStr} (${neg.selectedSlot.startTime} - ${neg.selectedSlot.endTime})`}</span>
-                      {neg.groupSize && <span>• 👥 {neg.groupSize} travelers</span>}
-                    </div>
-                  )}
+                  {/* Slot & Hour booking info */}
+                  {(() => {
+                    const relatedPost = posts.find(p => p.id === neg.postId);
+                    const slotDisplay = neg.selectedSlot 
+                      ? (neg.selectedSlot.displayLabel || `${neg.selectedSlot.startTime} - ${neg.selectedSlot.endTime} on ${neg.selectedSlot.dateStr}`)
+                      : relatedPost?.scheduleSlots?.[0]
+                      ? (relatedPost.scheduleSlots[0].displayLabel || `${relatedPost.scheduleSlots[0].startTime} - ${relatedPost.scheduleSlots[0].endTime} on ${relatedPost.scheduleSlots[0].dateStr}`)
+                      : relatedPost?.preferredDate;
+                    
+                    if (!slotDisplay && !neg.groupSize) return null;
+
+                    return (
+                      <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-teal-900 font-bold bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 w-fit">
+                        <span className="material-symbols-outlined text-xs text-teal-700">schedule</span>
+                        <span>{slotDisplay}</span>
+                        {(relatedPost?.durationHours || neg.selectedSlot) && (
+                          <span className="text-teal-700 font-extrabold">
+                            • ⏱️ {relatedPost?.durationHours || 4} {language === 'vi' ? 'Giờ' : 'Hours'}
+                          </span>
+                        )}
+                        {neg.groupSize && <span>• 👥 {neg.groupSize} {language === 'vi' ? 'khách' : 'travelers'}</span>}
+                      </div>
+                    );
+                  })()}
 
                   <p className="text-xs text-slate-700">
                     {t.guideOfferedPrice}: <strong className="text-emerald-700 text-sm">${neg.offeredPriceUSD} USD</strong>
@@ -394,7 +492,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                       ) : (
                         <>
                           <button
-                            onClick={() => onRespondNegotiation(neg.id, 'accept', undefined, 'Deal accepted!')}
+                            onClick={() => onRespondNegotiation(neg.id, 'accept', undefined, 'Deal accepted!', 'traveler')}
                             className="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs cursor-pointer shadow-sm"
                           >
                             {t.acceptOffer} ${neg.offeredPriceUSD}
@@ -464,22 +562,33 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                     {b.status.replace('_', ' ')}
                   </span>
 
-                  {b.status !== 'completed' && onConfirmCompletion && (
+                  <div className="flex items-center space-x-2">
                     <button
                       type="button"
-                      onClick={() => onConfirmCompletion(b.id, 'traveler')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 ${
-                        b.travelerConfirmedCompletion
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
-                      }`}
+                      onClick={() => setSelectedHubBooking(b)}
+                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs cursor-pointer shadow-xs transition-all flex items-center space-x-1"
                     >
-                      <span className="material-symbols-outlined text-sm">
-                        {b.travelerConfirmedCompletion ? 'check_circle' : 'verified'}
-                      </span>
-                      <span>{b.travelerConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                      <span className="material-symbols-outlined text-sm">confirmation_number</span>
+                      <span>Tour Pass & Details</span>
                     </button>
-                  )}
+
+                    {b.status !== 'completed' && onConfirmCompletion && (
+                      <button
+                        type="button"
+                        onClick={() => onConfirmCompletion(b.id, 'traveler')}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 ${
+                          b.travelerConfirmedCompletion
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          {b.travelerConfirmedCompletion ? 'check_circle' : 'verified'}
+                        </span>
+                        <span>{b.travelerConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
@@ -511,7 +620,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
 
             <button
               onClick={() => {
-                onRespondNegotiation(counteringOfferId, 'counter', counterPrice, `Counter offer price: $${counterPrice} USD`);
+                onRespondNegotiation(counteringOfferId, 'counter', counterPrice, `Counter offer price: $${counterPrice} USD`, 'traveler');
                 setCounteringOfferId(null);
               }}
               className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-2xl cursor-pointer"
@@ -540,10 +649,55 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
 
             {/* Post Request Info */}
             <div>
-              <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold uppercase mb-2 border border-teal-100">
-                <span className="material-symbols-outlined text-xs">campaign</span>
-                <span>{language === 'vi' ? 'Thông Tin Yêu Cầu Của Bạn' : 'Your Original Custom Request'}</span>
+              <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold uppercase border border-teal-100">
+                  <span className="material-symbols-outlined text-xs">campaign</span>
+                  <span>{language === 'vi' ? 'Thông Tin Yêu Cầu Của Bạn' : 'Your Original Custom Request'}</span>
+                </div>
+
+                {viewingBidsPost.status === 'closed' ? (
+                  <div className="flex items-center space-x-2">
+                    <span className="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wide flex items-center space-x-1 border border-slate-300">
+                      <span className="material-symbols-outlined text-xs">lock</span>
+                      <span>{t.postClosedBadge || 'Closed'}</span>
+                    </span>
+                    {onUpdatePostStatus && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          onUpdatePostStatus(viewingBidsPost.id, 'open');
+                          setViewingBidsPost(prev => prev ? { ...prev, status: 'open' } : null);
+                        }}
+                        className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
+                      >
+                        <span className="material-symbols-outlined text-xs text-teal-600">lock_open</span>
+                        <span>{t.reopenPostBtn || 'Reopen'}</span>
+                      </button>
+                    )}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setPostToClose(viewingBidsPost)}
+                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
+                  >
+                    <span className="material-symbols-outlined text-sm">archive</span>
+                    <span>{t.closePostBtn || 'Close Request'}</span>
+                  </button>
+                )}
               </div>
+
+              {viewingBidsPost.status === 'closed' && (
+                <div className="mb-3 px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs flex items-center space-x-2">
+                  <span className="material-symbols-outlined text-slate-500 text-base">info</span>
+                  <span>
+                    {language === 'vi'
+                      ? 'Yêu cầu này đã được đóng. Các báo giá và lịch sử thương lượng bên dưới vẫn được lưu trữ đầy đủ.'
+                      : 'This request is closed. Guides cannot place new bids, but all existing bids below remain saved.'}
+                  </span>
+                </div>
+              )}
+
               <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
                 {viewingBidsPost.title}
               </h3>
@@ -554,16 +708,46 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                 <span>💰 Budget: ${viewingBidsPost.minBudgetUSD}-${viewingBidsPost.maxBudgetUSD} USD</span>
               </p>
               
-              <div className="mt-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100">
+              <div className="mt-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2.5">
                 <p className="text-xs text-slate-700 leading-relaxed font-medium">
                   {viewingBidsPost.description}
                 </p>
-                {viewingBidsPost.preferredDate && (
-                  <div className="mt-2.5 pt-2.5 border-t border-slate-150 flex items-center space-x-2 text-[11px] text-teal-800 font-extrabold">
-                    <span className="material-symbols-outlined text-sm">calendar_clock</span>
-                    <span>{viewingBidsPost.preferredDate}</span>
-                  </div>
-                )}
+                
+                {/* Time Slots Chips in Modal */}
+                <div className="pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
+                  {viewingBidsPost.scheduleSlots && viewingBidsPost.scheduleSlots.length > 0 ? (
+                    viewingBidsPost.scheduleSlots.map((slot, idx) => {
+                      const slotText = (slot.startTime && slot.endTime && slot.dateStr)
+                        ? `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`
+                        : (slot.displayLabel || `${slot.startTime || ''} - ${slot.endTime || ''} on ${slot.dateStr || viewingBidsPost.preferredDate || ''}`);
+
+                      return (
+                        <div
+                          key={slot.id || idx}
+                          className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-100/80 border border-teal-200 text-teal-950 px-2.5 py-1 rounded-lg font-bold"
+                        >
+                          <span className="material-symbols-outlined text-xs text-teal-700">schedule</span>
+                          <span>{slotText}</span>
+                          {viewingBidsPost.durationHours > 0 && (
+                            <span className="text-teal-900 font-extrabold">
+                              • ⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : viewingBidsPost.preferredDate ? (
+                    <div className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-100/80 border border-teal-200 text-teal-950 px-2.5 py-1 rounded-lg font-bold">
+                      <span className="material-symbols-outlined text-xs text-teal-700">calendar_clock</span>
+                      <span>{viewingBidsPost.preferredDate}</span>
+                      {viewingBidsPost.durationHours > 0 && (
+                        <span className="text-teal-900 font-extrabold">
+                          • ⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+                        </span>
+                      )}
+                    </div>
+                  ) : null}
+                </div>
               </div>
             </div>
 
@@ -665,7 +849,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    onRespondNegotiation(bid.id, 'accept', undefined, 'Deal accepted!');
+                                    onRespondNegotiation(bid.id, 'accept', undefined, 'Deal accepted!', 'traveler');
                                     setViewingBidsPost(null);
                                   }}
                                   className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] rounded-lg cursor-pointer transition-all active:scale-95"
@@ -687,7 +871,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    onRespondNegotiation(bid.id, 'decline', undefined, 'Offer declined');
+                                    onRespondNegotiation(bid.id, 'decline', undefined, 'Offer declined', 'traveler');
                                     setViewingBidsPost(null);
                                   }}
                                   className="px-3 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 font-bold text-[11px] rounded-lg cursor-pointer transition-all"
@@ -716,7 +900,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    onRespondNegotiation(bid.id, 'counter', bidCounterPrice, `Traveler countered with price $${bidCounterPrice} USD`);
+                                    onRespondNegotiation(bid.id, 'counter', bidCounterPrice, `Traveler countered with price $${bidCounterPrice} USD`, 'traveler');
                                     setCounteringBidId(null);
                                     setViewingBidsPost(null);
                                   }}
@@ -754,6 +938,75 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
         currentUserRole="traveler"
         onRespondNegotiation={onRespondNegotiation}
       />
+
+      {/* Tour Booking Central Hub Modal */}
+      <TourBookingHubModal
+        isOpen={!!selectedHubBooking}
+        onClose={() => setSelectedHubBooking(null)}
+        booking={selectedHubBooking ? (bookings.find(b => b.id === selectedHubBooking.id) || selectedHubBooking) : null}
+        allBookings={bookings}
+        currentUser={null}
+        onUpdateStatus={onUpdateStatus}
+        onConfirmCompletion={onConfirmCompletion}
+        language={language}
+      />
+
+      {/* Close Post Confirmation Modal */}
+      {postToClose && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-100 space-y-4">
+            <div className="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center mb-1">
+              <span className="material-symbols-outlined text-2xl">archive</span>
+            </div>
+
+            <div>
+              <h3 className="text-lg font-black text-slate-900">
+                {t.closePostModalTitle || 'Close Trip Request'}
+              </h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                {t.closePostConfirmText || 'Are you sure you want to close this trip request? Tourist guides will no longer be able to submit new bids. All existing bids and conversation history will remain saved.'}
+              </p>
+            </div>
+
+            <div className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+              <p className="text-xs font-black text-slate-900 line-clamp-1">{postToClose.title}</p>
+              <div className="flex items-center space-x-2 text-[11px] text-slate-500 mt-1">
+                <span>📍 {postToClose.city}</span>
+                <span>•</span>
+                <span>Budget: ${postToClose.minBudgetUSD}-${postToClose.maxBudgetUSD}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setPostToClose(null)}
+                className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-100 transition-all cursor-pointer"
+              >
+                {t.keepOpenBtn || 'Keep Open'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onClosePost) {
+                    onClosePost(postToClose.id);
+                  } else if (onUpdatePostStatus) {
+                    onUpdatePostStatus(postToClose.id, 'closed');
+                  }
+                  if (viewingBidsPost && viewingBidsPost.id === postToClose.id) {
+                    setViewingBidsPost({ ...viewingBidsPost, status: 'closed' });
+                  }
+                  setPostToClose(null);
+                }}
+                className="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold text-xs shadow-md shadow-rose-600/20 transition-all cursor-pointer active:scale-95 flex items-center space-x-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">archive</span>
+                <span>{t.confirmCloseBtn || 'Yes, Close Post'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

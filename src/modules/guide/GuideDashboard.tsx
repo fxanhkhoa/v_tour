@@ -30,8 +30,9 @@ interface GuideDashboardProps {
   onUpdateTour?: (tourData: any) => void;
   onAcceptBooking: (bookingId: string) => void;
   onSendBidToPost: (postId: string, offerPrice: number, message: string) => void;
-  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string) => void;
+  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string, senderRole?: 'traveler' | 'guide') => void;
   onConfirmCompletion?: (bookingId: string, role: 'traveler' | 'guide') => void;
+  onUpdateStatus?: (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => void;
   language?: Language;
 }
 
@@ -49,6 +50,7 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
   onSendBidToPost,
   onRespondNegotiation,
   onConfirmCompletion,
+  onUpdateStatus,
   language = 'en'
 }) => {
   const [isKYCModalOpen, setIsKYCModalOpen] = useState<boolean>(false);
@@ -361,7 +363,9 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
         onSendBidToPost={onSendBidToPost}
         onRespondNegotiation={onRespondNegotiation}
         onConfirmCompletion={onConfirmCompletion}
+        onUpdateStatus={onUpdateStatus}
         onOpenKYCModal={() => setIsKYCModalOpen(true)}
+        language={language}
       />
 
       {/* Modals */}

@@ -17,17 +17,17 @@ import (
 	"fmt"
 	"net/http"
 	"github.com/gin-gonic/gin"
-	"go.mongodb.org/mongo-driver/v2/mongo"
+	"cloud.google.google.com/go/firestore"
 )
 
-// Tour Guide Hub Golang + MongoDB Backend
+// Tour Guide Hub Golang + Firebase Firestore Backend
 func main() {
 	r := gin.Default()
 	
 	r.GET("/api/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"status": "ok", 
-			"service": "Go + MongoDB Tour Guide Hub Backend",
+			"service": "Go + Firebase Firestore Tour Guide Hub Backend",
 		})
 	})
 
@@ -66,7 +66,7 @@ export class AppComponent {}`;
             <span className="material-symbols-outlined text-emerald-400 text-2xl">folder_zip</span>
             <div>
               <h3 className="font-extrabold text-base text-white">Full Stack Code Repository</h3>
-              <p className="text-xs text-slate-400">Golang + MongoDB Backend & Angular 22 Material Frontend</p>
+              <p className="text-xs text-slate-400">Golang + Firebase Firestore Backend & Angular 22 Material Frontend</p>
             </div>
           </div>
 
@@ -86,7 +86,7 @@ export class AppComponent {}`;
               activeTab === 'go' ? 'border-emerald-400 text-emerald-400' : 'border-transparent text-slate-400'
             }`}
           >
-            Go + MongoDB Backend (/backend-go)
+            Go + Firebase Backend (/backend-go)
           </button>
           <button
             onClick={() => setActiveTab('angular')}
@@ -119,7 +119,7 @@ export class AppComponent {}`;
           </pre>
 
           <div className="p-3 bg-slate-800/60 rounded-xl border border-slate-700 text-xs text-slate-300">
-            💡 <strong>Export Tip:</strong> All source files for Golang + MongoDB (`/backend-go/`) and Angular 22 (`/frontend-angular/`) are generated right inside this project workspace! You can download the full project archive at any time via the AI Studio Settings menu.
+            💡 <strong>Export Tip:</strong> All source files for Golang + Firebase Firestore (`/backend-go/`) and Angular 22 (`/frontend-angular/`) are generated right inside this project workspace! You can download the full project archive at any time via the AI Studio Settings menu.
           </div>
         </div>
 

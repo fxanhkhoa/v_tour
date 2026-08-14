@@ -15,7 +15,7 @@ func main() {
 		port = "8080"
 	}
 
-	// Initialize MongoDB
+	// Initialize Firebase Firestore
 	config.ConnectDB()
 
 	r := gin.Default()
@@ -38,7 +38,7 @@ func main() {
 		api.GET("/health", func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  "ok",
-				"service": "Tour Guide Hub Go + MongoDB Backend",
+				"service": "Tour Guide Hub Go + Firebase Firestore Backend",
 			})
 		})
 

@@ -3,6 +3,8 @@ import { User, GuideProfile, TravelerPostRequest, NegotiationOffer, TourBooking,
 import { CreateTravelerPostModal } from './CreateTravelerPostModal';
 import { GuideDirectoryAndNegotiate } from './GuideDirectoryAndNegotiate';
 import { TravelerPostsAndBids } from './TravelerPostsAndBids';
+import { PortalEventsCalendar } from '../../components/PortalEventsCalendar';
+import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
 import { Language, translations } from '../../lib/translations';
 
 interface TravelerDashboardProps {
@@ -15,6 +17,8 @@ interface TravelerDashboardProps {
   bookings: TourBooking[];
   tours?: TourPackage[];
   onCreatePost: (postData: any) => void;
+  onClosePost?: (postId: string) => void;
+  onUpdatePostStatus?: (postId: string, status: 'open' | 'negotiating' | 'booked' | 'closed') => void;
   onNegotiateWithGuide: (
     guide: GuideProfile,
     offeredPriceUSD: number,
@@ -25,8 +29,9 @@ interface TravelerDashboardProps {
     groupSize?: number,
     originalPriceUSD?: number
   ) => void;
-  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string) => void;
+  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string, senderRole?: 'traveler' | 'guide') => void;
   onConfirmCompletion?: (bookingId: string, role: 'traveler' | 'guide') => void;
+  onUpdateStatus?: (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => void;
   language?: Language;
 }
 
@@ -40,14 +45,36 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
   bookings,
   tours = [],
   onCreatePost,
+  onClosePost,
+  onUpdatePostStatus,
   onNegotiateWithGuide,
   onRespondNegotiation,
   onConfirmCompletion,
+  onUpdateStatus,
   language = 'en'
 }) => {
   const t = translations[language] || translations.en;
-  const [activeTab, setActiveTab] = useState<'guides' | 'my_posts' | 'bookings'>('my_posts');
+  const [activeTab, setActiveTab] = useState<'guides' | 'my_posts' | 'bookings' | 'calendar'>('my_posts');
   const [isPostModalOpen, setIsPostModalOpen] = useState<boolean>(false);
+  const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
+
+  // Dynamically resolve active negotiation object to ensure live state updates in modal
+  const activeNegotiation = historyModalNegotiation
+    ? (negotiations.find(n => n.id === historyModalNegotiation.id) || historyModalNegotiation)
+    : null;
+
+  const handleRespondNegotiationWithSync = (
+    offerId: string,
+    action: 'accept' | 'counter' | 'decline',
+    counterPriceVal?: number,
+    message?: string,
+    senderRole?: 'traveler' | 'guide'
+  ) => {
+    onRespondNegotiation(offerId, action, counterPriceVal, message, senderRole);
+    if (action === 'accept') {
+      setHistoryModalNegotiation(prev => prev && prev.id === offerId ? { ...prev, status: 'accepted' } : prev);
+    }
+  };
 
   const myPosts = (posts || []).filter(p => !currentUser || p.travelerId === currentUser.id || p.travelerId === 'u_traveler_1');
   const myPostIds = new Set(myPosts.map(p => String(p.id)));
@@ -123,9 +150,34 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
           <span className="material-symbols-outlined text-sm">confirmation_number</span>
           <span>{t.confirmedBookingsTab} ({myBookings.length})</span>
         </button>
+
+        <button
+          onClick={() => setActiveTab('calendar')}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-2 ${
+            activeTab === 'calendar'
+              ? 'bg-teal-600 text-white shadow-md'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">calendar_month</span>
+          <span>📅 {language === 'vi' ? 'Lịch Sự Kiện' : 'Events Calendar'}</span>
+        </button>
       </div>
 
       {/* Tab Contents */}
+      {activeTab === 'calendar' && (
+        <PortalEventsCalendar
+          userRole="traveler"
+          bookings={myBookings}
+          negotiations={myNegotiations}
+          posts={myPosts}
+          onOpenNegotiationModal={(neg) => setHistoryModalNegotiation(neg)}
+          onRespondNegotiation={handleRespondNegotiationWithSync}
+          onUpdateStatus={onUpdateStatus}
+          onConfirmCompletion={onConfirmCompletion}
+          language={language}
+        />
+      )}
       {activeTab === 'my_posts' && (
         <TravelerPostsAndBids
           posts={myPosts}
@@ -133,7 +185,10 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
           bookings={myBookings}
           onRespondNegotiation={onRespondNegotiation}
           onOpenNewPostModal={() => setIsPostModalOpen(true)}
+          onClosePost={onClosePost}
+          onUpdatePostStatus={onUpdatePostStatus}
           onConfirmCompletion={onConfirmCompletion}
+          onUpdateStatus={onUpdateStatus}
           language={language}
         />
       )}
@@ -179,7 +234,7 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
 
                 <div className="flex flex-col items-end gap-2">
                   <span className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold uppercase">
-                    {b.status.replace('_', ' ')}
+                    {(b.status || 'matched').replace('_', ' ')}
                   </span>
 
                   {b.status !== 'completed' && onConfirmCompletion && (
@@ -212,7 +267,17 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
         currentUser={currentUser}
         selectedCity={selectedCity}
         onCreatePost={onCreatePost}
+        bookings={bookings}
         language={language}
+      />
+
+      {/* Negotiation History Modal */}
+      <NegotiationHistoryModal
+        isOpen={!!historyModalNegotiation}
+        onClose={() => setHistoryModalNegotiation(null)}
+        negotiation={activeNegotiation}
+        currentUserRole="traveler"
+        onRespondNegotiation={handleRespondNegotiationWithSync}
       />
 
     </section>

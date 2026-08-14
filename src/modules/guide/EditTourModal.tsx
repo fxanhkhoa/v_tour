@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { TourPackage, GuideProfile, ScheduleSlot, NegotiationOffer, TourBooking } from '../../types';
 import { Language } from '../../lib/translations';
-import { CalendarDragDropPicker } from '../../components/CalendarDragDropPicker';
+import { CalendarDragDropPicker, mergeScheduleSlots } from '../../components/CalendarDragDropPicker';
 
 interface EditTourModalProps {
   isOpen: boolean;
@@ -95,7 +95,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
       endTime: newSlotEndTime,
       displayLabel: `${newSlotStartTime} - ${newSlotEndTime} on ${newSlotDate}`
     };
-    setScheduleSlots([...scheduleSlots, newSlot]);
+    setScheduleSlots(mergeScheduleSlots([...scheduleSlots, newSlot]));
     setNewSlotDate('');
   };
 
@@ -110,6 +110,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
 
     setLoading(true);
     const inclusions = inclusionsInput.split(',').map(s => s.trim()).filter(Boolean);
+    const mergedSlots = mergeScheduleSlots(scheduleSlots);
 
     setTimeout(() => {
       onUpdateTour({
@@ -124,7 +125,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
         description,
         inclusions,
         itinerarySummary,
-        scheduleSlots
+        scheduleSlots: mergedSlots
       });
       setLoading(false);
       onClose();

@@ -100,6 +100,7 @@ export interface TravelerPostRequest {
   title: string;
   city: string;
   preferredDate: string;
+  scheduleSlots?: ScheduleSlot[];
   durationHours: number;
   groupSize: number;
   minBudgetUSD: number;
@@ -163,6 +164,8 @@ export interface TourBooking {
   createdAt: string;
   pinCode: string; // Safety verification PIN
   postId?: string;
+  negotiationId?: string;
+  tourId?: string;
 
   // Escrow & Payment Fields
   paymentStatus?: PaymentEscrowStatus;
@@ -170,6 +173,12 @@ export interface TourBooking {
   guideConfirmedCompletion?: boolean;
   escrowReleasedAt?: string;
   escrowHoldTxId?: string;
+
+  // Comprehensive Centralized Hub Fields
+  meetingInstructions?: string;
+  guideChecklist?: string[];
+  inclusions?: string[];
+  itineraryHighlights?: string[];
 }
 
 export interface ChatMessage {

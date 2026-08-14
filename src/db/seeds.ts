@@ -1,0 +1,656 @@
+import { 
+  User, 
+  GuideProfile, 
+  KYCApplication, 
+  TourPackage, 
+  TravelerPostRequest, 
+  NegotiationOffer, 
+  TourBooking,
+  ChatMessage
+} from '../types.js';
+
+export const initialUsers: User[] = [
+  {
+    id: 'u_traveler_1',
+    name: 'Sarah Jenkins',
+    email: 'sarah.j@example.com',
+    role: 'traveler',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    phone: '+1 (555) 234-5678',
+    bio: 'Avid traveler, foodie & photography lover exploring South East Asia!',
+    status: 'active',
+    token: 'token_traveler_1'
+  },
+  {
+    id: 'u_traveler_2',
+    name: 'Alex Johnson',
+    email: 'alex.j@example.com',
+    role: 'traveler',
+    avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+    phone: '+1 (555) 876-5432',
+    bio: 'Adventure backpacker, coffee enthusiast & history researcher.',
+    status: 'active',
+    token: 'token_traveler_2'
+  },
+  {
+    id: 'u_guide_1',
+    name: 'Minh Nguyen',
+    email: 'minh.guide@example.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 908 123 456',
+    bio: 'Licensed local guide in Saigon for 7+ years. Coffee lover, food historian & safe motorbike captain.',
+    status: 'active',
+    token: 'token_guide_1',
+    guideProfile: {
+      id: 'g_1',
+      userId: 'u_guide_1',
+      fullName: 'Minh Nguyen',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+      city: 'Ho Chi Minh City (Saigon)',
+      rating: 4.9,
+      reviewCount: 134,
+      hourlyRateUSD: 25,
+      languages: ['English', 'Vietnamese', 'French'],
+      bio: 'Licensed local guide in Saigon for 7+ years. Coffee lover, food historian & safe motorbike captain.',
+      tourTypes: ['food', 'history', 'scooter'],
+      badges: ['Licensed Guide', 'Super Host', 'First Aid Certified'],
+      isOnline: true,
+      currentLat: 10.7769,
+      currentLng: 106.7009,
+      vehicleModel: 'Honda SH 150i (Scooter) - Dual Helmets Provided',
+      verified: true,
+      kycStatus: 'verified',
+      kycCardNumber: 'TG-VNM-883921',
+      completedTours: 148
+    }
+  },
+  {
+    id: 'u_guide_2',
+    name: 'Linh Tran',
+    email: 'linh.saigon@example.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 912 345 678',
+    bio: 'Architecture graduate & nighttime street eats connoisseur in District 1, 3 & 4.',
+    status: 'active',
+    token: 'token_guide_2',
+    guideProfile: {
+      id: 'g_2',
+      userId: 'u_guide_2',
+      fullName: 'Linh Tran',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      city: 'Ho Chi Minh City (Saigon)',
+      rating: 4.85,
+      reviewCount: 88,
+      hourlyRateUSD: 20,
+      languages: ['English', 'Vietnamese', 'Japanese'],
+      bio: 'Architecture graduate & nighttime street eats connoisseur in District 1, 3 & 4.',
+      tourTypes: ['culture', 'walking', 'food', 'heritage'],
+      badges: ['Licensed Guide', 'Top Rated Foodie', 'Architecture Pro'],
+      isOnline: true,
+      currentLat: 10.762622,
+      currentLng: 106.682172,
+      vehicleModel: 'Vespa Primavera 125cc (Retro Classic)',
+      verified: true,
+      kycStatus: 'verified',
+      kycCardNumber: 'TG-VNM-912044',
+      completedTours: 96
+    }
+  },
+  {
+    id: 'u_guide_3',
+    name: 'Duc Pham',
+    email: 'duc.hanoi@example.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 988 777 666',
+    bio: 'Hanoi Old Quarter native specializing in egg coffee culture, French colonial architecture & street history.',
+    status: 'active',
+    token: 'token_guide_3',
+    guideProfile: {
+      id: 'g_3',
+      userId: 'u_guide_3',
+      fullName: 'Duc Pham',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      city: 'Hanoi',
+      rating: 4.95,
+      reviewCount: 215,
+      hourlyRateUSD: 28,
+      languages: ['English', 'Vietnamese', 'Mandarin'],
+      bio: 'Hanoi Old Quarter native specializing in egg coffee culture, French colonial architecture & street history.',
+      tourTypes: ['history', 'photography', 'food', 'walking'],
+      badges: ['Licensed Guide', 'Master Storyteller'],
+      isOnline: true,
+      currentLat: 21.0285,
+      currentLng: 105.8542,
+      vehicleModel: 'Walking / Private Car Service',
+      verified: true,
+      kycStatus: 'verified',
+      kycCardNumber: 'TG-VNM-102938',
+      completedTours: 234
+    }
+  },
+  {
+    id: 'u_guide_4',
+    name: 'Mai Le',
+    email: 'mai.danang@example.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 935 444 888',
+    bio: 'Da Nang & Hoi An local expert. Eco-tours, Marble Mountains hiking & authentic seafood trails.',
+    status: 'active',
+    token: 'token_guide_4',
+    guideProfile: {
+      id: 'g_4',
+      userId: 'u_guide_4',
+      fullName: 'Mai Le',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+      city: 'Da Nang',
+      rating: 4.92,
+      reviewCount: 112,
+      hourlyRateUSD: 24,
+      languages: ['English', 'Vietnamese', 'Korean'],
+      bio: 'Da Nang & Hoi An local expert. Eco-tours, Marble Mountains hiking & authentic seafood trails.',
+      tourTypes: ['nature', 'heritage', 'food', 'culture'],
+      badges: ['Licensed Guide', 'Coastal Specialist', 'Eco-certified'],
+      isOnline: true,
+      currentLat: 16.0544,
+      currentLng: 108.2022,
+      vehicleModel: 'Toyota Innova 7-Seater (Air-Conditioned)',
+      verified: true,
+      kycStatus: 'verified',
+      kycCardNumber: 'TG-VNM-772910',
+      completedTours: 118
+    }
+  },
+  {
+    id: 'u_guide_5',
+    name: 'Hoang Nam',
+    email: 'hoangnam@example.com',
+    role: 'guide',
+    avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    phone: '+84 977 111 222',
+    bio: 'Tour guide applicant in Hanoi Old Quarter. Pending official tourism badge verification.',
+    status: 'active',
+    token: 'token_guide_5',
+    guideProfile: {
+      id: 'g_5',
+      userId: 'u_guide_5',
+      fullName: 'Hoang Nam',
+      avatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+      city: 'Hanoi',
+      rating: 4.5,
+      reviewCount: 0,
+      hourlyRateUSD: 20,
+      languages: ['English', 'Vietnamese'],
+      bio: 'Tour guide applicant in Hanoi Old Quarter. Pending official tourism badge verification.',
+      tourTypes: ['walking', 'food'],
+      badges: ['Under Review ⏳'],
+      isOnline: true,
+      currentLat: 21.0285,
+      currentLng: 105.8542,
+      vehicleModel: 'Motorbike (Yamaha Grande)',
+      verified: false,
+      kycStatus: 'pending',
+      kycCardNumber: 'TG-VNM-554109',
+      completedTours: 0
+    }
+  },
+  {
+    id: 'u_admin_1',
+    name: 'System Admin',
+    email: 'admin@tourguidehub.com',
+    role: 'admin',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=200&q=80',
+    phone: '+1 (800) 555-0199',
+    bio: 'Platform Manager & Trust/Safety Operator.',
+    status: 'active',
+    token: 'token_admin_1'
+  }
+];
+
+export const initialGuides: GuideProfile[] = initialUsers
+  .filter(u => u.guideProfile)
+  .map(u => u.guideProfile!);
+
+export const initialKYCQueue: KYCApplication[] = [
+  {
+    id: 'kyc_101',
+    guideId: 'g_1',
+    guideName: 'Minh Nguyen',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    cardNumber: 'TG-VNM-883921',
+    issuingAuthority: 'Vietnam National Authority of Tourism',
+    expiryDate: '2028-12-31',
+    cardImageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    cccdNumber: '079092001122',
+    cccdFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    cccdBackUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    facePhotoUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    tourGuideCardUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    agreedToTerms: true,
+    status: 'verified',
+    submittedAt: '2026-08-01'
+  },
+  {
+    id: 'kyc_102',
+    guideId: 'g_2',
+    guideName: 'Linh Tran',
+    guideAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    cardNumber: 'TG-VNM-912044',
+    issuingAuthority: 'Vietnam National Authority of Tourism',
+    expiryDate: '2029-06-30',
+    cardImageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    cccdNumber: '079193002233',
+    cccdFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    cccdBackUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    facePhotoUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    tourGuideCardUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    agreedToTerms: true,
+    status: 'verified',
+    submittedAt: '2026-08-03'
+  },
+  {
+    id: 'kyc_105',
+    guideId: 'g_5',
+    guideName: 'Hoang Nam',
+    guideAvatar: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    cardNumber: 'TG-VNM-554109',
+    issuingAuthority: 'Hanoi Department of Tourism',
+    expiryDate: '2029-12-31',
+    cardImageUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    cccdNumber: '001095004455',
+    cccdFrontUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    cccdBackUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    facePhotoUrl: 'https://images.unsplash.com/photo-1522075469751-3a6694fb2f61?auto=format&fit=crop&w=200&q=80',
+    tourGuideCardUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=600&q=80',
+    agreedToTerms: true,
+    status: 'pending',
+    submittedAt: '2026-08-12'
+  }
+];
+
+export const initialTourPackages: TourPackage[] = [
+  {
+    id: 'tour_1',
+    title: 'Ultimate Saigon Street Food & Hidden Alleys by Motorbike',
+    description: 'Zip through 5 vibrant districts on scooter, tasting authentic Banh Xeo, Pho, and Craft Beer with a licensed local expert.',
+    city: 'Ho Chi Minh City (Saigon)',
+    durationHours: 4,
+    priceUSDPerPerson: 38,
+    category: 'Foodie & Street Eats',
+    imageUrl: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
+    inclusions: ['5 Local Street Eats Included', 'District 3 & 4 Secret Passageways', 'DOT Helmets & Full Insurance Provided'],
+    itinerarySummary: 'District 1 Historic Center -> District 3 Flower Market -> District 4 Seafood Lane -> Secret Cafe',
+    guideId: 'g_1',
+    guideName: 'Minh Nguyen',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    rating: 4.9,
+    reviewsCount: 94,
+    status: 'published',
+    createdAt: '2026-08-10T08:00:00.000Z',
+    scheduleSlots: [
+      { id: 'slot_1', dateStr: '2026-08-15', startTime: '08:30', endTime: '12:30', displayLabel: 'Morning Foodie Circuit' },
+      { id: 'slot_2', dateStr: '2026-08-15', startTime: '18:00', endTime: '22:00', displayLabel: 'Evening Craft Beer & Night Eats' },
+      { id: 'slot_3', dateStr: '2026-08-17', startTime: '17:30', endTime: '21:30', displayLabel: 'Twilight Alleys Discovery' },
+      { id: 'slot_4', dateStr: '2026-08-19', startTime: '17:30', endTime: '21:30', displayLabel: 'Saigon Street Eats Expedition' }
+    ]
+  },
+  {
+    id: 'tour_2',
+    title: 'Saigon Colonial Heritage & Hidden Secret Bunkers Walking Tour',
+    description: 'Discover Notre Dame Cathedral, Central Post Office, and French Colonial secret bunkers with an architecture expert.',
+    city: 'Ho Chi Minh City (Saigon)',
+    durationHours: 3,
+    priceUSDPerPerson: 28,
+    category: 'Historical & Cultural',
+    imageUrl: 'https://images.unsplash.com/photo-1583417319070-4a69db38a482?auto=format&fit=crop&w=800&q=80',
+    inclusions: ['Secret Weapons Bunker Visit', 'Colonial Building Blueprints Access', 'Specialty Drip Coffee Included'],
+    itinerarySummary: 'Notre Dame Cathedral -> Central Post Office -> Secret Underground Bunker -> Drip Coffee Tasting',
+    guideId: 'g_2',
+    guideName: 'Linh Tran',
+    guideAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    rating: 4.85,
+    reviewsCount: 42,
+    status: 'published',
+    createdAt: '2026-08-10T09:00:00.000Z',
+    scheduleSlots: [
+      { id: 'slot_5', dateStr: '2026-08-15', startTime: '14:00', endTime: '17:00', displayLabel: 'Afternoon Architecture Walk' },
+      { id: 'slot_6', dateStr: '2026-08-17', startTime: '09:00', endTime: '12:00', displayLabel: 'Morning Heritage Trail' },
+      { id: 'slot_7', dateStr: '2026-08-18', startTime: '15:00', endTime: '18:00', displayLabel: 'Golden Hour Bunker Tour' }
+    ]
+  },
+  {
+    id: 'tour_3',
+    title: 'Hanoi 36 Old Streets, Egg Coffee & Secret Stories',
+    description: 'Immerse yourself in centuries of artisan guild heritage, traditional medicine lanes, and authentic egg coffee tasting.',
+    city: 'Hanoi',
+    durationHours: 3.5,
+    priceUSDPerPerson: 32,
+    category: 'Historical & Cultural',
+    imageUrl: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=800&q=80',
+    inclusions: ['Original 1946 Egg Coffee Tasting', 'Ancient Tube House Exploration', 'Artisan Guild Commentary'],
+    itinerarySummary: 'Hang Bac Silver Guild -> Ancient Heritage House -> Train Street Viewpoint -> Cafe Giang',
+    guideId: 'g_3',
+    guideName: 'Duc Pham',
+    guideAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    rating: 4.95,
+    reviewsCount: 78,
+    status: 'published',
+    createdAt: '2026-08-11T10:00:00.000Z',
+    scheduleSlots: [
+      { id: 'slot_8', dateStr: '2026-08-16', startTime: '08:30', endTime: '12:00', displayLabel: 'Morning Heritage & Coffee' },
+      { id: 'slot_9', dateStr: '2026-08-17', startTime: '18:00', endTime: '21:30', displayLabel: 'Night Street Market & Bia Hoi' },
+      { id: 'slot_10', dateStr: '2026-08-20', startTime: '09:00', endTime: '12:30', displayLabel: 'French Quarter & Artisan Crafts' }
+    ]
+  },
+  {
+    id: 'tour_4',
+    title: 'Marble Mountains, Hidden Pagoda Caves & Hoi An Lanterns',
+    description: 'Climb sacred limestone peaks, explore underground Buddhist sanctuaries, and enjoy sunset lanterns in UNESCO Hoi An.',
+    city: 'Da Nang',
+    durationHours: 5,
+    priceUSDPerPerson: 45,
+    category: 'Nature & Adventure',
+    imageUrl: 'https://images.unsplash.com/photo-1559592413-7cec4d0cae2b?auto=format&fit=crop&w=800&q=80',
+    inclusions: ['Marble Mountains Elevator & Caves Entry', 'Air-Conditioned Private Transport', 'Hoi An Lantern River Boat Ride'],
+    itinerarySummary: 'Huyen Khong Cave -> Non Nuoc Stone Carving Village -> Hoi An Ancient Town -> Lantern Release',
+    guideId: 'g_4',
+    guideName: 'Mai Le',
+    guideAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    rating: 4.92,
+    reviewsCount: 65,
+    status: 'published',
+    createdAt: '2026-08-11T11:00:00.000Z',
+    scheduleSlots: [
+      { id: 'slot_11', dateStr: '2026-08-16', startTime: '14:30', endTime: '19:30', displayLabel: 'Sunset Caves & Ancient Town' },
+      { id: 'slot_12', dateStr: '2026-08-18', startTime: '08:30', endTime: '13:30', displayLabel: 'Morning Pagoda & Cave Hike' },
+      { id: 'slot_13', dateStr: '2026-08-21', startTime: '15:00', endTime: '20:00', displayLabel: 'Twilight Lanterns Expedition' }
+    ]
+  }
+];
+
+export const initialTravelerPosts: TravelerPostRequest[] = [
+  {
+    id: 'post_101',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    title: 'Cu Chi Tunnels & War Remnants Private Historical Tour',
+    description: 'Hi! Visiting Saigon for 3 days and seeking an experienced licensed English-speaking guide to take us to Cu Chi Tunnels with local food on the way back.',
+    city: 'Ho Chi Minh City (Saigon)',
+    minBudgetUSD: 50,
+    maxBudgetUSD: 70,
+    durationHours: 6,
+    preferredDate: '2026-08-16',
+    scheduleSlots: [
+      { id: 'post_slot_101', dateStr: '2026-08-16', startTime: '08:00', endTime: '14:00', displayLabel: '08:00 - 14:00 on 2026-08-16' }
+    ],
+    groupSize: 2,
+    preferredLanguages: ['English'],
+    status: 'booked',
+    createdAt: '2026-08-12T14:00:00.000Z',
+    bidsCount: 2
+  },
+  {
+    id: 'post_102',
+    travelerId: 'u_traveler_2',
+    travelerName: 'Alex Johnson',
+    travelerAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+    title: 'Hanoi Street Photography & Hidden Rooftops Quest',
+    description: 'Looking for a local guide to capture hidden architecture, train street angles, and secret rooftop views during golden hour in Hanoi.',
+    city: 'Hanoi',
+    minBudgetUSD: 35,
+    maxBudgetUSD: 55,
+    durationHours: 4,
+    preferredDate: '2026-08-19',
+    scheduleSlots: [
+      { id: 'post_slot_102', dateStr: '2026-08-19', startTime: '15:30', endTime: '19:30', displayLabel: '15:30 - 19:30 on 2026-08-19' }
+    ],
+    groupSize: 1,
+    preferredLanguages: ['English'],
+    status: 'negotiating',
+    createdAt: '2026-08-13T09:00:00.000Z',
+    bidsCount: 1
+  },
+  {
+    id: 'post_103',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    title: 'Ba Na Hills & Golden Bridge Sunrise Private Tour',
+    description: 'Need early morning transport and guide for Ba Na Hills before the main crowds arrive at Golden Bridge. Looking for great photo spots.',
+    city: 'Da Nang',
+    minBudgetUSD: 80,
+    maxBudgetUSD: 120,
+    durationHours: 7,
+    preferredDate: '2026-08-22',
+    scheduleSlots: [
+      { id: 'post_slot_103', dateStr: '2026-08-22', startTime: '06:00', endTime: '13:00', displayLabel: '06:00 - 13:00 on 2026-08-22' }
+    ],
+    groupSize: 2,
+    preferredLanguages: ['English'],
+    status: 'open',
+    createdAt: '2026-08-13T16:00:00.000Z',
+    bidsCount: 1
+  }
+];
+
+export const initialNegotiationOffers: NegotiationOffer[] = [
+  {
+    id: 'neg_201',
+    postId: 'post_101',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    guideId: 'g_1',
+    guideName: 'Minh Nguyen',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    guideRating: 4.9,
+    offeredPriceUSD: 55,
+    originalPriceUSD: 60,
+    status: 'accepted',
+    lastSenderRole: 'guide',
+    selectedSlot: {
+      id: 'slot_neg_1',
+      dateStr: '2026-08-16',
+      startTime: '08:00',
+      endTime: '14:00'
+    },
+    messages: [
+      {
+        senderRole: 'guide',
+        text: 'Hello Sarah! I can take you and your friend to Cu Chi Tunnels on my SH150i with dual helmets and entrance fees for $60.',
+        priceUSD: 60,
+        timestamp: '10:15 AM'
+      },
+      {
+        senderRole: 'traveler',
+        text: 'Could we do $55 for two travelers including the local pho stop on the return?',
+        priceUSD: 55,
+        timestamp: '10:20 AM'
+      },
+      {
+        senderRole: 'guide',
+        text: 'Deal! $55 agreed. I will pick you up at Rex Hotel at 08:00 AM sharp with cold drinks ready.',
+        priceUSD: 55,
+        timestamp: '10:22 AM'
+      }
+    ],
+    updatedAt: '2026-08-12T15:00:00.000Z'
+  },
+  {
+    id: 'neg_202',
+    postId: 'post_102',
+    travelerId: 'u_traveler_2',
+    travelerName: 'Alex Johnson',
+    guideId: 'g_3',
+    guideName: 'Duc Pham',
+    guideAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+    guideRating: 4.95,
+    offeredPriceUSD: 45,
+    originalPriceUSD: 50,
+    status: 'countered',
+    lastSenderRole: 'guide',
+    selectedSlot: {
+      id: 'slot_neg_2',
+      dateStr: '2026-08-19',
+      startTime: '15:30',
+      endTime: '19:30'
+    },
+    messages: [
+      {
+        senderRole: 'guide',
+        text: 'Hi Alex! I can guide your photography session through the hidden train street and secret rooftops for $50.',
+        priceUSD: 50,
+        timestamp: '09:30 AM'
+      },
+      {
+        senderRole: 'traveler',
+        text: 'How about $45 if we focus on the old artisan guilds and golden hour light?',
+        priceUSD: 45,
+        timestamp: '09:45 AM'
+      },
+      {
+        senderRole: 'guide',
+        text: 'I can do $45 and will include access to a 100-year-old French rooftop with panoramic city views!',
+        priceUSD: 45,
+        timestamp: '10:00 AM'
+      }
+    ],
+    updatedAt: '2026-08-13T10:00:00.000Z'
+  },
+  {
+    id: 'neg_203',
+    postId: 'post_103',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    guideId: 'g_4',
+    guideName: 'Mai Le',
+    guideAvatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=200&q=80',
+    guideRating: 4.92,
+    offeredPriceUSD: 95,
+    originalPriceUSD: 95,
+    status: 'pending',
+    lastSenderRole: 'guide',
+    selectedSlot: {
+      id: 'slot_neg_3',
+      dateStr: '2026-08-22',
+      startTime: '07:00',
+      endTime: '14:00'
+    },
+    messages: [
+      {
+        senderRole: 'guide',
+        text: 'Hello Sarah! I offer early-morning private SUV transport to beat the crowds at Golden Bridge for $95 total.',
+        priceUSD: 95,
+        timestamp: '04:15 PM'
+      }
+    ],
+    updatedAt: '2026-08-13T16:15:00.000Z'
+  }
+];
+
+export const initialTourBookings: TourBooking[] = [
+  {
+    id: 'bk_1001',
+    bookingType: 'negotiated_post',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    guideId: 'g_1',
+    guideName: 'Minh Nguyen',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    guidePhone: '+84 908 123 456',
+    tourTitle: 'Cu Chi Tunnels & War Heritage Private Tour',
+    pickupLocation: 'Rex Hotel, District 1, Ho Chi Minh City',
+    transportMode: 'scooter',
+    groupSize: 2,
+    totalPriceUSD: 55,
+    scheduledTime: '2026-08-16 (08:00 AM - 02:00 PM)',
+    status: 'en_route',
+    createdAt: '2026-08-13T18:00:00.000Z',
+    pinCode: '8492',
+    postId: 'post_101',
+    negotiationId: 'neg_201',
+    paymentStatus: 'held_in_escrow',
+    travelerConfirmedCompletion: false,
+    guideConfirmedCompletion: false,
+    escrowHoldTxId: 'ESCROW_TX_1001',
+    meetingInstructions: 'Guide Minh will wait at the main entrance in front of the fountain wearing a blue helmet and TourGuideHub badge.',
+    inclusions: ['Dual DOT-certified helmets', 'Cu Chi Tunnels entrance tickets', 'Local noodle tasting', 'Cold mineral water']
+  },
+  {
+    id: 'bk_1002',
+    bookingType: 'scheduled',
+    travelerId: 'u_traveler_2',
+    travelerName: 'Alex Johnson',
+    travelerAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+    guideId: 'g_2',
+    guideName: 'Linh Tran',
+    guideAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    guidePhone: '+84 912 345 678',
+    tourTitle: 'Saigon Colonial Heritage & French Secret Bunkers',
+    pickupLocation: 'The Reverie Saigon, District 1, HCMC',
+    transportMode: 'walking',
+    groupSize: 1,
+    totalPriceUSD: 28,
+    scheduledTime: '2026-08-14 (09:00 AM - 12:00 PM)',
+    status: 'completed',
+    createdAt: '2026-08-12T09:00:00.000Z',
+    pinCode: '3190',
+    paymentStatus: 'released',
+    travelerConfirmedCompletion: true,
+    guideConfirmedCompletion: true,
+    escrowReleasedAt: '2026-08-14T12:05:00.000Z',
+    escrowHoldTxId: 'ESCROW_TX_1002',
+    inclusions: ['Entrance to secret weapons bunker', 'Colonial blueprints archive access', 'Specialty Robusta drip coffee']
+  },
+  {
+    id: 'bk_1003',
+    bookingType: 'scheduled',
+    travelerId: 'u_traveler_1',
+    travelerName: 'Sarah Jenkins',
+    travelerAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    guideId: 'g_2',
+    guideName: 'Linh Tran',
+    guideAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+    guidePhone: '+84 912 345 678',
+    tourTitle: 'Saigon Architecture & Colonial History Walking Tour',
+    pickupLocation: 'Caravelle Hotel, District 1, HCMC',
+    transportMode: 'walking',
+    groupSize: 2,
+    totalPriceUSD: 56,
+    scheduledTime: '2026-08-15 (02:00 PM - 05:00 PM)',
+    status: 'matched',
+    createdAt: '2026-08-13T10:30:00.000Z',
+    pinCode: '5812',
+    paymentStatus: 'held_in_escrow',
+    travelerConfirmedCompletion: false,
+    guideConfirmedCompletion: false,
+    escrowHoldTxId: 'ESCROW_TX_1003',
+    meetingInstructions: 'Meet in the lobby near the concierge desk.',
+    inclusions: ['Notre Dame & Post Office historical commentary', 'Secret bunker access', 'Complimentary afternoon iced tea']
+  }
+];
+
+export const initialChatMessages: ChatMessage[] = [
+  {
+    id: 'msg_101',
+    bookingId: 'bk_1001',
+    senderId: 'u_traveler_1',
+    senderName: 'Sarah Jenkins',
+    senderRole: 'traveler',
+    text: 'Hi Minh! We are ready in the lobby with our sunglasses and sunscreen.',
+    timestamp: '07:50 AM'
+  },
+  {
+    id: 'msg_102',
+    bookingId: 'bk_1001',
+    senderId: 'u_guide_1',
+    senderName: 'Minh Nguyen',
+    senderRole: 'guide',
+    text: 'Great! I have the two clean helmets and cold water ready. Arriving on the SH150i in 5 mins.',
+    timestamp: '07:53 AM'
+  }
+];

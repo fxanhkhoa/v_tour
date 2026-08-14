@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { GuideProfile, TourBooking, TravelerPostRequest, NegotiationOffer } from '../../types';
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
+import { PortalEventsCalendar } from '../../components/PortalEventsCalendar';
+import { TourBookingHubModal } from '../../components/TourBookingHubModal';
+import { Language } from '../../lib/translations';
 
 interface GuideBookingsAndNegotiationsProps {
   guideProfile: GuideProfile;
@@ -9,9 +12,11 @@ interface GuideBookingsAndNegotiationsProps {
   negotiations: NegotiationOffer[];
   onAcceptBooking: (bookingId: string) => void;
   onSendBidToPost: (postId: string, offerPrice: number, message: string) => void;
-  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string) => void;
+  onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string, senderRole?: 'traveler' | 'guide') => void;
   onConfirmCompletion?: (bookingId: string, role: 'traveler' | 'guide') => void;
+  onUpdateStatus?: (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => void;
   onOpenKYCModal?: () => void;
+  language?: Language;
 }
 
 export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiationsProps> = ({
@@ -23,9 +28,13 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   onSendBidToPost,
   onRespondNegotiation,
   onConfirmCompletion,
-  onOpenKYCModal
+  onUpdateStatus,
+  onOpenKYCModal,
+  language = 'en'
 }) => {
   const isVerified = guideProfile.kycStatus === 'verified' || guideProfile.verified;
+
+  const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'board'>('calendar');
 
   const [selectedPost, setSelectedPost] = useState<TravelerPostRequest | null>(null);
   const [bidPrice, setBidPrice] = useState<number>(50);
@@ -35,6 +44,25 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   const [counterPrice, setCounterPrice] = useState<number>(45);
 
   const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
+  const [selectedHubBooking, setSelectedHubBooking] = useState<TourBooking | null>(null);
+
+  // Dynamically resolve active negotiation object to ensure live state updates in modal
+  const activeNegotiation = historyModalNegotiation
+    ? (negotiations.find(n => n.id === historyModalNegotiation.id) || historyModalNegotiation)
+    : null;
+
+  const handleRespondNegotiationWithSync = (
+    offerId: string,
+    action: 'accept' | 'counter' | 'decline',
+    counterPriceVal?: number,
+    message?: string,
+    senderRole?: 'traveler' | 'guide'
+  ) => {
+    onRespondNegotiation(offerId, action, counterPriceVal, message, senderRole);
+    if (action === 'accept') {
+      setHistoryModalNegotiation(prev => prev && prev.id === offerId ? { ...prev, status: 'accepted' } : prev);
+    }
+  };
 
   // Search & Filter State for Custom Requests
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -119,6 +147,63 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   return (
     <div className="space-y-8">
       
+      {/* Sub-navigation View Switcher */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 p-2 sm:p-3 rounded-2xl text-white shadow-lg">
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={() => setActiveSubTab('calendar')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-2 ${
+              activeSubTab === 'calendar'
+                ? 'bg-teal-500 text-slate-950 shadow-md'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">calendar_month</span>
+            <span>📅 {language === 'vi' ? 'Lịch Sự Kiện Tour & Thương Lượng' : 'Events Calendar'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('board')}
+            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-2 ${
+              activeSubTab === 'board'
+                ? 'bg-teal-500 text-slate-950 shadow-md'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">campaign</span>
+            <span>📋 {language === 'vi' ? 'Bảng Báo Giá & Quản Lý Đơn' : 'Live Bidding & Management Board'}</span>
+          </button>
+        </div>
+
+        <div className="flex items-center space-x-3 text-xs font-bold text-slate-300 px-2">
+          <span className="flex items-center space-x-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span>Accepted ({myBookings.length})</span>
+          </span>
+          <span className="flex items-center space-x-1">
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span>Negotiating ({myNegotiations.length})</span>
+          </span>
+        </div>
+      </div>
+
+      {/* Render Portal Events Calendar when 'calendar' subtab selected */}
+      {activeSubTab === 'calendar' && (
+        <PortalEventsCalendar
+          userRole="guide"
+          bookings={myBookings}
+          negotiations={myNegotiations}
+          posts={posts}
+          onOpenNegotiationModal={(neg) => setHistoryModalNegotiation(neg)}
+          onOpenBookingDetail={(b) => setSelectedHubBooking(b)}
+          onOpenPostDetail={(p) => setSelectedPost(p)}
+          onRespondNegotiation={handleRespondNegotiationWithSync}
+          onUpdateStatus={onUpdateStatus}
+          onConfirmCompletion={onConfirmCompletion}
+          language={language}
+        />
+      )}
+
       {/* SECTION 1: Open Traveler Requests in City (Bidding Hub) */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
@@ -359,6 +444,12 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         <span className="font-bold text-xs text-slate-900">{post.travelerName}</span>
                       </div>
                       <div className="flex items-center space-x-1.5">
+                        {post.status === 'closed' && (
+                          <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wide flex items-center space-x-1 border border-slate-300">
+                            <span className="material-symbols-outlined text-[11px]">lock</span>
+                            <span>Closed</span>
+                          </span>
+                        )}
                         <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-800 text-[10px] font-black uppercase flex items-center space-x-1">
                           <span className="material-symbols-outlined text-xs text-teal-700">location_on</span>
                           <span>{post.city}</span>
@@ -370,12 +461,49 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                     </div>
 
                   <h4 className="font-bold text-slate-900 text-sm mb-1">{post.title}</h4>
-                  <p className="text-xs text-slate-600 line-clamp-3 mb-3">{post.description}</p>
+                  <p className="text-xs text-slate-600 line-clamp-3 mb-2.5">{post.description}</p>
+
+                  {/* Time Slots & Hour Base Badges */}
+                  <div className="flex flex-wrap items-center gap-1.5 mb-2.5">
+                    {post.scheduleSlots && post.scheduleSlots.length > 0 ? (
+                      post.scheduleSlots.map((slot, idx) => {
+                        const slotText = (slot.startTime && slot.endTime && slot.dateStr)
+                          ? `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`
+                          : (slot.displayLabel || `${slot.startTime || ''} - ${slot.endTime || ''} on ${slot.dateStr || post.preferredDate || ''}`);
+
+                        return (
+                          <span
+                            key={slot.id || idx}
+                            className="inline-flex items-center space-x-1 text-[11px] bg-teal-50 border border-teal-200/90 text-teal-900 px-2 py-0.5 rounded-lg font-bold"
+                          >
+                            <span className="material-symbols-outlined text-xs text-teal-700">schedule</span>
+                            <span>{slotText}</span>
+                            {post.durationHours > 0 && (
+                              <span className="text-teal-800 font-extrabold">
+                                • ⏱️ {post.durationHours} Hours
+                              </span>
+                            )}
+                          </span>
+                        );
+                      })
+                    ) : post.preferredDate ? (
+                      <span className="inline-flex items-center space-x-1 text-[11px] bg-teal-50 border border-teal-200 text-teal-900 px-2 py-0.5 rounded-lg font-bold">
+                        <span className="material-symbols-outlined text-xs text-teal-700">calendar_clock</span>
+                        <span>{post.preferredDate}</span>
+                        {post.durationHours > 0 && (
+                          <span className="text-teal-800 font-extrabold">
+                            • ⏱️ {post.durationHours} Hours
+                          </span>
+                        )}
+                      </span>
+                    ) : null}
+                  </div>
 
                   <div className="flex flex-wrap gap-2 text-[11px] text-slate-500 font-medium">
-                    <span>📅 {post.preferredDate}</span>
-                    <span>⏱️ {post.durationHours} Hours</span>
                     <span>👥 {post.groupSize} Travelers</span>
+                    {post.preferredLanguages && post.preferredLanguages.length > 0 && (
+                      <span>🗣️ {post.preferredLanguages.join(', ')}</span>
+                    )}
                   </div>
 
                   {existingNegotiation && (
@@ -451,6 +579,11 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                           </span>
                         </button>
                       </>
+                    ) : post.status === 'closed' ? (
+                      <span className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs flex items-center space-x-1 cursor-not-allowed">
+                        <span className="material-symbols-outlined text-sm">lock</span>
+                        <span>Post Closed</span>
+                      </span>
                     ) : (
                       <button
                         type="button"
@@ -565,7 +698,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                                 if (onOpenKYCModal) onOpenKYCModal();
                                 return;
                               }
-                              onRespondNegotiation(neg.id, 'accept', undefined, 'Accepted offer price!');
+                              onRespondNegotiation(neg.id, 'accept', undefined, 'Accepted offer price!', 'guide');
                             }}
                             className={`px-3.5 py-2 rounded-xl font-bold text-xs cursor-pointer shadow-sm ${
                               isVerified
@@ -646,17 +779,49 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
               <div className="flex flex-col items-end gap-2">
                 <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold uppercase">
-                  {b.status.replace('_', ' ')}
+                  {(b.status || 'matched').replace('_', ' ')}
                 </span>
 
                 <div className="flex items-center space-x-2">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedHubBooking(b)}
+                    className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs cursor-pointer shadow-xs transition-all flex items-center space-x-1"
+                  >
+                    <span className="material-symbols-outlined text-sm">confirmation_number</span>
+                    <span>Tour Pass & Hub</span>
+                  </button>
+
                   {b.status === 'matched' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => onUpdateStatus ? onUpdateStatus(b.id, 'en_route') : onAcceptBooking(b.id)}
+                        className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs cursor-pointer shadow-xs transition-all flex items-center space-x-1"
+                      >
+                        <span>🛵</span>
+                        <span>Guide En Route</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => onAcceptBooking(b.id)}
+                        className="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs cursor-pointer flex items-center space-x-1"
+                      >
+                        <span>🎒</span>
+                        <span>Start Tour</span>
+                      </button>
+                    </>
+                  )}
+
+                  {b.status === 'en_route' && (
                     <button
                       type="button"
                       onClick={() => onAcceptBooking(b.id)}
-                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer flex items-center space-x-1"
                     >
-                      Start Tour
+                      <span>🎒</span>
+                      <span>Arrived & Start Tour</span>
                     </button>
                   )}
 
@@ -694,8 +859,23 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
               <span className="material-symbols-outlined">close</span>
             </button>
 
-            <h4 className="font-extrabold text-slate-900 text-lg">Send Price Quote / Bid</h4>
-            <p className="text-xs text-slate-500">Traveler: {selectedPost.travelerName} • {selectedPost.title}</p>
+            <h4 className="font-extrabold text-slate-900 text-lg">{language === 'vi' ? 'Gửi Báo Giá / Đấu Giá Tour' : 'Send Price Quote / Bid'}</h4>
+            <div className="p-3 rounded-2xl bg-teal-50/80 border border-teal-100 text-xs space-y-1">
+              <p className="font-extrabold text-teal-950 flex items-center space-x-1.5">
+                <span>👤 {selectedPost.travelerName}</span>
+                <span>•</span>
+                <span className="text-teal-700 font-bold">{selectedPost.title}</span>
+              </p>
+              <div className="flex flex-wrap gap-2 text-[11px] text-teal-800 pt-0.5">
+                <span className="font-bold">
+                  📅 {selectedPost.scheduleSlots?.[0] ? `${selectedPost.scheduleSlots[0].dateStr} (${selectedPost.scheduleSlots[0].startTime} - ${selectedPost.scheduleSlots[0].endTime})` : selectedPost.preferredDate || 'Flexible date'}
+                </span>
+                <span>•</span>
+                <span className="font-bold">👥 {selectedPost.groupSize} {language === 'vi' ? 'khách' : 'guests'}</span>
+                <span>•</span>
+                <span className="font-bold">💰 {language === 'vi' ? 'Ngân sách' : 'Budget'}: ${selectedPost.minBudgetUSD} - ${selectedPost.maxBudgetUSD}</span>
+              </div>
+            </div>
 
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">Your Offered Price ($ USD)</label>
@@ -751,7 +931,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
             <button
               onClick={() => {
-                onRespondNegotiation(counteringOfferId, 'counter', counterPrice, `Counter offer price: $${counterPrice} USD`);
+                onRespondNegotiation(counteringOfferId, 'counter', counterPrice, `Counter offer price: $${counterPrice} USD`, 'guide');
                 setCounteringOfferId(null);
               }}
               className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-2xl cursor-pointer"
@@ -766,11 +946,23 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
       <NegotiationHistoryModal
         isOpen={!!historyModalNegotiation}
         onClose={() => setHistoryModalNegotiation(null)}
-        negotiation={historyModalNegotiation}
+        negotiation={activeNegotiation}
         currentUserRole="guide"
         isVerifiedGuide={isVerified}
-        onRespondNegotiation={onRespondNegotiation}
+        onRespondNegotiation={handleRespondNegotiationWithSync}
         onOpenKYCModal={onOpenKYCModal}
+      />
+
+      {/* Tour Booking Central Hub Modal */}
+      <TourBookingHubModal
+        isOpen={!!selectedHubBooking}
+        onClose={() => setSelectedHubBooking(null)}
+        booking={selectedHubBooking ? (bookings.find(b => b.id === selectedHubBooking.id) || selectedHubBooking) : null}
+        allBookings={bookings}
+        currentUser={null}
+        onUpdateStatus={onUpdateStatus}
+        onConfirmCompletion={onConfirmCompletion}
+        language={language}
       />
 
     </div>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GuideProfile, ScheduleSlot } from '../../types';
-import { CalendarDragDropPicker } from '../../components/CalendarDragDropPicker';
+import { CalendarDragDropPicker, mergeScheduleSlots } from '../../components/CalendarDragDropPicker';
 import { Language } from '../../lib/translations';
 
 interface CreateTourModalProps {
@@ -52,20 +52,7 @@ export const CreateTourModal: React.FC<CreateTourModalProps> = ({
 
   // Initial schedule slots with example slots requested by user
   const [scheduleSlots, setScheduleSlots] = useState<ScheduleSlot[]>([
-    {
-      id: 'slot_init_1',
-      dateStr: '10/10/2026',
-      startTime: '8:00 AM',
-      endTime: '10:00 AM',
-      displayLabel: '8:00 AM - 10:00 AM on 10/10/2026'
-    },
-    {
-      id: 'slot_init_2',
-      dateStr: '12/10/2026',
-      startTime: '4:00 PM',
-      endTime: '5:00 PM',
-      displayLabel: '4:00 PM - 5:00 PM on 12/10/2026'
-    }
+   
   ]);
 
   const [loading, setLoading] = useState<boolean>(false);
@@ -77,6 +64,8 @@ export const CreateTourModal: React.FC<CreateTourModalProps> = ({
 
     setLoading(true);
     const inclusions = inclusionsInput.split(',').map(s => s.trim()).filter(Boolean);
+
+    const mergedSlots = mergeScheduleSlots(scheduleSlots);
 
     setTimeout(() => {
       onCreateTour({
@@ -90,7 +79,7 @@ export const CreateTourModal: React.FC<CreateTourModalProps> = ({
         description,
         inclusions,
         itinerarySummary,
-        scheduleSlots
+        scheduleSlots: mergedSlots
       });
       setLoading(false);
       onClose();

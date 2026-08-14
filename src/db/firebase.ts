@@ -1,5 +1,6 @@
 import { initializeApp, getApps, cert } from 'firebase-admin/app';
 import { getFirestore, Firestore } from 'firebase-admin/firestore';
+import { TourBooking } from '../types.js';
 import {
   initialUsers,
   initialGuides,
@@ -7,8 +8,9 @@ import {
   initialTourPackages,
   initialTravelerPosts,
   initialNegotiationOffers,
-  initialTourBookings
-} from './mongo.js';
+  initialTourBookings,
+  initialChatMessages
+} from './seeds.js';
 
 let db: Firestore | null = null;
 let isFirestoreConnected = false;
@@ -21,7 +23,7 @@ const memoryTours = [...initialTourPackages];
 const memoryPosts = [...initialTravelerPosts];
 const memoryNegotiations = [...initialNegotiationOffers];
 const memoryBookings = [...initialTourBookings];
-const memoryChat: any[] = [];
+const memoryChat = [...initialChatMessages];
 
 export async function initFirebaseDatabase() {
   try {
@@ -61,6 +63,8 @@ export async function initFirebaseDatabase() {
 
     await seedFirebaseIfEmpty();
   } catch (err: any) {
+    db = null;
+    isFirestoreConnected = false;
     console.warn('🔥 Firebase Firestore auto-connect notice:', err.message || err);
     console.warn('⚡ Using high-speed in-memory store as seamless fallback.');
   }
@@ -74,6 +78,77 @@ export function getDb(): Firestore | null {
   return isFirestoreConnected ? db : null;
 }
 
+export async function dbResetAndReseedDatabase() {
+  console.log('🧹 Cleaning up database collections and re-inserting clean seed data...');
+  
+  // 1. Reset in-memory store
+  memoryUsers.length = 0;
+  memoryUsers.push(...initialUsers);
+
+  memoryGuides.length = 0;
+  memoryGuides.push(...initialGuides);
+
+  memoryKYC.length = 0;
+  memoryKYC.push(...initialKYCQueue);
+
+  memoryTours.length = 0;
+  memoryTours.push(...initialTourPackages);
+
+  memoryPosts.length = 0;
+  memoryPosts.push(...initialTravelerPosts);
+
+  memoryNegotiations.length = 0;
+  memoryNegotiations.push(...initialNegotiationOffers);
+
+  memoryBookings.length = 0;
+  memoryBookings.push(...initialTourBookings);
+
+  memoryChat.length = 0;
+  memoryChat.push(...initialChatMessages);
+
+  // 2. If Firestore is active, delete existing dirty records and write clean seeds
+  if (db) {
+    try {
+      const collectionsToClean = ['users', 'guides', 'kyc', 'tours', 'posts', 'negotiations', 'bookings', 'chat'];
+      for (const colName of collectionsToClean) {
+        const snap = await db.collection(colName).get();
+        if (!snap.empty) {
+          const deleteBatch = db.batch();
+          snap.docs.forEach(doc => deleteBatch.delete(doc.ref));
+          await deleteBatch.commit();
+        }
+      }
+
+      // Re-seed all collections
+      const collectionsToSeed = [
+        { name: 'users', data: initialUsers },
+        { name: 'guides', data: initialGuides },
+        { name: 'kyc', data: initialKYCQueue },
+        { name: 'tours', data: initialTourPackages },
+        { name: 'posts', data: initialTravelerPosts },
+        { name: 'negotiations', data: initialNegotiationOffers },
+        { name: 'bookings', data: initialTourBookings },
+        { name: 'chat', data: initialChatMessages }
+      ];
+
+      for (const col of collectionsToSeed) {
+        if (col.data && col.data.length > 0) {
+          const seedBatch = db.batch();
+          for (const item of col.data) {
+            seedBatch.set(db.collection(col.name).doc((item as any).id), item);
+          }
+          await seedBatch.commit();
+        }
+      }
+      console.log('✅ Firestore database successfully wiped clean and seeded with pristine data!');
+    } catch (err) {
+      console.error('Error during Firestore database reset & reseed:', err);
+    }
+  }
+
+  return { success: true, message: 'Database wiped and clean seed data inserted successfully' };
+}
+
 async function seedFirebaseIfEmpty() {
   if (!db) return;
   try {
@@ -85,7 +160,8 @@ async function seedFirebaseIfEmpty() {
       { name: 'tours', data: initialTourPackages },
       { name: 'posts', data: initialTravelerPosts },
       { name: 'negotiations', data: initialNegotiationOffers },
-      { name: 'bookings', data: initialTourBookings }
+      { name: 'bookings', data: initialTourBookings },
+      { name: 'chat', data: initialChatMessages }
     ];
 
     for (const col of collectionsToSeed) {
@@ -94,7 +170,7 @@ async function seedFirebaseIfEmpty() {
         console.log(`Seeding ${col.data.length} items into Firestore collection '${col.name}'...`);
         const batch = db.batch();
         for (const item of col.data) {
-          batch.set(db.collection(col.name).doc(item.id), item);
+          batch.set(db.collection(col.name).doc((item as any).id), item);
         }
         await batch.commit();
       }
@@ -107,15 +183,48 @@ async function seedFirebaseIfEmpty() {
 
 // ==================== DATABASE HELPERS (FIRESTORE PRIMARY + MEMORY FALLBACK) ====================
 
+// User Email Aliases mapping for demo convenience
+const DEMO_EMAIL_ALIASES: Record<string, string> = {
+  'sarah@example.com': 'sarah.j@example.com',
+  'sarah.jenkins@example.com': 'sarah.j@example.com',
+  'alex@example.com': 'alex.j@example.com',
+  'alex.johnson@example.com': 'alex.j@example.com',
+  'minh.tourguide@gmail.com': 'minh.guide@example.com',
+  'minh@example.com': 'minh.guide@example.com',
+  'minh.nguyen@example.com': 'minh.guide@example.com',
+  'linh@example.com': 'linh.saigon@example.com',
+  'linh.tran@example.com': 'linh.saigon@example.com',
+  'duc@example.com': 'duc.hanoi@example.com',
+  'duc.pham@example.com': 'duc.hanoi@example.com',
+  'mai@example.com': 'mai.danang@example.com',
+  'mai.le@example.com': 'mai.danang@example.com',
+  'somchai@example.com': 'hoangnam@example.com',
+  'nam@example.com': 'hoangnam@example.com',
+  'hoang.nam@example.com': 'hoangnam@example.com',
+  'alexander@tourguidehub.com': 'admin@tourguidehub.com',
+  'alexander.wright@tourguidehub.com': 'admin@tourguidehub.com'
+};
+
 // User
 export async function dbFindUserByEmail(email: string) {
+  if (!email) return null;
+  const cleanEmail = email.trim().toLowerCase();
+  const canonicalEmail = DEMO_EMAIL_ALIASES[cleanEmail] || cleanEmail;
+
   if (db) {
     try {
-      const snap = await db.collection('users').where('email', '==', email.trim()).limit(1).get();
+      let snap = await db.collection('users').where('email', '==', canonicalEmail).limit(1).get();
       if (!snap.empty) return snap.docs[0].data();
+      if (canonicalEmail !== cleanEmail) {
+        snap = await db.collection('users').where('email', '==', cleanEmail).limit(1).get();
+        if (!snap.empty) return snap.docs[0].data();
+      }
     } catch (e) {}
   }
-  return memoryUsers.find(u => u.email.toLowerCase() === email.trim().toLowerCase()) || null;
+  return memoryUsers.find(u => {
+    const uEmail = u.email.toLowerCase();
+    return uEmail === canonicalEmail || uEmail === cleanEmail;
+  }) || null;
 }
 
 export async function dbFindUserById(id: string) {
@@ -174,7 +283,6 @@ export async function dbFindGuideByUserIdOrName(userId: string, name?: string) {
         const nameSnap = await db.collection('guides').where('fullName', '==', name).limit(1).get();
         if (!nameSnap.empty) return nameSnap.docs[0].data();
       }
-      return null;
     } catch (e) {
       console.error('dbFindGuideByUserIdOrName error:', e);
     }
@@ -187,7 +295,6 @@ export async function dbFindGuideById(id: string) {
     try {
       const doc = await db.collection('guides').doc(id).get();
       if (doc.exists) return doc.data();
-      return null;
     } catch (e) {
       console.error('dbFindGuideById error:', e);
     }
@@ -196,8 +303,18 @@ export async function dbFindGuideById(id: string) {
 }
 
 function sanitizeDoc(obj: any): any {
-  if (!obj || typeof obj !== 'object') return obj;
-  return JSON.parse(JSON.stringify(obj));
+  if (obj === undefined || obj === null) return null;
+  if (typeof obj !== 'object') return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(item => sanitizeDoc(item));
+  }
+  const clean: Record<string, any> = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      clean[key] = sanitizeDoc(value);
+    }
+  }
+  return clean;
 }
 
 export async function dbSaveGuide(guideData: any) {
@@ -279,7 +396,6 @@ export async function dbFindKYCById(id: string) {
     try {
       const doc = await db.collection('kyc').doc(id).get();
       if (doc.exists) return doc.data();
-      return null;
     } catch (e) {
       console.error('dbFindKYCById error:', e);
     }
@@ -324,7 +440,6 @@ export async function dbFindTourById(id: string) {
     try {
       const doc = await db.collection('tours').doc(id).get();
       if (doc.exists) return doc.data();
-      return null;
     } catch (e) {
       console.error('dbFindTourById error:', e);
     }
@@ -371,7 +486,6 @@ export async function dbFindPostById(id: string) {
     try {
       const doc = await db.collection('posts').doc(id).get();
       if (doc.exists) return doc.data();
-      return null;
     } catch (e) {
       console.error('dbFindPostById error:', e);
     }
@@ -399,7 +513,6 @@ export async function dbFindNegotiationByPostAndGuide(postId: string, guideId: s
     try {
       const snap = await db.collection('negotiations').where('postId', '==', postId).where('guideId', '==', guideId).limit(1).get();
       if (!snap.empty) return snap.docs[0].data();
-      return null;
     } catch (e) {
       console.error('dbFindNegotiationByPostAndGuide error:', e);
     }
@@ -413,7 +526,6 @@ export async function dbFindNegotiationById(id: string) {
     try {
       const doc = await db.collection('negotiations').doc(id).get();
       if (doc.exists) return doc.data();
-      return null;
     } catch (e) {
       console.error('dbFindNegotiationById error:', e);
     }
@@ -444,25 +556,36 @@ export async function dbGetNegotiationsByUser(userId: string) {
 
 // Bookings
 export async function dbSaveBooking(bookingData: any) {
+  if (!bookingData || !bookingData.id) {
+    console.error('dbSaveBooking error: bookingData missing id', bookingData);
+    return bookingData;
+  }
+  const cleanData = sanitizeDoc(bookingData);
+  const idx = memoryBookings.findIndex(b => b.id === bookingData.id);
+  if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...cleanData };
+  else memoryBookings.unshift(cleanData);
+
   if (db) {
     try {
-      await db.collection('bookings').doc(bookingData.id).set(sanitizeDoc(bookingData), { merge: true });
+      await db.collection('bookings').doc(bookingData.id).set(cleanData, { merge: true });
     } catch (e) {
       console.error('dbSaveBooking error:', e);
     }
   }
-  const idx = memoryBookings.findIndex(b => b.id === bookingData.id);
-  if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...bookingData };
-  else memoryBookings.unshift(bookingData);
-  return bookingData;
+  return cleanData;
 }
 
-export async function dbFindBookingById(id: string) {
+export async function dbFindBookingById(id: string): Promise<TourBooking | null> {
   if (db) {
     try {
       const doc = await db.collection('bookings').doc(id).get();
-      if (doc.exists) return doc.data();
-      return null;
+      if (doc.exists) {
+        const data = { id: doc.id, ...doc.data() } as TourBooking;
+        const idx = memoryBookings.findIndex(b => b.id === id);
+        if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...data };
+        else memoryBookings.push(data);
+        return data;
+      }
     } catch (e) {
       console.error('dbFindBookingById error:', e);
     }
@@ -473,17 +596,29 @@ export async function dbFindBookingById(id: string) {
 export async function dbGetBookingsByUser(userId: string) {
   if (db) {
     try {
+      const map = new Map<string, any>();
       if (userId === 'all') {
         const snap = await db.collection('bookings').get();
-        return snap.docs.map(doc => doc.data());
+        snap.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
       } else {
         const snap1 = await db.collection('bookings').where('travelerId', '==', userId).get();
         const snap2 = await db.collection('bookings').where('guideId', '==', userId).get();
-        const map = new Map<string, any>();
-        snap1.docs.forEach(doc => map.set(doc.id, doc.data()));
-        snap2.docs.forEach(doc => map.set(doc.id, doc.data()));
-        return Array.from(map.values());
+        snap1.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
+        snap2.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
       }
+      // Update memory cache from Firestore results
+      map.forEach((val, id) => {
+        const idx = memoryBookings.findIndex(b => b.id === id);
+        if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...val };
+        else memoryBookings.push(val);
+      });
+      // Also return any in-memory bookings not yet indexed in Firestore
+      memoryBookings.filter(b => userId === 'all' || b.travelerId === userId || b.guideId === userId).forEach(b => {
+        if (!map.has(b.id)) {
+          map.set(b.id, b);
+        }
+      });
+      return Array.from(map.values());
     } catch (e) {
       console.error('dbGetBookingsByUser error:', e);
     }
@@ -494,8 +629,20 @@ export async function dbGetBookingsByUser(userId: string) {
 export async function dbGetAllBookings() {
   if (db) {
     try {
+      const map = new Map<string, any>();
       const snap = await db.collection('bookings').get();
-      return snap.docs.map(doc => doc.data());
+      snap.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
+      map.forEach((val, id) => {
+        const idx = memoryBookings.findIndex(b => b.id === id);
+        if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...val };
+        else memoryBookings.push(val);
+      });
+      memoryBookings.forEach(b => {
+        if (!map.has(b.id)) {
+          map.set(b.id, b);
+        }
+      });
+      return Array.from(map.values());
     } catch (e) {
       console.error('dbGetAllBookings error:', e);
     }

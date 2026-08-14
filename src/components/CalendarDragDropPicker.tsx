@@ -1,23 +1,153 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { ScheduleSlot } from '../types';
+import { ScheduleSlot, TourBooking } from '../types';
+import {
+  isHourBlockedByBookings,
+  validateSlotsAgainstBookings,
+  normalizeToISODate,
+  areIntervalsOverlapping,
+  parseTimeToMinutes
+} from '../lib/conflictCheck';
 
 interface CalendarDragDropPickerProps {
   value: ScheduleSlot[];
   onChange: (slots: ScheduleSlot[]) => void;
+  existingBookings?: TourBooking[];
   language?: 'en' | 'vi';
 }
 
-// Utility functions for hours
-const formatHour12 = (hour: number): string => {
+// Utility functions for hours and minutes
+export const formatHour12 = (hour: number): string => {
   if (hour === 0 || hour === 24) return '12:00 AM';
   if (hour === 12) return '12:00 PM';
   if (hour < 12) return `${hour}:00 AM`;
   return `${hour - 12}:00 PM`;
 };
 
-const formatHour24 = (hour: number): string => {
+export const formatHour24 = (hour: number): string => {
   const h = hour % 24;
   return `${h < 10 ? '0' : ''}${h}:00`;
+};
+
+export const parseMinutesFromStr = (timeStr: string): number => {
+  if (!timeStr) return 0;
+  const lower = timeStr.toLowerCase().trim();
+  const match = lower.match(/(\d+)(?::(\d+))?\s*(am|pm)?/);
+  if (!match) return 0;
+  let h = parseInt(match[1], 10);
+  const m = match[2] ? parseInt(match[2], 10) : 0;
+  const meridiem = match[3];
+
+  if (meridiem === 'pm' && h < 12) h += 12;
+  if (meridiem === 'am' && h === 12) h = 0;
+
+  return h * 60 + m;
+};
+
+export const formatMinutes12 = (totalMinutes: number): string => {
+  const m = totalMinutes % 60;
+  let h = Math.floor(totalMinutes / 60);
+  if (h >= 24) h = h % 24;
+  const isPm = h >= 12;
+  const meridiem = isPm ? 'PM' : 'AM';
+
+  let displayH = h % 12;
+  if (displayH === 0) displayH = 12;
+
+  const minStr = m < 10 ? `0${m}` : `${m}`;
+  return `${displayH}:${minStr} ${meridiem}`;
+};
+
+// Merges contiguous, overlapping, and duplicate schedule slots on each date
+export const mergeScheduleSlots = (slots: ScheduleSlot[]): ScheduleSlot[] => {
+  if (!slots || slots.length <= 1) return slots || [];
+
+  // Group slots by normalized date string
+  const groups: { [dateKey: string]: { dateStr: string; slots: ScheduleSlot[] } } = {};
+
+  slots.forEach(slot => {
+    if (!slot || !slot.dateStr) return;
+    const normalizedDate = formatDisplayDate(slot.dateStr);
+    if (!groups[normalizedDate]) {
+      groups[normalizedDate] = {
+        dateStr: slot.dateStr,
+        slots: []
+      };
+    }
+    groups[normalizedDate].slots.push(slot);
+  });
+
+  const mergedAll: ScheduleSlot[] = [];
+
+  Object.keys(groups).forEach(dateKey => {
+    const group = groups[dateKey];
+    const rawSlots = group.slots;
+
+    // Convert slots to intervals in minutes [start, end]
+    const intervals: { start: number; end: number; sourceIds: string[] }[] = [];
+
+    rawSlots.forEach(s => {
+      let startM = parseMinutesFromStr(s.startTime);
+      let endM = parseMinutesFromStr(s.endTime);
+
+      if (endM <= startM) {
+        if (endM === 0) endM = 1440;
+        else endM += 1440;
+      }
+
+      intervals.push({
+        start: startM,
+        end: endM,
+        sourceIds: s.id ? [s.id] : []
+      });
+    });
+
+    // Sort intervals by start ascending, then end ascending
+    intervals.sort((a, b) => a.start - b.start || a.end - b.end);
+
+    const mergedIntervals: { start: number; end: number; sourceIds: string[] }[] = [];
+    let current: { start: number; end: number; sourceIds: string[] } | null = null;
+
+    intervals.forEach(inv => {
+      if (!current) {
+        current = { start: inv.start, end: inv.end, sourceIds: [...inv.sourceIds] };
+      } else {
+        // If overlapping or contiguous (e.g. 540 <= 540)
+        if (inv.start <= current.end) {
+          current.end = Math.max(current.end, inv.end);
+          current.sourceIds.push(...inv.sourceIds);
+        } else {
+          mergedIntervals.push(current);
+          current = { start: inv.start, end: inv.end, sourceIds: [...inv.sourceIds] };
+        }
+      }
+    });
+
+    if (current) {
+      mergedIntervals.push(current);
+    }
+
+    // Convert merged intervals to ScheduleSlot
+    mergedIntervals.forEach((inv, index) => {
+      const startTime = formatMinutes12(inv.start);
+      const endTime = formatMinutes12(inv.end);
+      const displayDate = group.dateStr;
+      const displayLabel = `${startTime} - ${endTime} on ${displayDate}`;
+      const uniqueIds = Array.from(new Set(inv.sourceIds.filter(Boolean)));
+      const id = uniqueIds.length === 1
+        ? uniqueIds[0]
+        : `slot_merged_${displayDate.replace(/[\/\-:]/g, '_')}_${inv.start}_${inv.end}_${index}`;
+
+      mergedAll.push({
+        id,
+        dateStr: displayDate,
+        startTime,
+        endTime,
+        displayLabel
+      });
+    });
+  });
+
+  return mergedAll;
 };
 
 // Convert ISO date string (YYYY-MM-DD) or DD/MM/YYYY into display DD/MM/YYYY format
@@ -97,6 +227,7 @@ const isTodayDate = (dateStr: string): boolean => {
 export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
   value = [],
   onChange,
+  existingBookings = [],
   language = 'en'
 }) => {
   const isVi = language === 'vi';
@@ -106,6 +237,10 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
 
   // Default initial date: Today's date
   const [currentStartDate, setCurrentStartDate] = useState<Date>(() => getTodayDate());
+
+  // Conflict warning banner state
+  const [activeConflictBanner, setActiveConflictBanner] = useState<string | null>(null);
+  const [manualConflictWarning, setManualConflictWarning] = useState<string | null>(null);
 
   // Compute 7-day columns based on currentStartDate
   const days = Array.from({ length: 7 }, (_, i) => {
@@ -136,6 +271,11 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
 
   const containerRef = useRef<HTMLDivElement>(null);
 
+  // Helper to check if a specific hour on a date is blocked by a confirmed booking
+  const checkHourBlocked = (dateStr: string, hour: number) => {
+    return isHourBlockedByBookings(dateStr, hour, existingBookings);
+  };
+
   // Helper to compare dates in various formats (10/10/2026, 2026-10-10, etc.)
   const datesMatch = (d1: string, d2: string): boolean => {
     if (!d1 || !d2) return false;
@@ -158,15 +298,7 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
 
   const parseHourFromStr = (timeStr: string): number => {
     if (!timeStr) return 0;
-    const lower = timeStr.toLowerCase().trim();
-    const match = lower.match(/(\d+):?(\d+)?\s*(am|pm)?/);
-    if (!match) return 0;
-    let h = parseInt(match[1], 10);
-    const isPm = match[3] === 'pm';
-    const isAm = match[3] === 'am';
-    if (isPm && h < 12) h += 12;
-    if (isAm && h === 12) h = 0;
-    return h;
+    return Math.floor(parseMinutesFromStr(timeStr) / 60);
   };
 
   // Find saved slots covering a specific date and hour
@@ -183,17 +315,47 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
     return getSavedSlotsForCell(dateStr, hour).length > 0;
   };
 
+  // Remove a specific hour from slots on a date and re-merge
+  const removeCellHour = (dateStr: string, hourToRemove: number) => {
+    const otherDateSlots = (value || []).filter(s => !datesMatch(s.dateStr, dateStr));
+    const sameDateSlots = (value || []).filter(s => datesMatch(s.dateStr, dateStr));
+
+    const hourSegments: { start: number; end: number }[] = [];
+    sameDateSlots.forEach(slot => {
+      const startM = parseMinutesFromStr(slot.startTime);
+      let endM = parseMinutesFromStr(slot.endTime);
+      if (endM <= startM) endM = endM === 0 ? 1440 : endM + 1440;
+
+      const startH = Math.floor(startM / 60);
+      const endH = Math.ceil(endM / 60);
+
+      for (let h = startH; h < endH; h++) {
+        if (h !== hourToRemove) {
+          hourSegments.push({ start: h * 60, end: (h + 1) * 60 });
+        }
+      }
+    });
+
+    const formattedDate = formatDisplayDate(dateStr);
+    const newSlotsForDate: ScheduleSlot[] = hourSegments.map((seg, i) => ({
+      id: `temp_${Date.now()}_${i}`,
+      dateStr: formattedDate,
+      startTime: formatMinutes12(seg.start),
+      endTime: formatMinutes12(seg.end),
+      displayLabel: `${formatMinutes12(seg.start)} - ${formatMinutes12(seg.end)} on ${formattedDate}`
+    }));
+
+    const mergedSameDate = mergeScheduleSlots(newSlotsForDate);
+    onChange([...otherDateSlots, ...mergedSameDate]);
+  };
+
   // Global mouseup event listener for drag completion or single-click toggle
   useEffect(() => {
     const handleGlobalMouseUp = () => {
       if (isDragging && dragDateStr && dragStartHour !== null && dragCurrentHour !== null) {
         if (dragStartHour === dragCurrentHour && dragWasSaved) {
-          // Single click on a saved cell -> REMOVE the saved slot(s) covering this cell
-          const slotsToRemove = getSavedSlotsForCell(dragDateStr, dragStartHour);
-          if (slotsToRemove.length > 0) {
-            const removeIds = new Set(slotsToRemove.map(s => s.id));
-            onChange((value || []).filter(s => !removeIds.has(s.id)));
-          }
+          // Single click on a saved cell -> toggle off this hour & re-merge
+          removeCellHour(dragDateStr, dragStartHour);
         } else {
           commitDragSelection(dragDateStr, dragStartHour, dragCurrentHour);
         }
@@ -214,30 +376,89 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
     const minH = Math.min(startH, currH);
     const maxH = Math.max(startH, currH);
 
-    const startTime = formatHour12(minH);
-    const endTime = formatHour12(maxH + 1);
-    const formattedDate = formatDisplayDate(dateStr);
+    // Filter out any hours that are blocked by confirmed bookings
+    const validHourSegments: number[] = [];
+    let hadBlockedHour = false;
+    let blockedBookingTitle = '';
 
-    const newSlot: ScheduleSlot = {
+    for (let h = minH; h <= maxH; h++) {
+      const block = checkHourBlocked(dateStr, h);
+      if (block.isBlocked) {
+        hadBlockedHour = true;
+        blockedBookingTitle = block.booking?.tourTitle || 'Confirmed Tour';
+      } else {
+        validHourSegments.push(h);
+      }
+    }
+
+    if (hadBlockedHour) {
+      setActiveConflictBanner(
+        isVi
+          ? `⚠️ Khung giờ đã đặt trước (${blockedBookingTitle}) đã bị loại trừ khỏi vùng chọn.`
+          : `⚠️ Existing booking (${blockedBookingTitle}) prevented selecting conflicting hours.`
+      );
+      setTimeout(() => setActiveConflictBanner(null), 5000);
+    }
+
+    if (validHourSegments.length === 0) {
+      return; // All selected hours were blocked
+    }
+
+    // Group contiguous valid hours into schedule slots
+    const formattedDate = formatDisplayDate(dateStr);
+    const contiguousSlots: ScheduleSlot[] = [];
+    let curStart = validHourSegments[0];
+    let curEnd = validHourSegments[0];
+
+    for (let i = 1; i < validHourSegments.length; i++) {
+      const h = validHourSegments[i];
+      if (h === curEnd + 1) {
+        curEnd = h;
+      } else {
+        const startTime = formatHour12(curStart);
+        const endTime = formatHour12(curEnd + 1);
+        contiguousSlots.push({
+          id: `slot_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
+          dateStr: formattedDate,
+          startTime,
+          endTime,
+          displayLabel: `${startTime} - ${endTime} on ${formattedDate}`
+        });
+        curStart = h;
+        curEnd = h;
+      }
+    }
+
+    const finalStart = formatHour12(curStart);
+    const finalEnd = formatHour12(curEnd + 1);
+    contiguousSlots.push({
       id: `slot_${Date.now()}_${Math.random().toString(36).substr(2, 4)}`,
       dateStr: formattedDate,
-      startTime,
-      endTime,
-      displayLabel: `${startTime} - ${endTime} on ${formattedDate}`
-    };
+      startTime: finalStart,
+      endTime: finalEnd,
+      displayLabel: `${finalStart} - ${finalEnd} on ${formattedDate}`
+    });
 
-    // Avoid exact duplicate slots
-    const exists = (value || []).some(
-      s => datesMatch(s.dateStr, formattedDate) && s.startTime === startTime && s.endTime === endTime
-    );
-
-    if (!exists) {
-      onChange([...(value || []), newSlot]);
-    }
+    // Merge overlapping and contiguous slots automatically
+    const merged = mergeScheduleSlots([...(value || []), ...contiguousSlots]);
+    onChange(merged);
   };
 
   const handleCellMouseDown = (dateStr: string, hour: number) => {
     if (isPastDate(dateStr)) return;
+    
+    // Prevent selecting blocked hours
+    const block = checkHourBlocked(dateStr, hour);
+    if (block.isBlocked) {
+      setActiveConflictBanner(
+        isVi
+          ? `⛔ Không thể chọn: Đã có tour "${block.booking?.tourTitle}" (${block.timeDisplay}) vào khung giờ này!`
+          : `⛔ Cannot select: You already have booking "${block.booking?.tourTitle}" (${block.timeDisplay}) during this time!`
+      );
+      setTimeout(() => setActiveConflictBanner(null), 4500);
+      return;
+    }
+
     const saved = isCellInSavedSlot(dateStr, hour);
     setIsDragging(true);
     setDragWasSaved(saved);
@@ -288,15 +509,17 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
     };
 
     setCurrentStartDate(new Date(2026, 9, 8));
-    onChange([slot1, slot2]);
+    onChange(mergeScheduleSlots([slot1, slot2]));
   };
 
   const handleManualAdd = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
+    setManualConflictWarning(null);
+
     if (!manualDate || manualStart >= manualEnd) return;
 
     if (isPastDate(manualDate)) {
-      alert(isVi ? 'Không thể chọn ngày trong quá khứ!' : 'Cannot select a date in the past!');
+      setManualConflictWarning(isVi ? 'Không thể chọn ngày trong quá khứ!' : 'Cannot select a date in the past!');
       return;
     }
 
@@ -312,7 +535,18 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
       displayLabel: `${startTime} - ${endTime} on ${formattedDate}`
     };
 
-    onChange([...value, newSlot]);
+    // Check conflict against existing confirmed bookings
+    const conflictRes = validateSlotsAgainstBookings([newSlot], existingBookings, isVi ? 'vi' : 'en');
+    if (conflictRes.hasConflict) {
+      setManualConflictWarning(
+        conflictRes.conflictDetails ||
+        (isVi ? 'Khung giờ này trùng với lịch tour đã đặt trước!' : 'This time slot clashes with a confirmed tour booking!')
+      );
+      return;
+    }
+
+    const merged = mergeScheduleSlots([...(value || []), newSlot]);
+    onChange(merged);
   };
 
   const navigateWeeks = (direction: number) => {
@@ -331,6 +565,23 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
 
   return (
     <div className="space-y-4 bg-slate-900/90 text-slate-100 p-4 rounded-3xl border border-slate-800 shadow-xl" ref={containerRef}>
+      {/* Conflict Warning Toast/Banner */}
+      {activeConflictBanner && (
+        <div className="p-3 bg-rose-950/80 border-2 border-rose-500 rounded-2xl text-rose-200 text-xs font-bold flex items-center justify-between gap-2 shadow-lg animate-bounce">
+          <div className="flex items-center space-x-2">
+            <span className="material-symbols-outlined text-rose-400 text-base">warning</span>
+            <span>{activeConflictBanner}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveConflictBanner(null)}
+            className="text-rose-400 hover:text-white text-xs px-2 py-0.5 rounded-lg bg-rose-900/50 cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      )}
+
       {/* Header & Controls */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
         <div>
@@ -342,8 +593,8 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
           </div>
           <p className="text-[11px] text-slate-400 mt-0.5">
             {isVi 
-              ? 'Nhấp & kéo chuột trên khung giờ để chọn. Ví dụ: 8AM-10AM ngày 10/10/2026 & 4PM-5PM ngày 12/10/2026.' 
-              : 'Click & drag across hour slots to select. Example: 8AM-10AM on 10/10/2026 & 4PM-5PM on 12/10/2026.'}
+              ? 'Nhấp & kéo chuột trên khung giờ để chọn. Hệ thống tự động ngăn chặn trùng với lịch đặt tour đã xác nhận.' 
+              : 'Click & drag across hour slots to select. Automatically blocks overlapping confirmed tour bookings.'}
           </p>
         </div>
 
@@ -368,6 +619,25 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
               {isVi ? 'Xóa Tất Cả' : 'Clear All'}
             </button>
           )}
+        </div>
+      </div>
+
+      {/* Visual Legend */}
+      <div className="flex items-center gap-3 text-[10px] text-slate-300 bg-slate-950/50 px-3 py-1.5 rounded-xl border border-slate-800 flex-wrap">
+        <span className="font-bold text-slate-400">{isVi ? 'Chú giải:' : 'Legend:'}</span>
+        <div className="flex items-center space-x-1">
+          <span className="w-2.5 h-2.5 rounded bg-emerald-500 inline-block"></span>
+          <span>{isVi ? 'Khung giờ đã chọn' : 'Selected Slot'}</span>
+        </div>
+        {existingBookings.length > 0 && (
+          <div className="flex items-center space-x-1">
+            <span className="w-2.5 h-2.5 rounded bg-rose-600 inline-block"></span>
+            <span className="text-rose-300 font-bold">{isVi ? '⛔ Đã Đặt Tour (Bị khóa trùng lịch)' : '⛔ Confirmed Booking (Locked / Conflict)'}</span>
+          </div>
+        )}
+        <div className="flex items-center space-x-1">
+          <span className="w-2.5 h-2.5 rounded bg-slate-800 border border-slate-700 inline-block"></span>
+          <span>{isVi ? 'Trống (Có thể chọn)' : 'Available'}</span>
         </div>
       </div>
 
@@ -479,6 +749,8 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
 
                 {/* Day cells */}
                 {days.map((day) => {
+                  const blockInfo = checkHourBlocked(day.slashStr, hour);
+                  const isBlocked = blockInfo.isBlocked;
                   const activeDrag = isCellInActiveDrag(day.slashStr, hour);
                   const isSaved = isCellInSavedSlot(day.slashStr, hour);
                   const isPast = isPastDate(day.slashStr);
@@ -492,6 +764,8 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
                       className={`h-8 rounded-lg border text-[10px] font-bold flex items-center justify-center transition-all ${
                         isPast
                           ? 'bg-slate-950/30 border-slate-900/60 text-slate-700 cursor-not-allowed opacity-30 select-none'
+                          : isBlocked
+                          ? 'bg-rose-950/50 border-rose-600/70 text-rose-300 cursor-not-allowed shadow-inner select-none'
                           : activeDrag
                           ? 'bg-teal-500/50 border-teal-300 text-white shadow-lg scale-95 cursor-pointer'
                           : isSaved
@@ -503,6 +777,8 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
                       title={
                         isPast
                           ? (isVi ? 'Không thể chọn ngày trong quá khứ' : 'Past date cannot be selected')
+                          : isBlocked
+                          ? `⛔ ${isVi ? 'Lịch đã có tour đặt' : 'Confirmed Booking'}: ${blockInfo.booking?.tourTitle} (${blockInfo.timeDisplay})`
                           : isSaved
                           ? `Click to remove slot (${day.slashStr} at ${formatHour12(hour)})`
                           : `Click or drag to select: ${day.slashStr} at ${formatHour12(hour)}`
@@ -510,6 +786,11 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
                     >
                       {isPast ? (
                         <span key="icon_past" className="text-[10px] text-slate-800">🚫</span>
+                      ) : isBlocked ? (
+                        <span key="icon_blocked" className="flex items-center space-x-0.5 text-[8.5px] uppercase tracking-wider font-extrabold text-rose-300 px-0.5">
+                          <span>⛔</span>
+                          <span className="truncate max-w-[45px] sm:max-w-none">{isVi ? 'Đã Đặt' : 'Booked'}</span>
+                        </span>
                       ) : activeDrag ? (
                         <span key="icon_drag" className="animate-pulse text-xs">✓</span>
                       ) : isSaved ? (
@@ -536,6 +817,13 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
           <span>{isVi ? 'Hoặc Thêm Khung Giờ Thủ Công' : 'Or Add Time Slot Manually'}</span>
         </div>
 
+        {manualConflictWarning && (
+          <div className="p-2.5 bg-rose-950/70 border border-rose-500/80 rounded-xl text-rose-200 text-xs font-semibold flex items-center space-x-2">
+            <span className="material-symbols-outlined text-rose-400 text-sm flex-shrink-0">error</span>
+            <span>{manualConflictWarning}</span>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-2 text-xs">
           <div>
             <label className="block text-[10px] text-slate-400 font-bold mb-0.5">{isVi ? 'Ngày' : 'Date'}</label>
@@ -543,7 +831,10 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
               type="date"
               value={manualDate}
               min={getTodayISO()}
-              onChange={(e) => setManualDate(e.target.value)}
+              onChange={(e) => {
+                setManualDate(e.target.value);
+                setManualConflictWarning(null);
+              }}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl p-1.5 text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
             />
           </div>
@@ -552,7 +843,10 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
             <label className="block text-[10px] text-slate-400 font-bold mb-0.5">{isVi ? 'Giờ Bắt Đầu' : 'Start Time'}</label>
             <select
               value={manualStart}
-              onChange={(e) => setManualStart(Number(e.target.value))}
+              onChange={(e) => {
+                setManualStart(Number(e.target.value));
+                setManualConflictWarning(null);
+              }}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl p-1.5 text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
             >
               {HOURS.map(h => (
@@ -565,7 +859,10 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
             <label className="block text-[10px] text-slate-400 font-bold mb-0.5">{isVi ? 'Giờ Kết Thúc' : 'End Time'}</label>
             <select
               value={manualEnd}
-              onChange={(e) => setManualEnd(Number(e.target.value))}
+              onChange={(e) => {
+                setManualEnd(Number(e.target.value));
+                setManualConflictWarning(null);
+              }}
               className="w-full bg-slate-900 border border-slate-700 rounded-xl p-1.5 text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
             >
               {HOURS.concat([22, 23]).map(h => (
@@ -604,28 +901,48 @@ export const CalendarDragDropPicker: React.FC<CalendarDragDropPickerProps> = ({
           </p>
         ) : (
           <div className="flex flex-wrap gap-2">
-            {(value || []).map((slot) => (
-              <div
-                key={slot.id}
-                onClick={() => removeSlot(slot.id)}
-                className="px-3 py-1.5 rounded-2xl bg-teal-500/20 border border-teal-500/40 text-teal-200 hover:bg-rose-500/20 hover:border-rose-500/50 hover:text-rose-200 text-xs font-bold flex items-center space-x-2 shadow-sm animate-fadeIn cursor-pointer transition-all group"
-                title="Click anywhere to remove slot"
-              >
-                <span className="material-symbols-outlined text-sm text-teal-400 group-hover:text-rose-400">schedule</span>
-                <span>{slot.displayLabel || `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`}</span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    removeSlot(slot.id);
-                  }}
-                  className="text-teal-400 group-hover:text-rose-400 transition-colors cursor-pointer ml-1 p-0.5 rounded-full hover:bg-rose-500/30"
-                  title="Remove slot"
+            {(value || []).map((slot) => {
+              const singleConflict = validateSlotsAgainstBookings([slot], existingBookings, isVi ? 'vi' : 'en');
+              const hasConflict = singleConflict.hasConflict;
+
+              return (
+                <div
+                  key={slot.id}
+                  onClick={() => removeSlot(slot.id)}
+                  className={`px-3 py-1.5 rounded-2xl text-xs font-bold flex items-center space-x-2 shadow-sm animate-fadeIn cursor-pointer transition-all group ${
+                    hasConflict
+                      ? 'bg-rose-950/60 border-2 border-rose-500 text-rose-200 hover:bg-rose-900/80'
+                      : 'bg-teal-500/20 border border-teal-500/40 text-teal-200 hover:bg-rose-500/20 hover:border-rose-500/50 hover:text-rose-200'
+                  }`}
+                  title={
+                    hasConflict
+                      ? `⚠️ ${singleConflict.conflictDetails}`
+                      : 'Click anywhere to remove slot'
+                  }
                 >
-                  <span className="material-symbols-outlined text-sm">close</span>
-                </button>
-              </div>
-            ))}
+                  <span className={`material-symbols-outlined text-sm ${hasConflict ? 'text-rose-400' : 'text-teal-400 group-hover:text-rose-400'}`}>
+                    {hasConflict ? 'warning' : 'schedule'}
+                  </span>
+                  <span>{slot.displayLabel || `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`}</span>
+                  {hasConflict && (
+                    <span className="px-1.5 py-0.2 bg-rose-600 text-white text-[9px] uppercase font-extrabold rounded-full">
+                      {isVi ? 'Trùng lịch' : 'Conflict'}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeSlot(slot.id);
+                    }}
+                    className={`${hasConflict ? 'text-rose-300' : 'text-teal-400 group-hover:text-rose-400'} transition-colors cursor-pointer ml-1 p-0.5 rounded-full hover:bg-rose-500/30`}
+                    title="Remove slot"
+                  >
+                    <span className="material-symbols-outlined text-sm">close</span>
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

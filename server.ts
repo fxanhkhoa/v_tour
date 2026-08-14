@@ -4,6 +4,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { 
   initFirebaseDatabase, 
+  dbResetAndReseedDatabase,
   dbFindUserByEmail,
   dbFindUserById,
   dbFindUserByToken,
@@ -356,6 +357,24 @@ app.post('/api/auth/login', async (req, res) => {
 });
 
 // ---------------- ADMIN MODULE API ----------------
+app.post('/api/admin/reset-database', async (req, res) => {
+  try {
+    const result = await dbResetAndReseedDatabase();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to reset and reseed database: ' + err.message });
+  }
+});
+
+app.get('/api/admin/reset-database', async (req, res) => {
+  try {
+    const result = await dbResetAndReseedDatabase();
+    res.json(result);
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to reset and reseed database: ' + err.message });
+  }
+});
+
 app.get('/api/admin/stats', async (req, res) => {
   try {
     const users = await dbGetAllUsers();
@@ -631,20 +650,107 @@ app.get('/api/tours', async (req, res) => {
 // ---------------- TRAVELER MODULE API ----------------
 app.post('/api/traveler/posts', async (req, res) => {
   try {
-    const { travelerId, travelerName, travelerAvatar, title, city, preferredDate, durationHours, groupSize, minBudgetUSD, maxBudgetUSD, description, preferredLanguages } = req.body;
+    const { travelerId, travelerName, travelerAvatar, title, city, preferredDate, scheduleSlots, durationHours, groupSize, minBudgetUSD, maxBudgetUSD, description, preferredLanguages } = req.body;
 
     if (!title || !city) {
       return res.status(400).json({ error: 'Title and city are required' });
     }
 
+    const tId = travelerId || 'u_traveler_1';
+
+    // Server-side Conflict Prevention against confirmed bookings
+    const userBookings = await dbGetBookingsByUser(tId);
+    const activeBookings = userBookings.filter((b: any) => b.status !== 'cancelled');
+
+    // Helper to parse time string into minutes
+    const parseTimeToMin = (timeStr: string): number => {
+      if (!timeStr) return 0;
+      const lower = timeStr.toLowerCase().trim();
+      const match12 = lower.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)/i);
+      if (match12) {
+        let h = parseInt(match12[1], 10);
+        const m = match12[2] ? parseInt(match12[2], 10) : 0;
+        const isPm = match12[3].toLowerCase() === 'pm';
+        const isAm = match12[3].toLowerCase() === 'am';
+        if (isPm && h < 12) h += 12;
+        if (isAm && h === 12) h = 0;
+        return h * 60 + m;
+      }
+      const match24 = lower.match(/(\d{1,2}):(\d{2})/);
+      if (match24) {
+        const h = parseInt(match24[1], 10);
+        const m = parseInt(match24[2], 10);
+        return (h % 24) * 60 + m;
+      }
+      return 0;
+    };
+
+    // Helper to normalize date to YYYY-MM-DD
+    const normDate = (dStr?: string): string | null => {
+      if (!dStr) return null;
+      const mIso = dStr.match(/(\d{4})-(\d{2})-(\d{2})/);
+      if (mIso) return `${mIso[1]}-${mIso[2]}-${mIso[3]}`;
+      const mSlash = dStr.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+      if (mSlash) return `${mSlash[3]}-${mSlash[2].padStart(2, '0')}-${mSlash[1].padStart(2, '0')}`;
+      const mDash = dStr.match(/(\d{1,2})-(\d{1,2})-(\d{4})/);
+      if (mDash) return `${mDash[3]}-${mDash[2].padStart(2, '0')}-${mDash[1].padStart(2, '0')}`;
+      return null;
+    };
+
+    // Check each slot in scheduleSlots
+    if (scheduleSlots && Array.isArray(scheduleSlots) && scheduleSlots.length > 0) {
+      for (const slot of scheduleSlots) {
+        const slotDate = normDate(slot.dateStr);
+        if (!slotDate) continue;
+        let sStart = parseTimeToMin(slot.startTime);
+        let sEnd = parseTimeToMin(slot.endTime);
+        if (sEnd <= sStart) sEnd = sEnd === 0 ? 1440 : sEnd + 1440;
+
+        for (const bk of activeBookings) {
+          const bkDate = normDate(bk.scheduledTime) || normDate(bk.createdAt);
+          if (!bkDate || bkDate !== slotDate) continue;
+
+          let bkStart = 8 * 60;
+          let bkEnd = 14 * 60;
+          let bkDisplay = bk.scheduledTime || '08:00 AM - 02:00 PM';
+
+          const timeOnly = (bk.scheduledTime || '')
+            .replace(/\b\d{4}[-/]\d{1,2}[-/]\d{1,2}\b/g, '')
+            .replace(/\b\d{1,2}[-/]\d{1,2}[-/]\d{4}\b/g, '')
+            .replace(/[()]/g, ' ')
+            .trim();
+
+          const rangeMatch = timeOnly.match(/(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)\s*(?:-|–|—|to)\s*(\d{1,2}(?::\d{2})?\s*(?:am|pm)?)/i);
+          if (rangeMatch) {
+            bkStart = parseTimeToMin(rangeMatch[1]);
+            let eM = parseTimeToMin(rangeMatch[2]);
+            if (eM > 0 && bkStart >= 0) {
+              if (eM <= bkStart) eM += 1440;
+              bkEnd = eM;
+              bkDisplay = `${rangeMatch[1].trim()} - ${rangeMatch[2].trim()}`;
+            }
+          }
+
+          // Overlap check
+          if (Math.max(sStart, bkStart) < Math.min(sEnd, bkEnd)) {
+            return res.status(400).json({
+              error: `Schedule conflict on ${slotDate}: Your requested slot "${slot.startTime} - ${slot.endTime}" overlaps with confirmed booking "${bk.tourTitle}" (${bkDisplay}).`,
+              conflictBookingId: bk.id
+            });
+          }
+        }
+      }
+    }
+
     const newPost = {
       id: 'post_' + Date.now(),
-      travelerId: travelerId || 'u_traveler_1',
+      travelerId: tId,
       travelerName: travelerName || 'Sarah Jenkins',
       travelerAvatar: travelerAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
       title,
       city,
       preferredDate: preferredDate || 'Tomorrow at 09:00 AM',
+      scheduleSlots: scheduleSlots || [],
       durationHours: Number(durationHours) || 4,
       groupSize: Number(groupSize) || 1,
       minBudgetUSD: Number(minBudgetUSD) || 30,
@@ -668,6 +774,40 @@ app.get('/api/traveler/posts', async (req, res) => {
     const { city, status } = req.query;
     const posts = await dbGetPosts(city as string, status as string);
     res.json({ posts });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/traveler/posts/:id/close', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const post = await dbFindPostById(id);
+    if (!post) {
+      return res.status(404).json({ error: 'Traveler post request not found' });
+    }
+    post.status = 'closed';
+    await dbSavePost(post);
+    res.json({ success: true, post });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/traveler/posts/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+    const post = await dbFindPostById(id);
+    if (!post) {
+      return res.status(404).json({ error: 'Traveler post request not found' });
+    }
+    if (!['open', 'negotiating', 'booked', 'closed'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid post status' });
+    }
+    post.status = status;
+    await dbSavePost(post);
+    res.json({ success: true, post });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -704,14 +844,20 @@ app.post('/api/negotiations/offer', async (req, res) => {
       offer = allNegs.find(n => n.tourId === tourId && n.travelerId === (travelerId || 'u_traveler_1') && n.status !== 'declined');
     }
 
+    if (post && post.status === 'closed' && !offer) {
+      return res.status(400).json({ error: 'This traveler trip request is closed and not accepting new bids.' });
+    }
+
+    const effectiveSlot = selectedSlot || (post?.scheduleSlots && post.scheduleSlots[0]) || (post?.preferredDate ? { dateStr: post.preferredDate, startTime: '08:30 AM', endTime: '12:30 PM' } : undefined);
+
     if (!offer) {
       offer = {
         id: 'neg_' + Date.now(),
         postId,
         tourId,
         tourTitle: tourTitle || post?.title,
-        selectedSlot,
-        groupSize: groupSize || 1,
+        selectedSlot: effectiveSlot,
+        groupSize: groupSize || post?.groupSize || 1,
         travelerId: post?.travelerId || travelerId || 'u_traveler_1',
         travelerName: post?.travelerName || travelerName || 'Sarah Jenkins',
         guideId: guide.id,
@@ -719,10 +865,11 @@ app.post('/api/negotiations/offer', async (req, res) => {
         guideAvatar: guide.avatar,
         guideRating: guide.rating,
         offeredPriceUSD: Number(offeredPriceUSD) || 50,
-        originalPriceUSD: Number(originalPriceUSD) || Number(offeredPriceUSD) || 50,
+        originalPriceUSD: Number(originalPriceUSD) || (post?.maxBudgetUSD) || Number(offeredPriceUSD) || 50,
         lastSenderRole: senderRole || 'traveler',
         status: 'pending',
         messages: [],
+        createdAt: post?.preferredDate || (post?.scheduleSlots?.[0]?.dateStr) || new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
 
@@ -736,12 +883,15 @@ app.post('/api/negotiations/offer', async (req, res) => {
         if (post.travelerName) offer.travelerName = post.travelerName;
         if (post.title) offer.tourTitle = post.title;
       }
+      if (!offer.selectedSlot && effectiveSlot) {
+        offer.selectedSlot = effectiveSlot;
+      }
     }
 
     offer.offeredPriceUSD = Number(offeredPriceUSD) || offer.offeredPriceUSD;
     if (originalPriceUSD) offer.originalPriceUSD = Number(originalPriceUSD);
     if (tourTitle) offer.tourTitle = tourTitle;
-    if (selectedSlot) offer.selectedSlot = selectedSlot;
+    if (selectedSlot || effectiveSlot) offer.selectedSlot = selectedSlot || offer.selectedSlot || effectiveSlot;
     if (groupSize) offer.groupSize = groupSize;
     offer.lastSenderRole = senderRole || 'traveler';
     offer.status = 'pending';
@@ -782,6 +932,7 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
 
     if (action === 'accept') {
       offer.status = 'accepted';
+      offer.lastSenderRole = senderRole || 'traveler';
       offer.messages.push({
         senderRole: senderRole || 'traveler',
         text: message || `Accepted offer at $${offer.offeredPriceUSD} USD! Creating booking now.`,
@@ -789,9 +940,15 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
       });
       await dbSaveNegotiation(offer);
 
-      const scheduledTimeStr = offer.selectedSlot
-        ? `${offer.selectedSlot.dateStr} (${offer.selectedSlot.startTime} - ${offer.selectedSlot.endTime})`
-        : 'As Agreed in Chat';
+      let scheduledTimeStr = 'As Agreed in Chat';
+      if (offer.selectedSlot && offer.selectedSlot.dateStr) {
+        scheduledTimeStr = `${offer.selectedSlot.dateStr} (${offer.selectedSlot.startTime} - ${offer.selectedSlot.endTime})`;
+      } else if (offer.postId) {
+        const post = await dbFindPostById(offer.postId);
+        if (post && post.preferredDate) {
+          scheduledTimeStr = post.preferredDate;
+        }
+      }
 
       const newBooking = {
         id: 'bk_' + Date.now(),
@@ -813,6 +970,7 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
         createdAt: new Date().toISOString(),
         pinCode: Math.floor(1000 + Math.random() * 9000).toString(),
         postId: offer.postId,
+        negotiationId: offer.id,
         paymentStatus: 'held_in_escrow',
         travelerConfirmedCompletion: false,
         guideConfirmedCompletion: false,
@@ -826,6 +984,20 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
         if (post) {
           post.status = 'booked';
           await dbSavePost(post);
+        }
+
+        // Close other pending negotiations for this post to avoid multi-accept conflicts
+        const allPostNegs = await dbGetNegotiationsByUser(offer.travelerId);
+        for (const otherNeg of allPostNegs) {
+          if (otherNeg.postId === offer.postId && otherNeg.id !== offer.id && otherNeg.status !== 'accepted') {
+            otherNeg.status = 'declined';
+            otherNeg.messages.push({
+              senderRole: 'system',
+              text: 'Offer closed: Traveler accepted another guide proposal for this request.',
+              timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+            await dbSaveNegotiation(otherNeg);
+          }
         }
       }
 
@@ -873,19 +1045,64 @@ app.get('/api/bookings/user/:userId', async (req, res) => {
   }
 });
 
-app.post('/api/bookings/:id/status', async (req, res) => {
+app.get('/api/bookings/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
-
-    const booking = await dbFindBookingById(id);
-    if (!booking) return res.status(404).json({ error: 'Booking not found' });
-
-    booking.status = status;
-    await dbSaveBooking(booking);
+    let booking = await dbFindBookingById(id);
+    if (!booking) {
+      const all = await dbGetAllBookings();
+      booking = all.find((b: any) => b.id === id);
+    }
+    if (!booking) {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
     res.json({ booking });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/bookings/:id/status', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const status = req.body?.status || req.body?.newStatus;
+
+    if (!status) {
+      return res.status(400).json({ error: 'Missing status in request body' });
+    }
+
+    let booking: any = await dbFindBookingById(id);
+    if (!booking) {
+      const allBookings = await dbGetAllBookings();
+      booking = allBookings.find((b: any) => b.id === id);
+    }
+
+    if (!booking) {
+      booking = {
+        id,
+        bookingType: 'negotiated_post',
+        tourTitle: 'Tour Booking',
+        status: status,
+        paymentStatus: 'held_in_escrow',
+        createdAt: new Date().toISOString()
+      };
+    } else {
+      booking.id = id;
+      booking.status = status;
+    }
+
+    if (status === 'completed') {
+      booking.travelerConfirmedCompletion = true;
+      booking.guideConfirmedCompletion = true;
+      booking.paymentStatus = 'released';
+      booking.escrowReleasedAt = new Date().toISOString();
+    }
+
+    await dbSaveBooking(booking);
+    res.json({ booking });
+  } catch (err: any) {
+    console.error('API /api/bookings/:id/status error:', err);
+    res.status(500).json({ error: err.message || 'Failed to update booking status' });
   }
 });
 
@@ -894,7 +1111,7 @@ app.post('/api/bookings/:id/confirm-completion', async (req, res) => {
     const { id } = req.params;
     const { role } = req.body; // 'traveler' | 'guide'
 
-    const booking = await dbFindBookingById(id);
+    const booking: any = await dbFindBookingById(id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
     if (role === 'traveler') {
@@ -936,7 +1153,7 @@ app.post('/api/admin/bookings/:id/escrow-action', async (req, res) => {
     const { id } = req.params;
     const { action } = req.body; // 'force_release' | 'refund'
 
-    const booking = await dbFindBookingById(id);
+    const booking: any = await dbFindBookingById(id);
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
     if (action === 'force_release') {

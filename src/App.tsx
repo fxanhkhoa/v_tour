@@ -320,9 +320,43 @@ export default function App() {
     }
   };
 
+  const handleCloseTravelerPost = async (postId: string) => {
+    try {
+      const res = await fetch(`/api/traveler/posts/${postId}/close`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.post) {
+        setPosts(prev => prev.map(p => p.id === postId ? data.post : p));
+        fetchAllData();
+      }
+    } catch (err) {
+      console.error('Error closing traveler post:', err);
+    }
+  };
+
+  const handleUpdateTravelerPostStatus = async (postId: string, status: 'open' | 'negotiating' | 'booked' | 'closed') => {
+    try {
+      const res = await fetch(`/api/traveler/posts/${postId}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      const data = await res.json();
+      if (data.post) {
+        setPosts(prev => prev.map(p => p.id === postId ? data.post : p));
+        fetchAllData();
+      }
+    } catch (err) {
+      console.error('Error updating traveler post status:', err);
+    }
+  };
+
   const handleSendBidToPost = async (postId: string, offerPrice: number, message: string) => {
     try {
       const targetPost = posts.find(p => String(p.id) === String(postId));
+      const targetSlot = targetPost?.scheduleSlots?.[0] || (targetPost?.preferredDate ? { dateStr: targetPost.preferredDate, startTime: '08:30 AM', endTime: '12:30 PM' } : undefined);
       const res = await fetch('/api/negotiations/offer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -333,6 +367,9 @@ export default function App() {
           tourTitle: targetPost?.title,
           guideId: currentGuideProfile ? currentGuideProfile.id : 'g_1',
           offeredPriceUSD: offerPrice,
+          originalPriceUSD: targetPost?.maxBudgetUSD || offerPrice,
+          selectedSlot: targetSlot,
+          groupSize: targetPost?.groupSize || 1,
           message,
           senderRole: 'guide'
         })
@@ -389,8 +426,10 @@ export default function App() {
     offerId: string, 
     action: 'accept' | 'counter' | 'decline', 
     counterPrice?: number, 
-    message?: string
+    message?: string,
+    explicitSenderRole?: 'traveler' | 'guide'
   ) => {
+    const senderRole = explicitSenderRole || (currentUser?.role === 'guide' ? 'guide' : 'traveler');
     try {
       const res = await fetch(`/api/negotiations/${offerId}/respond`, {
         method: 'POST',
@@ -399,16 +438,18 @@ export default function App() {
           action,
           counterPriceUSD: counterPrice,
           message,
-          senderRole: (currentUser?.role === 'guide' || currentGuideProfile) ? 'guide' : 'traveler'
+          senderRole
         })
       });
       const data = await res.json();
-      if (data.offer) {
-        setNegotiations(negotiations.map(n => n.id === offerId ? data.offer : n));
+      if (res.ok && data.offer) {
+        setNegotiations(prev => prev.map(n => n.id === offerId ? data.offer : n));
         if (data.booking) {
-          setBookings([data.booking, ...bookings]);
+          setBookings(prev => [data.booking, ...prev.filter(b => b.id !== data.booking.id)]);
         }
         fetchAllData();
+      } else if (data.error) {
+        alert(`Error: ${data.error}`);
       }
     } catch (err) {
       console.error(err);
@@ -417,6 +458,7 @@ export default function App() {
 
   const handleAcceptBooking = async (bookingId: string) => {
     try {
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status: 'in_progress' } : b));
       const res = await fetch(`/api/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -424,7 +466,8 @@ export default function App() {
       });
       const data = await res.json();
       if (data.booking) {
-        setBookings(bookings.map(b => b.id === bookingId ? data.booking : b));
+        setBookings(prev => prev.map(b => b.id === bookingId ? data.booking : b));
+        fetchAllData();
       }
     } catch (err) {
       console.error(err);
@@ -440,7 +483,7 @@ export default function App() {
       });
       const data = await res.json();
       if (data.booking) {
-        setBookings(bookings.map(b => b.id === bookingId ? data.booking : b));
+        setBookings(prev => prev.map(b => b.id === bookingId ? data.booking : b));
         fetchAllData();
       }
     } catch (err) {
@@ -450,15 +493,21 @@ export default function App() {
 
   const handleUpdateBookingStatus = async (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => {
     try {
+      // Optimistically update React state so UI updates immediately
+      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+
       const res = await fetch(`/api/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
+
       const data = await res.json();
       if (data.booking) {
-        setBookings(bookings.map(b => b.id === bookingId ? data.booking : b));
-        fetchAllData();
+        setBookings(prev => prev.map(b => b.id === bookingId ? data.booking : b));
+        await fetchAllData();
+      } else {
+        console.error('Update booking status failed:', data.error || 'Unknown error');
       }
     } catch (err) {
       console.error('Update booking status error:', err);
@@ -571,9 +620,12 @@ export default function App() {
                   bookings={bookings}
                   tours={tours}
                   onCreatePost={handleCreateTravelerPost}
+                  onClosePost={handleCloseTravelerPost}
+                  onUpdatePostStatus={handleUpdateTravelerPostStatus}
                   onNegotiateWithGuide={handleNegotiateWithGuide}
                   onRespondNegotiation={handleRespondNegotiation}
                   onConfirmCompletion={handleConfirmCompletion}
+                  onUpdateStatus={handleUpdateBookingStatus}
                   language={language}
                 />
               ) : (
@@ -600,6 +652,7 @@ export default function App() {
                   onSendBidToPost={handleSendBidToPost}
                   onRespondNegotiation={handleRespondNegotiation}
                   onConfirmCompletion={handleConfirmCompletion}
+                  onUpdateStatus={handleUpdateBookingStatus}
                   language={language}
                 />
               ) : (
