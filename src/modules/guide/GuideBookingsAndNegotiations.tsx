@@ -3,7 +3,9 @@ import { GuideProfile, TourBooking, TravelerPostRequest, NegotiationOffer } from
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
 import { PortalEventsCalendar } from '../../components/PortalEventsCalendar';
 import { TourBookingHubModal } from '../../components/TourBookingHubModal';
+import { GuidePayoutsLedger } from './GuidePayoutsLedger';
 import { Language } from '../../lib/translations';
+import { AddToGoogleCalendarButton } from '../../components/AddToGoogleCalendarButton';
 
 interface GuideBookingsAndNegotiationsProps {
   guideProfile: GuideProfile;
@@ -16,6 +18,7 @@ interface GuideBookingsAndNegotiationsProps {
   onConfirmCompletion?: (bookingId: string, role: 'traveler' | 'guide') => void;
   onUpdateStatus?: (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => void;
   onOpenKYCModal?: () => void;
+  onOpenPayoutModal?: () => void;
   language?: Language;
 }
 
@@ -30,11 +33,12 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   onConfirmCompletion,
   onUpdateStatus,
   onOpenKYCModal,
+  onOpenPayoutModal,
   language = 'en'
 }) => {
   const isVerified = guideProfile.kycStatus === 'verified' || guideProfile.verified;
 
-  const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'board'>('calendar');
+  const [activeSubTab, setActiveSubTab] = useState<'calendar' | 'board' | 'payouts'>('calendar');
 
   const [selectedPost, setSelectedPost] = useState<TravelerPostRequest | null>(null);
   const [bidPrice, setBidPrice] = useState<number>(50);
@@ -45,6 +49,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
   const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
   const [selectedHubBooking, setSelectedHubBooking] = useState<TourBooking | null>(null);
+  const [bookingToConfirmCompletion, setBookingToConfirmCompletion] = useState<TourBooking | null>(null);
 
   // Dynamically resolve active negotiation object to ensure live state updates in modal
   const activeNegotiation = historyModalNegotiation
@@ -72,7 +77,9 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   const [sortBy, setSortBy] = useState<'newest' | 'budget_high' | 'budget_low'>('newest');
 
   const myBookings = (bookings || []).filter(
-    b => b.guideId === guideProfile.id || b.guideName?.toLowerCase() === guideProfile.fullName?.toLowerCase()
+    b => b.guideId === guideProfile.id ||
+         (guideProfile.userId && (b as any).guideUserId === guideProfile.userId) ||
+         (guideProfile.fullName && b.guideName?.toLowerCase().trim() === guideProfile.fullName?.toLowerCase().trim())
   );
 
   // Extract all unique cities from posts + guide city
@@ -135,7 +142,9 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
   };
 
   const myNegotiations = (negotiations || []).filter(
-    n => n.guideId === guideProfile.id || n.guideName?.toLowerCase() === guideProfile.fullName?.toLowerCase()
+    n => n.guideId === guideProfile.id ||
+         (guideProfile.userId && (n as any).guideUserId === guideProfile.userId) ||
+         (guideProfile.fullName && n.guideName?.toLowerCase().trim() === guideProfile.fullName?.toLowerCase().trim())
   );
 
   const handleConfirmBid = () => {
@@ -149,29 +158,44 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
       
       {/* Sub-navigation View Switcher */}
       <div className="flex flex-wrap items-center justify-between gap-3 bg-slate-900 p-2 sm:p-3 rounded-2xl text-white shadow-lg">
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => setActiveSubTab('calendar')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-1.5 ${
               activeSubTab === 'calendar'
                 ? 'bg-teal-500 text-slate-950 shadow-md'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
             <span className="material-symbols-outlined text-base">calendar_month</span>
-            <span>📅 {language === 'vi' ? 'Lịch Sự Kiện Tour & Thương Lượng' : 'Events Calendar'}</span>
+            <span>{language === 'vi' ? '📅 Lịch Sự Kiện' : '📅 Events Calendar'}</span>
           </button>
 
           <button
             onClick={() => setActiveSubTab('board')}
-            className={`px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-2 ${
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-1.5 ${
               activeSubTab === 'board'
                 ? 'bg-teal-500 text-slate-950 shadow-md'
                 : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
             }`}
           >
             <span className="material-symbols-outlined text-base">campaign</span>
-            <span>📋 {language === 'vi' ? 'Bảng Báo Giá & Quản Lý Đơn' : 'Live Bidding & Management Board'}</span>
+            <span>{language === 'vi' ? '📋 Bảng Đấu Giá & Quản Lý Đơn' : '📋 Bidding & Management'}</span>
+          </button>
+
+          <button
+            onClick={() => setActiveSubTab('payouts')}
+            className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer flex items-center space-x-1.5 ${
+              activeSubTab === 'payouts'
+                ? 'bg-emerald-500 text-slate-950 shadow-md'
+                : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+            }`}
+          >
+            <span className="material-symbols-outlined text-base">payments</span>
+            <span>{language === 'vi' ? '💸 Tiền Đã Chuyển & Giải Ngân' : '💸 Transferred Money & Payouts'}</span>
+            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-300 font-mono">
+              ${myBookings.filter(b => b.paymentStatus === 'released').reduce((sum, b) => sum + (b.totalPriceUSD || 0), 0)}
+            </span>
           </button>
         </div>
 
@@ -191,6 +215,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
       {activeSubTab === 'calendar' && (
         <PortalEventsCalendar
           userRole="guide"
+          currentUser={{ id: guideProfile.userId || guideProfile.id, name: guideProfile.fullName, role: 'guide', avatar: guideProfile.avatar } as any}
           bookings={myBookings}
           negotiations={myNegotiations}
           posts={posts}
@@ -204,8 +229,22 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
         />
       )}
 
-      {/* SECTION 1: Open Traveler Requests in City (Bidding Hub) */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+      {/* Render Transferred Money & Payouts Ledger when 'payouts' subtab selected */}
+      {activeSubTab === 'payouts' && (
+        <GuidePayoutsLedger
+          guideProfile={guideProfile}
+          bookings={myBookings}
+          onOpenBookingHub={(b) => setSelectedHubBooking(b)}
+          onOpenPayoutModal={onOpenPayoutModal}
+          language={language}
+        />
+      )}
+
+      {/* Render Live Bidding & Management Board when 'board' subtab selected */}
+      {activeSubTab === 'board' && (
+        <>
+          {/* SECTION 1: Open Traveler Requests in City (Bidding Hub) */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold mb-1">
@@ -794,7 +833,24 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                   {(b.status || 'matched').replace('_', ' ')}
                 </span>
 
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 flex-wrap gap-y-1.5">
+                  <AddToGoogleCalendarButton
+                    payload={{
+                      title: b.tourTitle,
+                      dateStr: b.scheduledTime,
+                      timeRangeStr: b.scheduledTime,
+                      partnerName: b.travelerName,
+                      partnerRole: 'traveler',
+                      priceUSD: b.totalPriceUSD,
+                      pinCode: b.pinCode,
+                      location: b.pickupLocation,
+                      bookingId: b.id
+                    }}
+                    variant="outline"
+                    size="sm"
+                    language={language}
+                  />
+
                   <button
                     type="button"
                     onClick={() => setSelectedHubBooking(b)}
@@ -837,21 +893,44 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                     </button>
                   )}
 
-                  {b.status !== 'completed' && onConfirmCompletion && (
-                    <button
-                      type="button"
-                      onClick={() => onConfirmCompletion(b.id, 'guide')}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 ${
-                        b.guideConfirmedCompletion
-                          ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                          : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
-                      }`}
-                    >
-                      <span className="material-symbols-outlined text-sm">
-                        {b.guideConfirmedCompletion ? 'check_circle' : 'verified'}
-                      </span>
-                      <span>{b.guideConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
-                    </button>
+                  {onConfirmCompletion && (
+                    b.status === 'completed' ? (
+                      b.guideConfirmedCompletion && b.travelerConfirmedCompletion ? (
+                        <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center space-x-1">
+                          <span className="material-symbols-outlined text-sm text-emerald-700">task_alt</span>
+                          <span>✓ Completed & Escrow Released</span>
+                        </span>
+                      ) : b.guideConfirmedCompletion ? (
+                        <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center space-x-1">
+                          <span className="material-symbols-outlined text-sm text-amber-700">hourglass_top</span>
+                          <span>✓ You Accepted (Awaiting Traveler)</span>
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setBookingToConfirmCompletion(b)}
+                          className="px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 bg-teal-600 hover:bg-teal-500 text-white shadow-sm"
+                        >
+                          <span className="material-symbols-outlined text-sm">verified</span>
+                          <span>Accept Tour Completed</span>
+                        </button>
+                      )
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setBookingToConfirmCompletion(b)}
+                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 ${
+                          b.guideConfirmedCompletion
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
+                        }`}
+                      >
+                        <span className="material-symbols-outlined text-sm">
+                          {b.guideConfirmedCompletion ? 'check_circle' : 'verified'}
+                        </span>
+                        <span>{b.guideConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                      </button>
+                    )
                   )}
                 </div>
               </div>
@@ -859,6 +938,8 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
           ))}
         </div>
       </div>
+      </>
+      )}
 
       {/* Bid Modal */}
       {selectedPost && (
@@ -961,6 +1042,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
         negotiation={activeNegotiation}
         currentUserRole="guide"
         isVerifiedGuide={isVerified}
+        language={language}
         onRespondNegotiation={handleRespondNegotiationWithSync}
         onOpenKYCModal={onOpenKYCModal}
       />
@@ -971,11 +1053,83 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
         onClose={() => setSelectedHubBooking(null)}
         booking={selectedHubBooking ? (bookings.find(b => b.id === selectedHubBooking.id) || selectedHubBooking) : null}
         allBookings={bookings}
-        currentUser={null}
+        currentUserRole="guide"
+        currentUser={{ id: guideProfile.id, name: guideProfile.name, role: 'guide' } as any}
         onUpdateStatus={onUpdateStatus}
         onConfirmCompletion={onConfirmCompletion}
         language={language}
       />
+
+      {/* Completion Confirmation Dialog Modal for Guide */}
+      {bookingToConfirmCompletion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-scale-up relative">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200 shadow-inner">
+                <span className="material-symbols-outlined text-2xl font-bold">task_alt</span>
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="font-extrabold text-slate-900 text-base leading-tight">
+                  {language === 'vi' ? 'Xác Nhận Hoàn Tất Chuyến Đi?' : 'Confirm Tour Completion?'}
+                </h4>
+                <p className="text-xs text-slate-500 font-medium">
+                  {language === 'vi' ? 'Bảo chứng Escrow Vault Platform' : 'Escrow Vault Protection System'}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-semibold">{language === 'vi' ? 'Tên tour:' : 'Tour:'}</span>
+                <span className="font-bold text-slate-900 truncate max-w-[210px]">{bookingToConfirmCompletion.tourTitle}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-semibold">{language === 'vi' ? 'Tổng tiền tour:' : 'Agreed Amount:'}</span>
+                <span className="font-black text-emerald-700 font-mono text-sm">${bookingToConfirmCompletion.totalPriceUSD} USD</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-semibold">{language === 'vi' ? 'Du khách:' : 'Traveler:'}</span>
+                <span className="font-bold text-slate-800">{bookingToConfirmCompletion.travelerName || 'Traveler'}</span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-[11px] space-y-1.5">
+              <div className="flex items-center space-x-1.5 font-bold text-amber-900">
+                <span className="material-symbols-outlined text-xs text-amber-700">info</span>
+                <span>{language === 'vi' ? 'Lưu ý giải ngân HDV' : 'Guide Escrow Release Note'}</span>
+              </div>
+              <p className="text-slate-700 leading-relaxed">
+                {language === 'vi'
+                  ? `Bạn đang xác nhận chuyến đi này đã hoàn tất. Hệ thống sẽ ghi nhận xác nhận của bạn và thông báo cho du khách (${bookingToConfirmCompletion.travelerName || 'Traveler'}) xác nhận để mở khóa giải ngân $${bookingToConfirmCompletion.totalPriceUSD} USD vào tài khoản của bạn.`
+                  : `You are confirming that this tour is completed. The traveler (${bookingToConfirmCompletion.travelerName || 'Traveler'}) will be notified to confirm and release the $${bookingToConfirmCompletion.totalPriceUSD} USD payout to your account.`}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setBookingToConfirmCompletion(null)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+              >
+                {language === 'vi' ? 'Hủy / Quay lại' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onConfirmCompletion && bookingToConfirmCompletion) {
+                    onConfirmCompletion(bookingToConfirmCompletion.id, 'guide');
+                  }
+                  setBookingToConfirmCompletion(null);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-black shadow-md cursor-pointer transition-all active:scale-95 flex items-center space-x-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                <span>{language === 'vi' ? 'Xác Nhận Hoàn Thành' : 'Yes, Confirm Completion'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
     </div>
   );

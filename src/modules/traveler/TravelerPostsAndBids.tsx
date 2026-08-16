@@ -43,12 +43,14 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
 
   const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
   const [selectedHubBooking, setSelectedHubBooking] = useState<TourBooking | null>(null);
+  const [bookingToConfirmCompletion, setBookingToConfirmCompletion] = useState<TourBooking | null>(null);
 
   // Filter and sort state for open posts
   const [postSearchQuery, setPostSearchQuery] = useState<string>('');
-  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('all');
+  const [selectedStatusFilter, setSelectedStatusFilter] = useState<string>('active');
   const [selectedCityFilter, setSelectedCityFilter] = useState<string>('all');
   const [postSortBy, setPostSortBy] = useState<'newest' | 'oldest' | 'bids_high' | 'budget_high'>('newest');
+  const [negotiationFilter, setNegotiationFilter] = useState<'pending' | 'all'>('pending');
 
   const availableCities = React.useMemo(() => {
     const set = new Set<string>();
@@ -61,8 +63,12 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
   const filteredAndSortedPosts = React.useMemo(() => {
     return (posts || [])
       .filter(post => {
-        // Status filter
-        if (selectedStatusFilter !== 'all' && post.status !== selectedStatusFilter) {
+        // Status filter: 'active' hides already accepted/booked & closed posts
+        if (selectedStatusFilter === 'active') {
+          if (post.status === 'booked' || post.status === 'closed') {
+            return false;
+          }
+        } else if (selectedStatusFilter !== 'all' && post.status !== selectedStatusFilter) {
           return false;
         }
         // City filter
@@ -99,11 +105,18 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
       });
   }, [posts, selectedStatusFilter, selectedCityFilter, postSearchQuery, postSortBy, negotiations]);
 
-  const hasActivePostFilters = postSearchQuery !== '' || selectedStatusFilter !== 'all' || selectedCityFilter !== 'all' || postSortBy !== 'newest';
+  const visibleNegotiations = React.useMemo(() => {
+    if (negotiationFilter === 'pending') {
+      return (negotiations || []).filter(n => n.status !== 'accepted');
+    }
+    return negotiations || [];
+  }, [negotiations, negotiationFilter]);
+
+  const hasActivePostFilters = postSearchQuery !== '' || selectedStatusFilter !== 'active' || selectedCityFilter !== 'all' || postSortBy !== 'newest';
 
   const handleResetPostFilters = () => {
     setPostSearchQuery('');
-    setSelectedStatusFilter('all');
+    setSelectedStatusFilter('active');
     setSelectedCityFilter('all');
     setPostSortBy('newest');
   };
@@ -222,10 +235,11 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                   {language === 'vi' ? 'Trạng thái:' : 'Status:'}
                 </span>
                 {[
-                  { id: 'all', label: language === 'vi' ? 'Tất cả' : 'All' },
-                  { id: 'open', label: language === 'vi' ? 'Đang mở' : 'Open' },
+                  { id: 'active', label: language === 'vi' ? '🟢 Đang mở & thương lượng' : '🟢 Active & Open' },
+                  { id: 'all', label: language === 'vi' ? 'Tất cả' : 'All Posts' },
+                  { id: 'open', label: language === 'vi' ? 'Đang mở' : 'Open Only' },
                   { id: 'negotiating', label: language === 'vi' ? 'Đang thương lượng' : 'Negotiating' },
-                  { id: 'booked', label: language === 'vi' ? 'Đã đặt' : 'Booked' },
+                  { id: 'booked', label: language === 'vi' ? '✓ Đã đặt (Booked)' : '✓ Booked' },
                   { id: 'closed', label: language === 'vi' ? 'Đã đóng' : 'Closed' }
                 ].map(st => (
                   <button
@@ -255,7 +269,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                     className="text-[11px] text-rose-600 hover:text-rose-700 font-extrabold flex items-center space-x-1 cursor-pointer bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200"
                   >
                     <span className="material-symbols-outlined text-xs">restart_alt</span>
-                    <span>{language === 'vi' ? 'Đặt lại bộ lọc' : 'Reset Filters'}</span>
+                    <span>{language === 'vi' ? 'Xem đang mở' : 'Show Active'}</span>
                   </button>
                 )}
               </div>
@@ -429,19 +443,52 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
 
       {/* SECTION 2: Price Negotiations & Bids Counter */}
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
-        <h3 className="text-xl font-extrabold text-slate-900 mb-1 flex items-center space-x-2">
-          <span className="material-symbols-outlined text-amber-500">handshake</span>
-          <span>{t.incomingBidsTitle} ({negotiations.length})</span>
-        </h3>
-        <p className="text-xs text-slate-500 mb-5">
-          {t.incomingBidsSub}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <div>
+            <h3 className="text-xl font-extrabold text-slate-900 mb-1 flex items-center space-x-2">
+              <span className="material-symbols-outlined text-amber-500">handshake</span>
+              <span>{t.incomingBidsTitle} ({visibleNegotiations.length})</span>
+            </h3>
+            <p className="text-xs text-slate-500">
+              {t.incomingBidsSub}
+            </p>
+          </div>
 
-        {negotiations.length === 0 ? (
-          <p className="text-xs text-slate-400 italic">{t.noBidsYet}</p>
+          <div className="flex items-center space-x-1.5 self-start sm:self-auto bg-slate-100 p-1 rounded-xl">
+            <button
+              type="button"
+              onClick={() => setNegotiationFilter('pending')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                negotiationFilter === 'pending'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {language === 'vi' ? 'Đang Chờ' : 'Active / Pending'}
+            </button>
+            <button
+              type="button"
+              onClick={() => setNegotiationFilter('all')}
+              className={`px-2.5 py-1 rounded-lg text-xs font-extrabold transition-all cursor-pointer ${
+                negotiationFilter === 'all'
+                  ? 'bg-white text-slate-900 shadow-xs'
+                  : 'text-slate-500 hover:text-slate-800'
+              }`}
+            >
+              {language === 'vi' ? `Tất Cả (${negotiations.length})` : `All Bids (${negotiations.length})`}
+            </button>
+          </div>
+        </div>
+
+        {visibleNegotiations.length === 0 ? (
+          <p className="text-xs text-slate-400 italic">
+            {negotiationFilter === 'pending' && negotiations.length > 0
+              ? (language === 'vi' ? 'Tất cả các thương lượng đã được chấp nhận và chuyển sang mục Tour Đã Đặt.' : 'All negotiations have been accepted and moved to Confirmed Tour Bookings.')
+              : t.noBidsYet}
+          </p>
         ) : (
           <div className="space-y-4">
-            {negotiations.map((neg) => (
+            {visibleNegotiations.map((neg) => (
               <div key={neg.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1.5">
                   <div className="flex items-center space-x-2 flex-wrap gap-y-1">
@@ -592,21 +639,44 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                       <span>Tour Pass & Details</span>
                     </button>
 
-                    {b.status !== 'completed' && onConfirmCompletion && (
-                      <button
-                        type="button"
-                        onClick={() => onConfirmCompletion(b.id, 'traveler')}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 ${
-                          b.travelerConfirmedCompletion
-                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
-                            : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
-                        }`}
-                      >
-                        <span className="material-symbols-outlined text-sm">
-                          {b.travelerConfirmedCompletion ? 'check_circle' : 'verified'}
-                        </span>
-                        <span>{b.travelerConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
-                      </button>
+                    {onConfirmCompletion && (
+                      b.status === 'completed' ? (
+                        b.guideConfirmedCompletion && b.travelerConfirmedCompletion ? (
+                          <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center space-x-1">
+                            <span className="material-symbols-outlined text-sm text-emerald-700">task_alt</span>
+                            <span>✓ Completed & Escrow Released</span>
+                          </span>
+                        ) : b.travelerConfirmedCompletion ? (
+                          <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center space-x-1">
+                            <span className="material-symbols-outlined text-sm text-amber-700">hourglass_top</span>
+                            <span>✓ You Accepted (Awaiting Guide)</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setBookingToConfirmCompletion(b)}
+                            className="px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 bg-teal-600 hover:bg-teal-500 text-white shadow-sm"
+                          >
+                            <span className="material-symbols-outlined text-sm">verified</span>
+                            <span>Accept Tour Completed</span>
+                          </button>
+                        )
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setBookingToConfirmCompletion(b)}
+                          className={`px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 ${
+                            b.travelerConfirmedCompletion
+                              ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                              : 'bg-teal-600 hover:bg-teal-500 text-white shadow-sm'
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-sm">
+                            {b.travelerConfirmedCompletion ? 'check_circle' : 'verified'}
+                          </span>
+                          <span>{b.travelerConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                        </button>
+                      )
                     )}
                   </div>
                 </div>
@@ -653,297 +723,321 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
 
       {/* Guide Bids Detail Modal */}
       {viewingBidsPost && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl relative border border-slate-100 my-8 space-y-6 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-5 sm:p-7 shadow-2xl relative border border-slate-100 my-auto max-h-[88vh] sm:max-h-[90vh] flex flex-col overflow-hidden">
             
-            {/* Close Button */}
-            <button
-              onClick={() => {
-                setViewingBidsPost(null);
-                setCounteringBidId(null);
-              }}
-              className="absolute top-4 right-4 p-1 hover:bg-slate-100 text-slate-400 hover:text-slate-600 rounded-xl cursor-pointer transition-colors"
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
-
-            {/* Post Request Info */}
-            <div>
-              <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
-                <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold uppercase border border-teal-100">
-                  <span className="material-symbols-outlined text-xs">campaign</span>
-                  <span>{language === 'vi' ? 'Thông Tin Yêu Cầu Của Bạn' : 'Your Original Custom Request'}</span>
-                </div>
-
-                {viewingBidsPost.status === 'closed' ? (
-                  <div className="flex items-center space-x-2">
-                    <span className="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wide flex items-center space-x-1 border border-slate-300">
-                      <span className="material-symbols-outlined text-xs">lock</span>
-                      <span>{t.postClosedBadge || 'Closed'}</span>
-                    </span>
-                    {onUpdatePostStatus && (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          onUpdatePostStatus(viewingBidsPost.id, 'open');
-                          setViewingBidsPost(prev => prev ? { ...prev, status: 'open' } : null);
-                        }}
-                        className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
-                      >
-                        <span className="material-symbols-outlined text-xs text-teal-600">lock_open</span>
-                        <span>{t.reopenPostBtn || 'Reopen'}</span>
-                      </button>
-                    )}
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setPostToClose(viewingBidsPost)}
-                    className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
-                  >
-                    <span className="material-symbols-outlined text-sm">archive</span>
-                    <span>{t.closePostBtn || 'Close Request'}</span>
-                  </button>
-                )}
+            {/* Modal Header Bar with Close Button */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 shrink-0">
+              <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-teal-50 text-teal-800 text-[10px] font-bold uppercase border border-teal-100">
+                <span className="material-symbols-outlined text-xs">campaign</span>
+                <span>{language === 'vi' ? 'Thông Tin Yêu Cầu Của Bạn' : 'Your Original Custom Request'}</span>
               </div>
 
-              {viewingBidsPost.status === 'closed' && (
-                <div className="mb-3 px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs flex items-center space-x-2">
-                  <span className="material-symbols-outlined text-slate-500 text-base">info</span>
-                  <span>
-                    {language === 'vi'
-                      ? 'Yêu cầu này đã được đóng. Các báo giá và lịch sử thương lượng bên dưới vẫn được lưu trữ đầy đủ.'
-                      : 'This request is closed. Guides cannot place new bids, but all existing bids below remain saved.'}
+              <button
+                onClick={() => {
+                  setViewingBidsPost(null);
+                  setCounteringBidId(null);
+                }}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center cursor-pointer transition-colors"
+                title="Close"
+              >
+                <span className="material-symbols-outlined text-lg">close</span>
+              </button>
+            </div>
+
+            {/* Scrollable Modal Body */}
+            <div className="overflow-y-auto space-y-5 flex-1 pr-1 py-3 overscroll-contain">
+              {/* Post Request Info */}
+              <div>
+                <div className="flex items-center justify-between flex-wrap gap-2 mb-2">
+                  <span className="text-[11px] font-extrabold text-slate-400 uppercase tracking-wider">
+                    {language === 'vi' ? 'Chi tiết chuyến đi' : 'Trip Requirements'}
                   </span>
-                </div>
-              )}
 
-              <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
-                {viewingBidsPost.title}
-              </h3>
-              <p className="text-xs text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
-                <span>📍 {viewingBidsPost.city}</span>
-                <span>⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}</span>
-                <span>👥 {viewingBidsPost.groupSize} {language === 'vi' ? 'Khách' : 'Travelers'}</span>
-                <span>💰 Budget: ${viewingBidsPost.minBudgetUSD}-${viewingBidsPost.maxBudgetUSD} USD</span>
-              </p>
-              
-              <div className="mt-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2.5">
-                <p className="text-xs text-slate-700 leading-relaxed font-medium">
-                  {viewingBidsPost.description}
-                </p>
-                
-                {/* Time Slots Chips in Modal */}
-                <div className="pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
-                  {viewingBidsPost.scheduleSlots && viewingBidsPost.scheduleSlots.length > 0 ? (
-                    viewingBidsPost.scheduleSlots.map((slot, idx) => {
-                      const slotText = (slot.startTime && slot.endTime && slot.dateStr)
-                        ? `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`
-                        : (slot.displayLabel || `${slot.startTime || ''} - ${slot.endTime || ''} on ${slot.dateStr || viewingBidsPost.preferredDate || ''}`);
-
-                      return (
-                        <div
-                          key={slot.id || idx}
-                          className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-100/80 border border-teal-200 text-teal-950 px-2.5 py-1 rounded-lg font-bold"
+                  {viewingBidsPost.status === 'closed' ? (
+                    <div className="flex items-center space-x-2">
+                      <span className="px-2.5 py-1 rounded-lg bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wide flex items-center space-x-1 border border-slate-300">
+                        <span className="material-symbols-outlined text-xs">lock</span>
+                        <span>{t.postClosedBadge || 'Closed'}</span>
+                      </span>
+                      {onUpdatePostStatus && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            onUpdatePostStatus(viewingBidsPost.id, 'open');
+                            setViewingBidsPost(prev => prev ? { ...prev, status: 'open' } : null);
+                          }}
+                          className="px-2.5 py-1 bg-teal-50 hover:bg-teal-100 border border-teal-200 text-teal-800 text-[10px] font-extrabold rounded-lg transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
                         >
-                          <span className="material-symbols-outlined text-xs text-teal-700">schedule</span>
-                          <span>{slotText}</span>
-                          {viewingBidsPost.durationHours > 0 && (
-                            <span className="text-teal-900 font-extrabold">
-                              • ⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
-                            </span>
-                          )}
-                        </div>
-                      );
-                    })
-                  ) : viewingBidsPost.preferredDate ? (
-                    <div className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-100/80 border border-teal-200 text-teal-950 px-2.5 py-1 rounded-lg font-bold">
-                      <span className="material-symbols-outlined text-xs text-teal-700">calendar_clock</span>
-                      <span>{viewingBidsPost.preferredDate}</span>
-                      {viewingBidsPost.durationHours > 0 && (
-                        <span className="text-teal-900 font-extrabold">
-                          • ⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
-                        </span>
+                          <span className="material-symbols-outlined text-xs text-teal-600">lock_open</span>
+                          <span>{t.reopenPostBtn || 'Reopen'}</span>
+                        </button>
                       )}
                     </div>
-                  ) : null}
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setPostToClose(viewingBidsPost)}
+                      className="px-3 py-1.5 bg-rose-50 hover:bg-rose-100 border border-rose-200 text-rose-700 text-xs font-extrabold rounded-xl transition-all cursor-pointer flex items-center space-x-1 active:scale-95"
+                    >
+                      <span className="material-symbols-outlined text-sm">archive</span>
+                      <span>{t.closePostBtn || 'Close Request'}</span>
+                    </button>
+                  )}
                 </div>
+
+                {viewingBidsPost.status === 'closed' && (
+                  <div className="mb-3 px-3.5 py-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 text-xs flex items-center space-x-2">
+                    <span className="material-symbols-outlined text-slate-500 text-base">info</span>
+                    <span>
+                      {language === 'vi'
+                        ? 'Yêu cầu này đã được đóng. Các báo giá và lịch sử thương lượng bên dưới vẫn được lưu trữ đầy đủ.'
+                        : 'This request is closed. Guides cannot place new bids, but all existing bids below remain saved.'}
+                    </span>
+                  </div>
+                )}
+
+                <h3 className="text-lg sm:text-xl font-extrabold text-slate-900 leading-snug">
+                  {viewingBidsPost.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1 flex flex-wrap gap-x-3 gap-y-1">
+                  <span>📍 {viewingBidsPost.city}</span>
+                  <span>⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}</span>
+                  <span>👥 {viewingBidsPost.groupSize} {language === 'vi' ? 'Khách' : 'Travelers'}</span>
+                  <span>💰 Budget: ${viewingBidsPost.minBudgetUSD}-${viewingBidsPost.maxBudgetUSD} USD</span>
+                </p>
+                
+                <div className="mt-3 bg-slate-50 p-3.5 rounded-2xl border border-slate-100 space-y-2.5">
+                  <p className="text-xs text-slate-700 leading-relaxed font-medium whitespace-pre-wrap break-words">
+                    {viewingBidsPost.description}
+                  </p>
+                  
+                  {/* Time Slots Chips in Modal */}
+                  <div className="pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-1.5">
+                    {viewingBidsPost.scheduleSlots && viewingBidsPost.scheduleSlots.length > 0 ? (
+                      viewingBidsPost.scheduleSlots.map((slot, idx) => {
+                        const slotText = (slot.startTime && slot.endTime && slot.dateStr)
+                          ? `${slot.startTime} - ${slot.endTime} on ${slot.dateStr}`
+                          : (slot.displayLabel || `${slot.startTime || ''} - ${slot.endTime || ''} on ${slot.dateStr || viewingBidsPost.preferredDate || ''}`);
+
+                        return (
+                          <div
+                            key={slot.id || idx}
+                            className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-100/80 border border-teal-200 text-teal-950 px-2.5 py-1 rounded-lg font-bold"
+                          >
+                            <span className="material-symbols-outlined text-xs text-teal-700">schedule</span>
+                            <span>{slotText}</span>
+                            {viewingBidsPost.durationHours > 0 && (
+                              <span className="text-teal-900 font-extrabold">
+                                • ⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+                              </span>
+                            )}
+                          </div>
+                        );
+                      })
+                    ) : viewingBidsPost.preferredDate ? (
+                      <div className="inline-flex items-center space-x-1.5 text-[11px] bg-teal-100/80 border border-teal-200 text-teal-950 px-2.5 py-1 rounded-lg font-bold">
+                        <span className="material-symbols-outlined text-xs text-teal-700">calendar_clock</span>
+                        <span>{viewingBidsPost.preferredDate}</span>
+                        {viewingBidsPost.durationHours > 0 && (
+                          <span className="text-teal-900 font-extrabold">
+                            • ⏱️ {viewingBidsPost.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+                          </span>
+                        )}
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+
+              {/* Bids Title & List Section */}
+              <div className="pt-2 border-t border-slate-100">
+                <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
+                  <span className="material-symbols-outlined text-teal-600 text-base">local_offer</span>
+                  <span>
+                    {language === 'vi' ? 'Danh Sách Báo Giá Từ HDV Bản Địa' : 'Guide Offers & Bids Received'} (
+                    {getBidsForPost(viewingBidsPost).length}
+                    )
+                  </span>
+                </h4>
+
+                {/* Bids List */}
+                {(() => {
+                  const bids = getBidsForPost(viewingBidsPost);
+                  if (bids.length === 0) {
+                    return (
+                      <div className="p-8 text-center bg-amber-50/50 border border-dashed border-amber-200 rounded-2xl text-slate-500">
+                        <span className="material-symbols-outlined text-3xl text-amber-500">hourglass_empty</span>
+                        <p className="text-xs font-bold mt-2">
+                          {language === 'vi' ? 'Chưa nhận được báo giá nào cho yêu cầu này.' : 'No guide offers received yet for this request.'}
+                        </p>
+                        <p className="text-[10px] text-slate-400 mt-1">
+                          {language === 'vi' ? 'Các hướng dẫn viên bản địa sẽ sớm gửi báo giá dịch vụ trực tiếp cho bạn.' : 'Local verified guides are reviewing and will post custom offers shortly!'}
+                        </p>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {bids.map((bid) => {
+                        const isWaitingForGuide = bid.lastSenderRole === 'traveler';
+                        const isAccepted = bid.status === 'accepted';
+                        const isDeclined = bid.status === 'declined';
+
+                        return (
+                          <div key={bid.id} className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs flex flex-col gap-3.5 hover:border-teal-200 transition-colors">
+                            <div className="flex items-start justify-between gap-2">
+                              {/* Guide Profile */}
+                              <div className="flex items-center space-x-3">
+                                <img
+                                  src={bid.guideAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
+                                  alt={bid.guideName}
+                                  className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs shrink-0"
+                                  referrerPolicy="no-referrer"
+                                />
+                                <div>
+                                  <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{bid.guideName}</p>
+                                  <div className="flex items-center space-x-1 text-[10px] text-amber-500 font-extrabold">
+                                    <span className="material-symbols-outlined text-xs font-bold">star</span>
+                                    <span>{bid.guideRating || '5.0'}</span>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Offered Price */}
+                              <div className="text-right shrink-0">
+                                <p className="text-[9px] font-black text-slate-400 uppercase">{language === 'vi' ? 'BÁO GIÁ' : 'OFFERED PRICE'}</p>
+                                <p className="text-base font-black text-emerald-600">${bid.offeredPriceUSD} USD</p>
+                              </div>
+                            </div>
+
+                            {/* Guide Message */}
+                            {bid.messages && bid.messages.length > 0 && (
+                              <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-600 font-medium italic relative max-h-36 overflow-y-auto break-words whitespace-pre-wrap">
+                                "{bid.messages[bid.messages.length - 1].text}"
+                              </div>
+                            )}
+
+                            {/* Status and Action Buttons */}
+                            <div className="flex items-center justify-end gap-2 flex-wrap pt-1 border-t border-slate-100">
+                              <button
+                                type="button"
+                                onClick={() => setHistoryModalNegotiation(bid)}
+                                className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-black text-[11px] cursor-pointer transition-all flex items-center space-x-1"
+                              >
+                                <span className="material-symbols-outlined text-xs">history_edu</span>
+                                <span>{language === 'vi' ? 'Lịch Sử & Chat' : 'History & Chat'}</span>
+                              </button>
+                              {isAccepted ? (
+                                <span className="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase flex items-center space-x-1">
+                                  <span className="material-symbols-outlined text-sm font-bold">check_circle</span>
+                                  <span>{language === 'vi' ? 'Đã Chấp Nhận & Đặt Lịch' : 'Accepted & Hired ✓'}</span>
+                                </span>
+                              ) : isDeclined ? (
+                                <span className="px-3 py-1 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-black uppercase">
+                                  {language === 'vi' ? 'Đã Từ Chối' : 'Declined'}
+                                </span>
+                              ) : isWaitingForGuide ? (
+                                <div className="text-[10px] text-amber-600 font-extrabold bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg flex items-center space-x-1 animate-pulse">
+                                  <span className="material-symbols-outlined text-xs font-bold">hourglass_empty</span>
+                                  <span>{language === 'vi' ? 'Đang đợi HDV phản hồi...' : 'Awaiting guide response...'}</span>
+                                </div>
+                              ) : (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onRespondNegotiation(bid.id, 'accept', undefined, 'Deal accepted!', 'traveler');
+                                      setViewingBidsPost(null);
+                                    }}
+                                    className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] rounded-lg cursor-pointer transition-all active:scale-95"
+                                  >
+                                    {language === 'vi' ? 'Chấp Nhận & Thuê' : 'Accept & Hire'}
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setCounteringBidId(bid.id);
+                                      setBidCounterPrice(bid.offeredPriceUSD - 5);
+                                    }}
+                                    className="px-3.5 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-[11px] rounded-lg cursor-pointer transition-all"
+                                  >
+                                    {language === 'vi' ? 'Thương Lượng' : 'Counter Offer'}
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onRespondNegotiation(bid.id, 'decline', undefined, 'Offer declined', 'traveler');
+                                      setViewingBidsPost(null);
+                                    }}
+                                    className="px-3 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 font-bold text-[11px] rounded-lg cursor-pointer transition-all"
+                                  >
+                                    {language === 'vi' ? 'Từ Chối' : 'Decline'}
+                                  </button>
+                                </>
+                              )}
+                            </div>
+
+                            {/* Inline Counter Offer Input */}
+                            {counteringBidId === bid.id && (
+                              <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2.5 animate-fadeIn">
+                                <p className="text-[10px] font-black text-amber-800 uppercase">{language === 'vi' ? 'ĐỀ XUẤT GIÁ MỚI' : 'PROPOSE NEW PRICE'}</p>
+                                <div className="flex items-center space-x-2">
+                                  <span className="font-extrabold text-xs text-slate-600">$</span>
+                                  <input
+                                    type="number"
+                                    value={bidCounterPrice}
+                                    onChange={(e) => setBidCounterPrice(Number(e.target.value))}
+                                    className="p-1.5 w-24 bg-white border border-amber-300 rounded-lg text-xs font-black text-slate-900"
+                                  />
+                                  <span className="text-xs font-bold text-slate-500">USD</span>
+                                </div>
+                                <div className="flex space-x-1.5">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      onRespondNegotiation(bid.id, 'counter', bidCounterPrice, `Traveler countered with price $${bidCounterPrice} USD`, 'traveler');
+                                      setCounteringBidId(null);
+                                      setViewingBidsPost(null);
+                                    }}
+                                    className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] rounded cursor-pointer"
+                                  >
+                                    {language === 'vi' ? 'Gửi Đề Xuất' : 'Send Counter Offer'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => setCounteringBidId(null)}
+                                    className="px-3 py-1 bg-white hover:bg-slate-100 text-slate-500 font-bold text-[10px] rounded border border-slate-200 cursor-pointer"
+                                  >
+                                    {language === 'vi' ? 'Hủy' : 'Cancel'}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
-            {/* Bids Title */}
-            <div>
-              <h4 className="text-sm font-black text-slate-800 uppercase tracking-wider mb-3 flex items-center space-x-1.5">
-                <span className="material-symbols-outlined text-teal-600 text-base">local_offer</span>
-                <span>
-                  {language === 'vi' ? 'Danh Sách Báo Giá Từ HDV Bản Địa' : 'Guide Offers & Bids Received'} (
-                  {getBidsForPost(viewingBidsPost).length}
-                  )
-                </span>
-              </h4>
-
-              {/* Bids List */}
-              {(() => {
-                const bids = getBidsForPost(viewingBidsPost);
-                if (bids.length === 0) {
-                  return (
-                    <div className="p-8 text-center bg-amber-50/50 border border-dashed border-amber-200 rounded-2xl text-slate-500">
-                      <span className="material-symbols-outlined text-3xl text-amber-500">hourglass_empty</span>
-                      <p className="text-xs font-bold mt-2">
-                        {language === 'vi' ? 'Chưa nhận được báo giá nào cho yêu cầu này.' : 'No guide offers received yet for this request.'}
-                      </p>
-                      <p className="text-[10px] text-slate-400 mt-1">
-                        {language === 'vi' ? 'Các hướng dẫn viên bản địa sẽ sớm gửi báo giá dịch vụ trực tiếp cho bạn.' : 'Local verified guides are reviewing and will post custom offers shortly!'}
-                      </p>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div className="space-y-4">
-                    {bids.map((bid) => {
-                      const isWaitingForGuide = bid.lastSenderRole === 'traveler';
-                      const isAccepted = bid.status === 'accepted';
-                      const isDeclined = bid.status === 'declined';
-
-                      return (
-                        <div key={bid.id} className="p-4 rounded-2xl border border-slate-200 bg-white shadow-xs flex flex-col gap-3.5 hover:border-teal-200 transition-colors">
-                          <div className="flex items-start justify-between gap-2">
-                            {/* Guide Profile */}
-                            <div className="flex items-center space-x-3">
-                              <img
-                                src={bid.guideAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'}
-                                alt={bid.guideName}
-                                className="w-10 h-10 rounded-full object-cover border border-slate-200 shadow-xs"
-                                referrerPolicy="no-referrer"
-                              />
-                              <div>
-                                <p className="font-extrabold text-slate-900 text-xs sm:text-sm">{bid.guideName}</p>
-                                <div className="flex items-center space-x-1 text-[10px] text-amber-500 font-extrabold">
-                                  <span className="material-symbols-outlined text-xs font-bold">star</span>
-                                  <span>{bid.guideRating || '5.0'}</span>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Offered Price */}
-                            <div className="text-right">
-                              <p className="text-[9px] font-black text-slate-400 uppercase">{language === 'vi' ? 'BÁO GIÁ' : 'OFFERED PRICE'}</p>
-                              <p className="text-base font-black text-emerald-600">${bid.offeredPriceUSD} USD</p>
-                            </div>
-                          </div>
-
-                          {/* Guide Message */}
-                          {bid.messages && bid.messages.length > 0 && (
-                            <div className="bg-slate-50 p-2.5 rounded-xl border border-slate-100 text-xs text-slate-600 font-medium italic relative">
-                              "{bid.messages[bid.messages.length - 1].text}"
-                            </div>
-                          )}
-
-                          {/* Status and Action Buttons */}
-                          <div className="flex items-center justify-end gap-2 flex-wrap pt-1 border-t border-slate-100">
-                            <button
-                              type="button"
-                              onClick={() => setHistoryModalNegotiation(bid)}
-                              className="px-2.5 py-1.5 rounded-lg bg-teal-600 hover:bg-teal-500 text-white font-black text-[11px] cursor-pointer transition-all flex items-center space-x-1"
-                            >
-                              <span className="material-symbols-outlined text-xs">history_edu</span>
-                              <span>{language === 'vi' ? 'Lịch Sử & Chat' : 'History & Chat'}</span>
-                            </button>
-                            {isAccepted ? (
-                              <span className="px-3 py-1 rounded-xl bg-emerald-100 text-emerald-800 text-[10px] font-black uppercase flex items-center space-x-1">
-                                <span className="material-symbols-outlined text-sm font-bold">check_circle</span>
-                                <span>{language === 'vi' ? 'Đã Chấp Nhận & Đặt Lịch' : 'Accepted & Hired ✓'}</span>
-                              </span>
-                            ) : isDeclined ? (
-                              <span className="px-3 py-1 rounded-xl bg-slate-100 text-slate-500 text-[10px] font-black uppercase">
-                                {language === 'vi' ? 'Đã Từ Chối' : 'Declined'}
-                              </span>
-                            ) : isWaitingForGuide ? (
-                              <div className="text-[10px] text-amber-600 font-extrabold bg-amber-50 border border-amber-200 px-3 py-1 rounded-lg flex items-center space-x-1 animate-pulse">
-                                <span className="material-symbols-outlined text-xs font-bold">hourglass_empty</span>
-                                <span>{language === 'vi' ? 'Đang đợi HDV phản hồi...' : 'Awaiting guide response...'}</span>
-                              </div>
-                            ) : (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    onRespondNegotiation(bid.id, 'accept', undefined, 'Deal accepted!', 'traveler');
-                                    setViewingBidsPost(null);
-                                  }}
-                                  className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-black text-[11px] rounded-lg cursor-pointer transition-all active:scale-95"
-                                >
-                                  {language === 'vi' ? 'Chấp Nhận & Thuê' : 'Accept & Hire'}
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setCounteringBidId(bid.id);
-                                    setBidCounterPrice(bid.offeredPriceUSD - 5);
-                                  }}
-                                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-slate-900 font-black text-[11px] rounded-lg cursor-pointer transition-all"
-                                >
-                                  {language === 'vi' ? 'Thương Lượng' : 'Counter Offer'}
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    onRespondNegotiation(bid.id, 'decline', undefined, 'Offer declined', 'traveler');
-                                    setViewingBidsPost(null);
-                                  }}
-                                  className="px-3 py-1.5 bg-slate-100 hover:bg-red-50 text-slate-500 hover:text-red-600 font-bold text-[11px] rounded-lg cursor-pointer transition-all"
-                                >
-                                  {language === 'vi' ? 'Từ Chối' : 'Decline'}
-                                </button>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Inline Counter Offer Input */}
-                          {counteringBidId === bid.id && (
-                            <div className="mt-2 p-3 bg-amber-50 rounded-xl border border-amber-200 space-y-2.5 animate-fadeIn">
-                              <p className="text-[10px] font-black text-amber-800 uppercase">{language === 'vi' ? 'ĐỀ XUẤT GIÁ MỚI' : 'PROPOSE NEW PRICE'}</p>
-                              <div className="flex items-center space-x-2">
-                                <span className="font-extrabold text-xs text-slate-600">$</span>
-                                <input
-                                  type="number"
-                                  value={bidCounterPrice}
-                                  onChange={(e) => setBidCounterPrice(Number(e.target.value))}
-                                  className="p-1.5 w-24 bg-white border border-amber-300 rounded-lg text-xs font-black text-slate-900"
-                                />
-                                <span className="text-xs font-bold text-slate-500">USD</span>
-                              </div>
-                              <div className="flex space-x-1.5">
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    onRespondNegotiation(bid.id, 'counter', bidCounterPrice, `Traveler countered with price $${bidCounterPrice} USD`, 'traveler');
-                                    setCounteringBidId(null);
-                                    setViewingBidsPost(null);
-                                  }}
-                                  className="px-3 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] rounded cursor-pointer"
-                                >
-                                  {language === 'vi' ? 'Gửi Đề Xuất' : 'Send Counter Offer'}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => setCounteringBidId(null)}
-                                  className="px-3 py-1 bg-white hover:bg-slate-100 text-slate-500 font-bold text-[10px] rounded border border-slate-200 cursor-pointer"
-                                >
-                                  {language === 'vi' ? 'Hủy' : 'Cancel'}
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })()}
+            {/* Modal Footer */}
+            <div className="pt-3 border-t border-slate-100 flex items-center justify-end shrink-0">
+              <button
+                type="button"
+                onClick={() => {
+                  setViewingBidsPost(null);
+                  setCounteringBidId(null);
+                }}
+                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl transition-colors cursor-pointer"
+              >
+                {language === 'vi' ? 'Đóng' : 'Close'}
+              </button>
             </div>
 
           </div>
@@ -956,6 +1050,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
         onClose={() => setHistoryModalNegotiation(null)}
         negotiation={historyModalNegotiation}
         currentUserRole="traveler"
+        language={language}
         onRespondNegotiation={onRespondNegotiation}
       />
 
@@ -965,7 +1060,8 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
         onClose={() => setSelectedHubBooking(null)}
         booking={selectedHubBooking ? (bookings.find(b => b.id === selectedHubBooking.id) || selectedHubBooking) : null}
         allBookings={bookings}
-        currentUser={null}
+        currentUserRole="traveler"
+        currentUser={{ id: 'u_traveler_1', name: 'Traveler', role: 'traveler' } as any}
         onUpdateStatus={onUpdateStatus}
         onConfirmCompletion={onConfirmCompletion}
         language={language}
@@ -1032,6 +1128,77 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
               >
                 <span className="material-symbols-outlined text-sm">archive</span>
                 <span>{t.confirmCloseBtn || 'Yes, Close Post'}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Completion Confirmation Dialog Modal for Traveler */}
+      {bookingToConfirmCompletion && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-scale-up relative">
+            <div className="flex items-start space-x-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200 shadow-inner">
+                <span className="material-symbols-outlined text-2xl font-bold">task_alt</span>
+              </div>
+              <div className="space-y-0.5">
+                <h4 className="font-extrabold text-slate-900 text-base leading-tight">
+                  {language === 'vi' ? 'Xác Nhận Hoàn Tất Chuyến Đi?' : 'Confirm Tour Completion?'}
+                </h4>
+                <p className="text-xs text-slate-500 font-medium">
+                  {language === 'vi' ? 'Bảo chứng Escrow Vault Platform' : 'Escrow Vault Protection System'}
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-semibold">{language === 'vi' ? 'Tên tour:' : 'Tour:'}</span>
+                <span className="font-bold text-slate-900 truncate max-w-[210px]">{bookingToConfirmCompletion.tourTitle}</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-semibold">{language === 'vi' ? 'Tổng tiền tour:' : 'Agreed Amount:'}</span>
+                <span className="font-black text-emerald-700 font-mono text-sm">${bookingToConfirmCompletion.totalPriceUSD} USD</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 font-semibold">{language === 'vi' ? 'Hướng dẫn viên:' : 'Guide:'}</span>
+                <span className="font-bold text-slate-800">{bookingToConfirmCompletion.guideName || 'Guide'}</span>
+              </div>
+            </div>
+
+            <div className="p-3 rounded-2xl bg-amber-50/90 border border-amber-200/90 text-[11px] space-y-1.5">
+              <div className="flex items-center space-x-1.5 font-bold text-amber-900">
+                <span className="material-symbols-outlined text-xs text-amber-700">info</span>
+                <span>{language === 'vi' ? 'Lưu ý giải ngân Escrow' : 'Escrow Release Policy'}</span>
+              </div>
+              <p className="text-slate-700 leading-relaxed">
+                {language === 'vi'
+                  ? `Bạn đang xác nhận chuyến đi đã hoàn tất và hài lòng với dịch vụ. Toàn bộ tiền cọc bảo đảm $${bookingToConfirmCompletion.totalPriceUSD} USD trong Escrow Vault sẽ được giải ngân cho hướng dẫn viên (${bookingToConfirmCompletion.guideName || 'Guide'}).`
+                  : `You are confirming that this tour is completed and you are satisfied. The $${bookingToConfirmCompletion.totalPriceUSD} USD escrow funds will be unlocked and released to your guide (${bookingToConfirmCompletion.guideName || 'Guide'}).`}
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setBookingToConfirmCompletion(null)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all cursor-pointer"
+              >
+                {language === 'vi' ? 'Hủy / Quay lại' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onConfirmCompletion && bookingToConfirmCompletion) {
+                    onConfirmCompletion(bookingToConfirmCompletion.id, 'traveler');
+                  }
+                  setBookingToConfirmCompletion(null);
+                }}
+                className="px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white text-xs font-black shadow-md cursor-pointer transition-all active:scale-95 flex items-center space-x-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">check_circle</span>
+                <span>{language === 'vi' ? 'Xác Nhận Hoàn Thành' : 'Yes, Confirm Completion'}</span>
               </button>
             </div>
           </div>

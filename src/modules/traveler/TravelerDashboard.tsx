@@ -3,8 +3,10 @@ import { User, GuideProfile, TravelerPostRequest, NegotiationOffer, TourBooking,
 import { CreateTravelerPostModal } from './CreateTravelerPostModal';
 import { GuideDirectoryAndNegotiate } from './GuideDirectoryAndNegotiate';
 import { TravelerPostsAndBids } from './TravelerPostsAndBids';
+import { TravelerSpendingDashboard } from './TravelerSpendingDashboard';
 import { PortalEventsCalendar } from '../../components/PortalEventsCalendar';
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
+import { AddToGoogleCalendarButton } from '../../components/AddToGoogleCalendarButton';
 import { Language, translations } from '../../lib/translations';
 
 interface TravelerDashboardProps {
@@ -54,7 +56,7 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
   language = 'en'
 }) => {
   const t = translations[language] || translations.en;
-  const [activeTab, setActiveTab] = useState<'guides' | 'my_posts' | 'bookings' | 'calendar'>('my_posts');
+  const [activeTab, setActiveTab] = useState<'guides' | 'my_posts' | 'bookings' | 'spending' | 'calendar'>('my_posts');
   const [isPostModalOpen, setIsPostModalOpen] = useState<boolean>(false);
   const [historyModalNegotiation, setHistoryModalNegotiation] = useState<NegotiationOffer | null>(null);
 
@@ -76,15 +78,55 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
     }
   };
 
-  const myPosts = (posts || []).filter(p => !currentUser || p.travelerId === currentUser.id || p.travelerId === 'u_traveler_1');
-  const myPostIds = new Set(myPosts.map(p => String(p.id)));
-  const myNegotiations = (negotiations || []).filter(n => 
-    !currentUser || 
-    n.travelerId === currentUser.id || 
-    n.travelerId === 'u_traveler_1' ||
-    (n.postId && myPostIds.has(String(n.postId)))
-  );
-  const myBookings = (bookings || []).filter(b => !currentUser || b.travelerId === currentUser.id || b.travelerId === 'u_traveler_1');
+  // Scope traveler posts strictly to active authenticated traveler
+  const myPosts = React.useMemo(() => {
+    if (!currentUser) return [];
+    const userId = currentUser.id;
+    const userEmail = currentUser.email?.toLowerCase().trim();
+    const userName = currentUser.name?.toLowerCase().trim();
+
+    return (posts || []).filter(p => {
+      if (p.travelerId === userId) return true;
+      if (userEmail && (p as any).travelerEmail?.toLowerCase().trim() === userEmail) return true;
+      if (userName && p.travelerName?.toLowerCase().trim() === userName) return true;
+      return false;
+    });
+  }, [posts, currentUser]);
+
+  const myActivePosts = myPosts.filter(p => p.status !== 'booked' && p.status !== 'closed');
+  const myPostIds = React.useMemo(() => new Set(myPosts.map(p => String(p.id))), [myPosts]);
+
+  // Scope negotiations strictly to active authenticated traveler
+  const myNegotiations = React.useMemo(() => {
+    if (!currentUser) return [];
+    const userId = currentUser.id;
+    const userEmail = currentUser.email?.toLowerCase().trim();
+    const userName = currentUser.name?.toLowerCase().trim();
+
+    return (negotiations || []).filter(n => {
+      if (n.travelerId === userId) return true;
+      if (userEmail && (n as any).travelerEmail?.toLowerCase().trim() === userEmail) return true;
+      if (userName && n.travelerName?.toLowerCase().trim() === userName) return true;
+      if (n.postId && myPostIds.has(String(n.postId))) return true;
+      return false;
+    });
+  }, [negotiations, currentUser, myPostIds]);
+
+  // Scope bookings strictly to active authenticated traveler
+  const myBookings = React.useMemo(() => {
+    if (!currentUser) return [];
+    const userId = currentUser.id;
+    const userEmail = currentUser.email?.toLowerCase().trim();
+    const userName = currentUser.name?.toLowerCase().trim();
+
+    return (bookings || []).filter(b => {
+      if (b.travelerId === userId) return true;
+      if (userEmail && (b as any).travelerEmail?.toLowerCase().trim() === userEmail) return true;
+      if (userName && b.travelerName?.toLowerCase().trim() === userName) return true;
+      if (b.postId && myPostIds.has(String(b.postId))) return true;
+      return false;
+    });
+  }, [bookings, currentUser, myPostIds]);
 
   return (
     <section className="py-8 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
@@ -124,7 +166,7 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
           }`}
         >
           <span className="material-symbols-outlined text-sm">campaign</span>
-          <span>{t.myRequestsTab} ({myPosts.length})</span>
+          <span>{t.myRequestsTab} ({myActivePosts.length})</span>
         </button>
 
         <button
@@ -152,6 +194,18 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('spending')}
+          className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-2 ${
+            activeTab === 'spending'
+              ? 'bg-teal-600 text-white shadow-md'
+              : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-100'
+          }`}
+        >
+          <span className="material-symbols-outlined text-sm">account_balance_wallet</span>
+          <span>💳 {language === 'vi' ? 'Sổ Chi Tiêu' : 'Spending Hub'}</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('calendar')}
           className={`px-4 py-2.5 rounded-2xl text-xs font-bold transition-all cursor-pointer flex items-center space-x-2 ${
             activeTab === 'calendar'
@@ -165,9 +219,20 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
       </div>
 
       {/* Tab Contents */}
+      {activeTab === 'spending' && (
+        <TravelerSpendingDashboard
+          currentUser={currentUser}
+          bookings={myBookings}
+          negotiations={myNegotiations}
+          guides={guides}
+          tours={tours}
+          language={language}
+        />
+      )}
       {activeTab === 'calendar' && (
         <PortalEventsCalendar
           userRole="traveler"
+          currentUser={currentUser}
           bookings={myBookings}
           negotiations={myNegotiations}
           posts={myPosts}
@@ -207,7 +272,22 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
 
       {activeTab === 'bookings' && (
         <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h3 className="font-extrabold text-slate-900 text-lg">{t.myActiveBookings}</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <h3 className="font-extrabold text-slate-900 text-lg">{t.myActiveBookings}</h3>
+              <p className="text-xs text-slate-500">
+                {language === 'vi' ? 'Quản lý tour đã đặt và tình trạng giải ngân bảo chứng Escrow' : 'Manage your active tours and escrow disbursement status'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('spending')}
+              className="px-3.5 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-extrabold text-xs border border-teal-200 cursor-pointer transition-colors flex items-center space-x-1.5 self-start sm:self-auto shrink-0 shadow-2xs"
+            >
+              <span className="material-symbols-outlined text-base text-teal-600">account_balance_wallet</span>
+              <span>{language === 'vi' ? 'Xem Sổ Chi Tiêu & Hoá Đơn' : 'View Spending & Receipts'}</span>
+            </button>
+          </div>
           {myBookings.length === 0 ? (
             <p className="text-xs text-slate-400 italic">{t.noBookingsYet}</p>
           ) : (
@@ -232,7 +312,24 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
                   </div>
                 </div>
 
-                <div className="flex flex-col items-end gap-2">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                  <AddToGoogleCalendarButton
+                    payload={{
+                      title: b.tourTitle,
+                      dateStr: b.scheduledTime,
+                      timeRangeStr: b.scheduledTime,
+                      partnerName: b.guideName,
+                      partnerRole: 'guide',
+                      priceUSD: b.totalPriceUSD,
+                      pinCode: b.pinCode,
+                      location: b.pickupLocation,
+                      bookingId: b.id
+                    }}
+                    variant="outline"
+                    size="sm"
+                    language={language}
+                  />
+
                   <span className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold uppercase">
                     {(b.status || 'matched').replace('_', ' ')}
                   </span>
@@ -277,6 +374,7 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
         onClose={() => setHistoryModalNegotiation(null)}
         negotiation={activeNegotiation}
         currentUserRole="traveler"
+        language={language}
         onRespondNegotiation={handleRespondNegotiationWithSync}
       />
 

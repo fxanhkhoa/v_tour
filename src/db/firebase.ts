@@ -9,13 +9,16 @@ import {
   initialTravelerPosts,
   initialNegotiationOffers,
   initialTourBookings,
-  initialChatMessages
+  initialChatMessages,
+  initialNotifications
 } from './seeds.js';
 
 let db: Firestore | null = null;
 let isFirestoreConnected = false;
+let isFirestoreQuotaExceeded = false;
+let quotaExceededMessage = '';
 
-// Memory Fallback Arrays
+// Resilient In-Memory Database Store
 const memoryUsers = [...initialUsers];
 const memoryGuides = [...initialGuides];
 const memoryKYC = [...initialKYCQueue];
@@ -24,6 +27,48 @@ const memoryPosts = [...initialTravelerPosts];
 const memoryNegotiations = [...initialNegotiationOffers];
 const memoryBookings = [...initialTourBookings];
 const memoryChat = [...initialChatMessages];
+const memoryNotifications = [...initialNotifications];
+
+/**
+ * Checks if a thrown error is due to Firestore quota exhaustion or rate limits.
+ */
+export function isQuotaExhaustedError(err: any): boolean {
+  if (!err) return false;
+  const msg = String(err.message || err.details || err || '').toLowerCase();
+  const code = err.code || err.status;
+  return (
+    code === 8 ||
+    code === 'RESOURCE_EXHAUSTED' ||
+    code === 'resource-exhausted' ||
+    msg.includes('resource_exhausted') ||
+    msg.includes('quota exceeded') ||
+    msg.includes('quota') ||
+    msg.includes('exhausted') ||
+    msg.includes('insufficient quota') ||
+    msg.includes('rate limit') ||
+    msg.includes('bandwidth quota')
+  );
+}
+
+/**
+ * Handles errors from Firestore operations and trips the memory fallback circuit breaker if quota is exceeded.
+ */
+function handleFirestoreError(err: any, operationName: string) {
+  if (isQuotaExhaustedError(err)) {
+    if (!isFirestoreQuotaExceeded) {
+      isFirestoreQuotaExceeded = true;
+      quotaExceededMessage = err.message || 'Firestore daily read/write quota exhausted';
+      console.warn(`\n⚠️ =========================================================================`);
+      console.warn(`⚠️ FIRESTORE QUOTA EXCEEDED: ${quotaExceededMessage}`);
+      console.warn(`⚡ SEAMLESS MEMORY MODE ACTIVATED for: ${operationName}`);
+      console.warn(`⚡ All queries & mutations are now served 100% from high-speed in-memory DB.`);
+      console.warn(`⚡ App continues to work flawlessly with 0 downtime and 0 user-facing errors!`);
+      console.warn(`=========================================================================\n`);
+    }
+  } else {
+    console.warn(`Firestore [${operationName}] warning:`, err.message || err);
+  }
+}
 
 export async function initFirebaseDatabase() {
   try {
@@ -55,27 +100,44 @@ export async function initFirebaseDatabase() {
       // Ignore if settings already initialized
     }
 
-    // Helper to sanitize documents before Firestore writes
-    // Test write & read to verify permissions
-    await db.collection('_healthcheck').doc('ping').set({ timestamp: new Date().toISOString() });
-    isFirestoreConnected = true;
-    console.log('🔥 Connected to Firebase Firestore database!');
-
-    await seedFirebaseIfEmpty();
+    // Healthcheck ping
+    try {
+      await db.collection('_healthcheck').doc('ping').set({ timestamp: new Date().toISOString() });
+      isFirestoreConnected = true;
+      console.log('🔥 Connected to Firebase Firestore database!');
+      await warmUpAndSeedFirestore();
+    } catch (pingErr: any) {
+      if (isQuotaExhaustedError(pingErr)) {
+        isFirestoreQuotaExceeded = true;
+        quotaExceededMessage = pingErr.message || 'Daily quota limit reached';
+        console.warn('⚠️ Firestore quota reached during startup ping. Running in 100% in-memory mode.');
+      } else {
+        throw pingErr;
+      }
+    }
   } catch (err: any) {
     db = null;
     isFirestoreConnected = false;
-    console.warn('🔥 Firebase Firestore auto-connect notice:', err.message || err);
+    console.warn('🔥 Firebase Firestore startup notice:', err.message || err);
     console.warn('⚡ Using high-speed in-memory store as seamless fallback.');
   }
 }
 
 export function isFirebaseConnected(): boolean {
-  return isFirestoreConnected && db !== null;
+  return isFirestoreConnected && db !== null && !isFirestoreQuotaExceeded;
 }
 
 export function getDb(): Firestore | null {
-  return isFirestoreConnected ? db : null;
+  return isFirestoreConnected && !isFirestoreQuotaExceeded ? db : null;
+}
+
+export function getFirestoreStatus() {
+  return {
+    connected: isFirestoreConnected && !isFirestoreQuotaExceeded,
+    quotaExceeded: isFirestoreQuotaExceeded,
+    mode: isFirestoreQuotaExceeded ? 'in-memory-fallback (quota exceeded)' : (isFirestoreConnected ? 'firestore (synced cache)' : 'in-memory'),
+    message: isFirestoreQuotaExceeded ? quotaExceededMessage : 'Healthy'
+  };
 }
 
 export async function dbResetAndReseedDatabase() {
@@ -106,10 +168,13 @@ export async function dbResetAndReseedDatabase() {
   memoryChat.length = 0;
   memoryChat.push(...initialChatMessages);
 
-  // 2. If Firestore is active, delete existing dirty records and write clean seeds
-  if (db) {
+  memoryNotifications.length = 0;
+  memoryNotifications.push(...initialNotifications);
+
+  // 2. If Firestore is active and not quota-exhausted, write clean seeds
+  if (db && !isFirestoreQuotaExceeded) {
     try {
-      const collectionsToClean = ['users', 'guides', 'kyc', 'tours', 'posts', 'negotiations', 'bookings', 'chat'];
+      const collectionsToClean = ['users', 'guides', 'kyc', 'tours', 'posts', 'negotiations', 'bookings', 'chat', 'notifications'];
       for (const colName of collectionsToClean) {
         const snap = await db.collection(colName).get();
         if (!snap.empty) {
@@ -128,7 +193,8 @@ export async function dbResetAndReseedDatabase() {
         { name: 'posts', data: initialTravelerPosts },
         { name: 'negotiations', data: initialNegotiationOffers },
         { name: 'bookings', data: initialTourBookings },
-        { name: 'chat', data: initialChatMessages }
+        { name: 'chat', data: initialChatMessages },
+        { name: 'notifications', data: initialNotifications }
       ];
 
       for (const col of collectionsToSeed) {
@@ -142,42 +208,53 @@ export async function dbResetAndReseedDatabase() {
       }
       console.log('✅ Firestore database successfully wiped clean and seeded with pristine data!');
     } catch (err) {
-      console.error('Error during Firestore database reset & reseed:', err);
+      handleFirestoreError(err, 'dbResetAndReseedDatabase');
     }
   }
 
   return { success: true, message: 'Database wiped and clean seed data inserted successfully' };
 }
 
-async function seedFirebaseIfEmpty() {
-  if (!db) return;
+/**
+ * Initializes cache from Firestore once on startup, seeding if collections are empty.
+ * This ensures reads are lightning fast (0ms) and avoids exhausting Firestore quota.
+ */
+async function warmUpAndSeedFirestore() {
+  if (!db || isFirestoreQuotaExceeded) return;
   try {
-    console.log('🌱 Checking Firestore collections and seeding if empty...');
-    const collectionsToSeed = [
-      { name: 'users', data: initialUsers },
-      { name: 'guides', data: initialGuides },
-      { name: 'kyc', data: initialKYCQueue },
-      { name: 'tours', data: initialTourPackages },
-      { name: 'posts', data: initialTravelerPosts },
-      { name: 'negotiations', data: initialNegotiationOffers },
-      { name: 'bookings', data: initialTourBookings },
-      { name: 'chat', data: initialChatMessages }
+    const collectionsToSync = [
+      { name: 'users', memory: memoryUsers, defaults: initialUsers },
+      { name: 'guides', memory: memoryGuides, defaults: initialGuides },
+      { name: 'kyc', memory: memoryKYC, defaults: initialKYCQueue },
+      { name: 'tours', memory: memoryTours, defaults: initialTourPackages },
+      { name: 'posts', memory: memoryPosts, defaults: initialTravelerPosts },
+      { name: 'negotiations', memory: memoryNegotiations, defaults: initialNegotiationOffers },
+      { name: 'bookings', memory: memoryBookings, defaults: initialTourBookings },
+      { name: 'chat', memory: memoryChat, defaults: initialChatMessages },
+      { name: 'notifications', memory: memoryNotifications, defaults: initialNotifications }
     ];
 
-    for (const col of collectionsToSeed) {
-      const snap = await db.collection(col.name).limit(1).get();
-      if (snap.empty && col.data && col.data.length > 0) {
-        console.log(`Seeding ${col.data.length} items into Firestore collection '${col.name}'...`);
+    for (const col of collectionsToSync) {
+      if (isFirestoreQuotaExceeded) break;
+      const snap = await db.collection(col.name).get();
+      if (snap.empty && col.defaults && col.defaults.length > 0) {
         const batch = db.batch();
-        for (const item of col.data) {
+        for (const item of col.defaults) {
           batch.set(db.collection(col.name).doc((item as any).id), item);
         }
         await batch.commit();
+        col.memory.length = 0;
+        col.memory.push(...(col.defaults as any[]));
+      } else if (!snap.empty) {
+        col.memory.length = 0;
+        snap.docs.forEach(doc => {
+          col.memory.push({ id: doc.id, ...doc.data() } as any);
+        });
       }
     }
-    console.log('✅ Firebase Firestore collection checks and seeding complete!');
+    console.log('⚡ Firestore in-memory sync complete. Supercharged quota-saving cache active!');
   } catch (err) {
-    console.warn('Firebase seeding warning:', err);
+    handleFirestoreError(err, 'warmUpAndSeedFirestore');
   }
 }
 
@@ -211,95 +288,145 @@ export async function dbFindUserByEmail(email: string) {
   const cleanEmail = email.trim().toLowerCase();
   const canonicalEmail = DEMO_EMAIL_ALIASES[cleanEmail] || cleanEmail;
 
-  if (db) {
+  // 1. Check synchronized memory cache first (0ms latency, 0 quota)
+  const cached = memoryUsers.find(u => {
+    const uEmail = (u.email || '').toLowerCase();
+    return uEmail === canonicalEmail || uEmail === cleanEmail;
+  });
+  if (cached) return cached;
+
+  // 2. Fallback to Firestore if not found in memory and quota is not exceeded
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       let snap = await db.collection('users').where('email', '==', canonicalEmail).limit(1).get();
-      if (!snap.empty) return snap.docs[0].data();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        memoryUsers.push(data as any);
+        return data;
+      }
       if (canonicalEmail !== cleanEmail) {
         snap = await db.collection('users').where('email', '==', cleanEmail).limit(1).get();
-        if (!snap.empty) return snap.docs[0].data();
+        if (!snap.empty) {
+          const data = snap.docs[0].data();
+          memoryUsers.push(data as any);
+          return data;
+        }
       }
-    } catch (e) {}
+    } catch (e) {
+      handleFirestoreError(e, 'dbFindUserByEmail');
+    }
   }
-  return memoryUsers.find(u => {
-    const uEmail = u.email.toLowerCase();
-    return uEmail === canonicalEmail || uEmail === cleanEmail;
-  }) || null;
+  return null;
 }
 
 export async function dbFindUserById(id: string) {
-  if (db) {
+  if (!id) return null;
+  const cached = memoryUsers.find(u => u.id === id);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('users').doc(id).get();
-      if (doc.exists) return doc.data();
-    } catch (e) {}
+      if (doc.exists) {
+        const data = doc.data();
+        memoryUsers.push(data as any);
+        return data;
+      }
+    } catch (e) {
+      handleFirestoreError(e, 'dbFindUserById');
+    }
   }
-  return memoryUsers.find(u => u.id === id) || null;
+  return null;
 }
 
 export async function dbFindUserByToken(token: string) {
   if (!token) return null;
-  if (db) {
+  const cached = memoryUsers.find(u => u.token === token);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const snap = await db.collection('users').where('token', '==', token).limit(1).get();
-      if (!snap.empty) return snap.docs[0].data();
-    } catch (e) {}
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        memoryUsers.push(data as any);
+        return data;
+      }
+    } catch (e) {
+      handleFirestoreError(e, 'dbFindUserByToken');
+    }
   }
-  return memoryUsers.find(u => u.token === token) || null;
+  return null;
 }
 
 export async function dbSaveUser(userData: any) {
   if (!userData.createdAt) userData.createdAt = new Date().toISOString();
-  if (db) {
-    try {
-      await db.collection('users').doc(userData.id).set(userData, { merge: true });
-    } catch (e) {}
-  }
+  
+  // Update memory immediately
   const idx = memoryUsers.findIndex(u => u.id === userData.id);
   if (idx >= 0) memoryUsers[idx] = { ...memoryUsers[idx], ...userData };
   else memoryUsers.unshift(userData);
+
+  // Write-through to Firestore if quota available
+  if (db && !isFirestoreQuotaExceeded) {
+    try {
+      await db.collection('users').doc(userData.id).set(userData, { merge: true });
+    } catch (e) {
+      handleFirestoreError(e, 'dbSaveUser');
+    }
+  }
   return userData;
 }
 
 export async function dbGetAllUsers() {
-  if (db) {
-    try {
-      const snap = await db.collection('users').get();
-      return snap.docs.map(doc => doc.data());
-    } catch (e) {
-      console.error('dbGetAllUsers error:', e);
-    }
-  }
   return memoryUsers;
 }
 
 // Guide
 export async function dbFindGuideByUserIdOrName(userId: string, name?: string) {
-  if (db) {
+  const cached = memoryGuides.find(g => g.userId === userId || (name && g.fullName === name));
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const snap = await db.collection('guides').where('userId', '==', userId).limit(1).get();
-      if (!snap.empty) return snap.docs[0].data();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        memoryGuides.push(data as any);
+        return data;
+      }
       if (name) {
         const nameSnap = await db.collection('guides').where('fullName', '==', name).limit(1).get();
-        if (!nameSnap.empty) return nameSnap.docs[0].data();
+        if (!nameSnap.empty) {
+          const data = nameSnap.docs[0].data();
+          memoryGuides.push(data as any);
+          return data;
+        }
       }
     } catch (e) {
-      console.error('dbFindGuideByUserIdOrName error:', e);
+      handleFirestoreError(e, 'dbFindGuideByUserIdOrName');
     }
   }
-  return memoryGuides.find(g => g.userId === userId || (name && g.fullName === name)) || null;
+  return null;
 }
 
 export async function dbFindGuideById(id: string) {
-  if (db) {
+  const cached = memoryGuides.find(g => g.id === id);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('guides').doc(id).get();
-      if (doc.exists) return doc.data();
+      if (doc.exists) {
+        const data = doc.data();
+        memoryGuides.push(data as any);
+        return data;
+      }
     } catch (e) {
-      console.error('dbFindGuideById error:', e);
+      handleFirestoreError(e, 'dbFindGuideById');
     }
   }
-  return memoryGuides.find(g => g.id === id) || null;
+  return null;
 }
 
 function sanitizeDoc(obj: any): any {
@@ -318,31 +445,22 @@ function sanitizeDoc(obj: any): any {
 }
 
 export async function dbSaveGuide(guideData: any) {
-  if (db) {
+  const clean = sanitizeDoc(guideData);
+  const idx = memoryGuides.findIndex(g => g.id === guideData.id);
+  if (idx >= 0) memoryGuides[idx] = { ...memoryGuides[idx], ...clean };
+  else memoryGuides.unshift(clean);
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
-      await db.collection('guides').doc(guideData.id).set(sanitizeDoc(guideData), { merge: true });
+      await db.collection('guides').doc(guideData.id).set(clean, { merge: true });
     } catch (e) {
-      console.error('dbSaveGuide error:', e);
+      handleFirestoreError(e, 'dbSaveGuide');
     }
   }
-  const idx = memoryGuides.findIndex(g => g.id === guideData.id);
-  if (idx >= 0) memoryGuides[idx] = { ...memoryGuides[idx], ...guideData };
-  else memoryGuides.unshift(guideData);
-  return guideData;
+  return clean;
 }
 
 export async function dbGetGuides(city?: string, verifiedOnly?: boolean) {
-  if (db) {
-    try {
-      let ref: any = db.collection('guides');
-      if (city && city !== 'All') ref = ref.where('city', '==', city);
-      if (verifiedOnly) ref = ref.where('verified', '==', true);
-      const snap = await ref.get();
-      return snap.docs.map((doc: any) => doc.data());
-    } catch (e) {
-      console.error('dbGetGuides error:', e);
-    }
-  }
   return memoryGuides.filter(g => {
     if (city && city !== 'All' && g.city.toLowerCase() !== city.toLowerCase()) return false;
     if (verifiedOnly && !g.verified && g.kycStatus !== 'verified') return false;
@@ -351,84 +469,67 @@ export async function dbGetGuides(city?: string, verifiedOnly?: boolean) {
 }
 
 export async function dbGetOnlineGuide() {
-  if (db) {
-    try {
-      const snap = await db.collection('guides').where('isOnline', '==', true).limit(1).get();
-      if (!snap.empty) return snap.docs[0].data();
-      const allSnap = await db.collection('guides').limit(1).get();
-      if (!allSnap.empty) return allSnap.docs[0].data();
-    } catch (e) {
-      console.error('dbGetOnlineGuide error:', e);
-    }
-  }
   return memoryGuides.find(g => g.isOnline) || memoryGuides[0] || null;
 }
 
 // KYC
 export async function dbSaveKYC(kycData: any) {
-  if (db) {
+  const clean = sanitizeDoc(kycData);
+  const idx = memoryKYC.findIndex(k => k.id === kycData.id);
+  if (idx >= 0) memoryKYC[idx] = { ...memoryKYC[idx], ...clean };
+  else memoryKYC.unshift(clean);
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
-      await db.collection('kyc').doc(kycData.id).set(sanitizeDoc(kycData), { merge: true });
+      await db.collection('kyc').doc(kycData.id).set(clean, { merge: true });
     } catch (e) {
-      console.error('dbSaveKYC error:', e);
+      handleFirestoreError(e, 'dbSaveKYC');
     }
   }
-  const idx = memoryKYC.findIndex(k => k.id === kycData.id);
-  if (idx >= 0) memoryKYC[idx] = { ...memoryKYC[idx], ...kycData };
-  else memoryKYC.unshift(kycData);
-  return kycData;
+  return clean;
 }
 
 export async function dbGetKYCList() {
-  if (db) {
-    try {
-      const snap = await db.collection('kyc').get();
-      return snap.docs.map(doc => doc.data());
-    } catch (e) {
-      console.error('dbGetKYCList error:', e);
-    }
-  }
   return memoryKYC;
 }
 
 export async function dbFindKYCById(id: string) {
-  if (db) {
+  const cached = memoryKYC.find(k => k.id === id);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('kyc').doc(id).get();
-      if (doc.exists) return doc.data();
+      if (doc.exists) {
+        const data = doc.data();
+        memoryKYC.push(data as any);
+        return data;
+      }
     } catch (e) {
-      console.error('dbFindKYCById error:', e);
+      handleFirestoreError(e, 'dbFindKYCById');
     }
   }
-  return memoryKYC.find(k => k.id === id) || null;
+  return null;
 }
 
 // Tours
 export async function dbSaveTour(tourData: any) {
-  if (db) {
+  const clean = sanitizeDoc(tourData);
+  const idx = memoryTours.findIndex(t => t.id === tourData.id);
+  if (idx >= 0) memoryTours[idx] = { ...memoryTours[idx], ...clean };
+  else memoryTours.unshift(clean);
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
-      await db.collection('tours').doc(tourData.id).set(sanitizeDoc(tourData), { merge: true });
+      await db.collection('tours').doc(tourData.id).set(clean, { merge: true });
     } catch (e) {
-      console.error('dbSaveTour error:', e);
+      handleFirestoreError(e, 'dbSaveTour');
     }
   }
-  const idx = memoryTours.findIndex(t => t.id === tourData.id);
-  if (idx >= 0) memoryTours[idx] = { ...memoryTours[idx], ...tourData };
-  else memoryTours.unshift(tourData);
-  return tourData;
+  return clean;
 }
 
 export async function dbGetTours(city?: string) {
-  if (db) {
-    try {
-      let ref: any = db.collection('tours');
-      if (city && city !== 'All') ref = ref.where('city', '==', city);
-      const snap = await ref.get();
-      return snap.docs.map((doc: any) => doc.data());
-    } catch (e) {
-      console.error('dbGetTours error:', e);
-    }
-  }
   return memoryTours.filter(t => {
     if (city && city !== 'All' && t.city.toLowerCase() !== city.toLowerCase()) return false;
     return true;
@@ -436,44 +537,42 @@ export async function dbGetTours(city?: string) {
 }
 
 export async function dbFindTourById(id: string) {
-  if (db) {
+  const cached = memoryTours.find(t => t.id === id);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('tours').doc(id).get();
-      if (doc.exists) return doc.data();
+      if (doc.exists) {
+        const data = doc.data();
+        memoryTours.push(data as any);
+        return data;
+      }
     } catch (e) {
-      console.error('dbFindTourById error:', e);
+      handleFirestoreError(e, 'dbFindTourById');
     }
   }
-  return memoryTours.find(t => t.id === id) || null;
+  return null;
 }
 
 // Posts
 export async function dbSavePost(postData: any) {
-  if (db) {
+  const clean = sanitizeDoc(postData);
+  const idx = memoryPosts.findIndex(p => p.id === postData.id);
+  if (idx >= 0) memoryPosts[idx] = { ...memoryPosts[idx], ...clean };
+  else memoryPosts.unshift(clean);
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
-      await db.collection('posts').doc(postData.id).set(sanitizeDoc(postData), { merge: true });
+      await db.collection('posts').doc(postData.id).set(clean, { merge: true });
     } catch (e) {
-      console.error('dbSavePost error:', e);
+      handleFirestoreError(e, 'dbSavePost');
     }
   }
-  const idx = memoryPosts.findIndex(p => p.id === postData.id);
-  if (idx >= 0) memoryPosts[idx] = { ...memoryPosts[idx], ...postData };
-  else memoryPosts.unshift(postData);
-  return postData;
+  return clean;
 }
 
 export async function dbGetPosts(city?: string, status?: string) {
-  if (db) {
-    try {
-      let ref: any = db.collection('posts');
-      if (city && city !== 'All') ref = ref.where('city', '==', city);
-      if (status) ref = ref.where('status', '==', status);
-      const snap = await ref.get();
-      return snap.docs.map((doc: any) => doc.data());
-    } catch (e) {
-      console.error('dbGetPosts error:', e);
-    }
-  }
   return memoryPosts.filter(p => {
     if (city && city !== 'All' && p.city.toLowerCase() !== city.toLowerCase()) return false;
     if (status && p.status !== status) return false;
@@ -482,75 +581,80 @@ export async function dbGetPosts(city?: string, status?: string) {
 }
 
 export async function dbFindPostById(id: string) {
-  if (db) {
+  const cached = memoryPosts.find(p => p.id === id);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('posts').doc(id).get();
-      if (doc.exists) return doc.data();
+      if (doc.exists) {
+        const data = doc.data();
+        memoryPosts.push(data as any);
+        return data;
+      }
     } catch (e) {
-      console.error('dbFindPostById error:', e);
+      handleFirestoreError(e, 'dbFindPostById');
     }
   }
-  return memoryPosts.find(p => p.id === id) || null;
+  return null;
 }
 
 // Negotiations
 export async function dbSaveNegotiation(negData: any) {
-  if (db) {
+  const clean = sanitizeDoc(negData);
+  const idx = memoryNegotiations.findIndex(n => n.id === negData.id);
+  if (idx >= 0) memoryNegotiations[idx] = { ...memoryNegotiations[idx], ...clean };
+  else memoryNegotiations.unshift(clean);
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
-      await db.collection('negotiations').doc(negData.id).set(sanitizeDoc(negData), { merge: true });
+      await db.collection('negotiations').doc(negData.id).set(clean, { merge: true });
     } catch (e) {
-      console.error('dbSaveNegotiation error:', e);
+      handleFirestoreError(e, 'dbSaveNegotiation');
     }
   }
-  const idx = memoryNegotiations.findIndex(n => n.id === negData.id);
-  if (idx >= 0) memoryNegotiations[idx] = { ...memoryNegotiations[idx], ...negData };
-  else memoryNegotiations.unshift(negData);
-  return negData;
+  return clean;
 }
 
 export async function dbFindNegotiationByPostAndGuide(postId: string, guideId: string) {
-  if (db) {
+  const cached = memoryNegotiations.find(n => n.postId === postId && n.guideId === guideId);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const snap = await db.collection('negotiations').where('postId', '==', postId).where('guideId', '==', guideId).limit(1).get();
-      if (!snap.empty) return snap.docs[0].data();
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+        memoryNegotiations.push(data as any);
+        return data;
+      }
     } catch (e) {
-      console.error('dbFindNegotiationByPostAndGuide error:', e);
+      handleFirestoreError(e, 'dbFindNegotiationByPostAndGuide');
     }
   }
-  return memoryNegotiations.find(n => n.postId === postId && n.guideId === guideId) || null;
+  return null;
 }
 
-// Helper to sanitize search tokens for Firestore query
 export async function dbFindNegotiationById(id: string) {
-  if (db) {
+  const cached = memoryNegotiations.find(n => n.id === id);
+  if (cached) return cached;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('negotiations').doc(id).get();
-      if (doc.exists) return doc.data();
+      if (doc.exists) {
+        const data = doc.data();
+        memoryNegotiations.push(data as any);
+        return data;
+      }
     } catch (e) {
-      console.error('dbFindNegotiationById error:', e);
+      handleFirestoreError(e, 'dbFindNegotiationById');
     }
   }
-  return memoryNegotiations.find(n => n.id === id) || null;
+  return null;
 }
 
 export async function dbGetNegotiationsByUser(userId: string) {
-  if (db) {
-    try {
-      if (userId === 'all') {
-        const snap = await db.collection('negotiations').get();
-        return snap.docs.map(doc => doc.data());
-      } else {
-        const snap1 = await db.collection('negotiations').where('travelerId', '==', userId).get();
-        const snap2 = await db.collection('negotiations').where('guideId', '==', userId).get();
-        const map = new Map<string, any>();
-        snap1.docs.forEach(doc => map.set(doc.id, doc.data()));
-        snap2.docs.forEach(doc => map.set(doc.id, doc.data()));
-        return Array.from(map.values());
-      }
-    } catch (e) {
-      console.error('dbGetNegotiationsByUser error:', e);
-    }
-  }
   return memoryNegotiations.filter(n => userId === 'all' || n.travelerId === userId || n.guideId === userId);
 }
 
@@ -565,114 +669,153 @@ export async function dbSaveBooking(bookingData: any) {
   if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...cleanData };
   else memoryBookings.unshift(cleanData);
 
-  if (db) {
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       await db.collection('bookings').doc(bookingData.id).set(cleanData, { merge: true });
     } catch (e) {
-      console.error('dbSaveBooking error:', e);
+      handleFirestoreError(e, 'dbSaveBooking');
     }
   }
   return cleanData;
 }
 
 export async function dbFindBookingById(id: string): Promise<TourBooking | null> {
-  if (db) {
+  const cached = memoryBookings.find(b => b.id === id);
+  if (cached) return cached as TourBooking;
+
+  if (db && !isFirestoreQuotaExceeded) {
     try {
       const doc = await db.collection('bookings').doc(id).get();
       if (doc.exists) {
         const data = { id: doc.id, ...doc.data() } as TourBooking;
-        const idx = memoryBookings.findIndex(b => b.id === id);
-        if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...data };
-        else memoryBookings.push(data);
+        memoryBookings.push(data);
         return data;
       }
     } catch (e) {
-      console.error('dbFindBookingById error:', e);
+      handleFirestoreError(e, 'dbFindBookingById');
     }
   }
-  return memoryBookings.find(b => b.id === id) || null;
+  return null;
 }
 
 export async function dbGetBookingsByUser(userId: string) {
-  if (db) {
-    try {
-      const map = new Map<string, any>();
-      if (userId === 'all') {
-        const snap = await db.collection('bookings').get();
-        snap.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
-      } else {
-        const snap1 = await db.collection('bookings').where('travelerId', '==', userId).get();
-        const snap2 = await db.collection('bookings').where('guideId', '==', userId).get();
-        snap1.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
-        snap2.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
-      }
-      // Update memory cache from Firestore results
-      map.forEach((val, id) => {
-        const idx = memoryBookings.findIndex(b => b.id === id);
-        if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...val };
-        else memoryBookings.push(val);
-      });
-      // Also return any in-memory bookings not yet indexed in Firestore
-      memoryBookings.filter(b => userId === 'all' || b.travelerId === userId || b.guideId === userId).forEach(b => {
-        if (!map.has(b.id)) {
-          map.set(b.id, b);
-        }
-      });
-      return Array.from(map.values());
-    } catch (e) {
-      console.error('dbGetBookingsByUser error:', e);
-    }
-  }
   return memoryBookings.filter(b => userId === 'all' || b.travelerId === userId || b.guideId === userId);
 }
 
 export async function dbGetAllBookings() {
-  if (db) {
-    try {
-      const map = new Map<string, any>();
-      const snap = await db.collection('bookings').get();
-      snap.docs.forEach(doc => map.set(doc.id, { id: doc.id, ...doc.data() }));
-      map.forEach((val, id) => {
-        const idx = memoryBookings.findIndex(b => b.id === id);
-        if (idx >= 0) memoryBookings[idx] = { ...memoryBookings[idx], ...val };
-        else memoryBookings.push(val);
-      });
-      memoryBookings.forEach(b => {
-        if (!map.has(b.id)) {
-          map.set(b.id, b);
-        }
-      });
-      return Array.from(map.values());
-    } catch (e) {
-      console.error('dbGetAllBookings error:', e);
-    }
-  }
   return memoryBookings;
 }
 
 // Chat
 export async function dbGetChatMessages(bookingId: string) {
-  if (db) {
-    try {
-      const snap = await db.collection('chat').where('bookingId', '==', bookingId).get();
-      return snap.docs.map(doc => doc.data()).sort((a: any, b: any) => (a.timestamp > b.timestamp ? 1 : -1));
-    } catch (e) {
-      console.error('dbGetChatMessages error:', e);
-    }
-  }
   return memoryChat.filter(c => c.bookingId === bookingId).sort((a: any, b: any) => (a.timestamp > b.timestamp ? 1 : -1));
 }
 
 export async function dbSaveChatMessage(msgData: any) {
-  if (db) {
-    try {
-      await db.collection('chat').doc(msgData.id).set(msgData, { merge: true });
-    } catch (e) {}
-  }
   const idx = memoryChat.findIndex(c => c.id === msgData.id);
   if (idx >= 0) memoryChat[idx] = { ...memoryChat[idx], ...msgData };
   else memoryChat.push(msgData);
+
+  if (db && !isFirestoreQuotaExceeded) {
+    try {
+      await db.collection('chat').doc(msgData.id).set(msgData, { merge: true });
+    } catch (e) {
+      handleFirestoreError(e, 'dbSaveChatMessage');
+    }
+  }
   return msgData;
+}
+
+// Notifications
+export async function dbGetNotifications(userId?: string, role?: string) {
+  return memoryNotifications
+    .filter(n => {
+      if (!userId || userId === 'all') return true;
+      if (n.userId === userId || n.userId === 'all') return true;
+      if (role && (n.targetRole === role || n.targetRole === 'all')) return true;
+      return false;
+    })
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+}
+
+export async function dbSaveNotification(notifData: any) {
+  const idx = memoryNotifications.findIndex(n => n.id === notifData.id);
+  if (idx >= 0) memoryNotifications[idx] = { ...memoryNotifications[idx], ...notifData };
+  else memoryNotifications.unshift(notifData);
+
+  if (db && !isFirestoreQuotaExceeded) {
+    try {
+      await db.collection('notifications').doc(notifData.id).set(notifData, { merge: true });
+    } catch (e) {
+      handleFirestoreError(e, 'dbSaveNotification');
+    }
+  }
+  return notifData;
+}
+
+export async function dbMarkNotificationAsRead(id: string) {
+  const found = memoryNotifications.find(n => n.id === id);
+  if (found) found.isRead = true;
+
+  if (db && !isFirestoreQuotaExceeded) {
+    try {
+      await db.collection('notifications').doc(id).set({ isRead: true }, { merge: true });
+    } catch (e) {
+      handleFirestoreError(e, 'dbMarkNotificationAsRead');
+    }
+  }
+  return found;
+}
+
+export async function dbMarkAllNotificationsAsRead(userId?: string, role?: string) {
+  memoryNotifications.forEach(n => {
+    if (!userId || userId === 'all' || n.userId === userId || (role && n.targetRole === role)) {
+      n.isRead = true;
+    }
+  });
+
+  if (db && !isFirestoreQuotaExceeded) {
+    try {
+      const snap = await db.collection('notifications').get();
+      const batch = db.batch();
+      snap.docs.forEach(doc => {
+        const d = doc.data();
+        if (!userId || userId === 'all' || d.userId === userId || (role && d.targetRole === role)) {
+          batch.update(doc.ref, { isRead: true });
+        }
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, 'dbMarkAllNotificationsAsRead');
+    }
+  }
+  return true;
+}
+
+export async function dbClearNotifications(userId?: string, role?: string) {
+  for (let i = memoryNotifications.length - 1; i >= 0; i--) {
+    const n = memoryNotifications[i];
+    if (!userId || userId === 'all' || n.userId === userId || (role && n.targetRole === role)) {
+      memoryNotifications.splice(i, 1);
+    }
+  }
+
+  if (db && !isFirestoreQuotaExceeded) {
+    try {
+      const snap = await db.collection('notifications').get();
+      const batch = db.batch();
+      snap.docs.forEach(doc => {
+        const d = doc.data();
+        if (!userId || userId === 'all' || d.userId === userId || (role && d.targetRole === role)) {
+          batch.delete(doc.ref);
+        }
+      });
+      await batch.commit();
+    } catch (e) {
+      handleFirestoreError(e, 'dbClearNotifications');
+    }
+  }
+  return true;
 }
 
 // Aliases for fs* functions

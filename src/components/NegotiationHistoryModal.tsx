@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { NegotiationOffer } from '../types';
+import { AddToGoogleCalendarButton } from './AddToGoogleCalendarButton';
+import { Language } from '../lib/translations';
 
 interface NegotiationHistoryModalProps {
   isOpen: boolean;
@@ -7,6 +9,7 @@ interface NegotiationHistoryModalProps {
   negotiation: NegotiationOffer | null;
   currentUserRole: 'traveler' | 'guide';
   isVerifiedGuide?: boolean;
+  language?: Language;
   onRespondNegotiation: (
     offerId: string,
     action: 'accept' | 'counter' | 'decline',
@@ -23,6 +26,7 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
   negotiation,
   currentUserRole,
   isVerifiedGuide = true,
+  language = 'en',
   onRespondNegotiation,
   onOpenKYCModal
 }) => {
@@ -160,7 +164,7 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
         </div>
 
         {/* Message & Offer History Timeline */}
-        <div className="p-4 space-y-3 overflow-y-auto flex-1 bg-slate-100/50">
+        <div className="p-4 space-y-3 overflow-y-auto flex-1 min-h-0 bg-slate-100/50 overscroll-contain">
           <div className="text-center my-1">
             <span className="text-[10px] font-extrabold uppercase text-slate-400 bg-white px-3 py-1 rounded-full border border-slate-200">
               📜 Negotiation Timeline & Conversation
@@ -201,7 +205,7 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
                         <span>${msg.priceUSD} USD</span>
                       </div>
                     )}
-                    <p className="leading-relaxed whitespace-pre-wrap">{msg.text}</p>
+                    <p className="leading-relaxed whitespace-pre-wrap break-words">{msg.text}</p>
                   </div>
                 </div>
               );
@@ -220,7 +224,23 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
               <p className="text-[11px] text-emerald-800 font-medium">
                 This agreed tour offer of <strong className="font-black text-emerald-900">${negotiation.offeredPriceUSD} USD</strong> has been confirmed into a tour booking and added to your calendar schedule.
               </p>
-              <div className="pt-2 flex items-center justify-center space-x-2">
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+                <AddToGoogleCalendarButton
+                  payload={{
+                    title: negotiation.tourTitle || `Custom Tour with ${currentUserRole === 'guide' ? negotiation.travelerName : negotiation.guideName}`,
+                    dateStr: negotiation.selectedSlot?.dateStr,
+                    timeRangeStr: negotiation.selectedSlot ? `${negotiation.selectedSlot.startTime} - ${negotiation.selectedSlot.endTime}` : undefined,
+                    partnerName: currentUserRole === 'guide' ? negotiation.travelerName : negotiation.guideName,
+                    partnerRole: currentUserRole === 'guide' ? 'traveler' : 'guide',
+                    priceUSD: negotiation.offeredPriceUSD,
+                    bookingId: `offer_${negotiation.id}`
+                  }}
+                  variant="outline"
+                  size="sm"
+                  dropdownPlacement="top"
+                  language={language}
+                />
+
                 <button
                   onClick={onClose}
                   className="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-extrabold text-xs cursor-pointer shadow-md transition-all flex items-center space-x-1.5"

@@ -1,1 +1,43 @@
 @import "tailwindcss";
+
+@media print {
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  /* Hide background web UI, sidebars, navigation, action buttons */
+  nav,
+  header,
+  aside,
+  button,
+  .no-print {
+    display: none !important;
+  }
+
+  /* If an active print section is mounted, display only it */
+  body:has(#active-print-section) > *:not(#active-print-section) {
+    display: none !important;
+  }
+
+  #active-print-section {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* Printable container when modal is open */
+  .printable-document {
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}

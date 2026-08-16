@@ -6,7 +6,8 @@ import {
   TravelerPostRequest, 
   NegotiationOffer, 
   TourBooking,
-  ChatMessage
+  ChatMessage,
+  AppNotification
 } from '../types.js';
 
 export const initialUsers: User[] = [
@@ -62,7 +63,16 @@ export const initialUsers: User[] = [
       verified: true,
       kycStatus: 'verified',
       kycCardNumber: 'TG-VNM-883921',
-      completedTours: 148
+      completedTours: 148,
+      bankAccount: {
+        bankName: 'Techcombank (TCB)',
+        accountNumber: '190388886666',
+        accountHolder: 'MINH NGUYEN',
+        branchName: 'Saigon Branch, D1',
+        swiftCode: 'VTCBVNVX',
+        isVerified: true,
+        updatedAt: '2026-08-10T10:00:00.000Z'
+      }
     }
   },
   {
@@ -646,6 +656,32 @@ export const initialTourBookings: TourBooking[] = [
     escrowHoldTxId: 'ESCROW_TX_1003',
     meetingInstructions: 'Meet in the lobby near the concierge desk.',
     inclusions: ['Notre Dame & Post Office historical commentary', 'Secret bunker access', 'Complimentary afternoon iced tea']
+  },
+  {
+    id: 'bk_1004',
+    bookingType: 'scheduled',
+    travelerId: 'u_traveler_2',
+    travelerName: 'Alex Johnson',
+    travelerAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+    guideId: 'g_1',
+    guideName: 'Minh Nguyen',
+    guideAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    guidePhone: '+84 908 123 456',
+    tourTitle: 'Night Street Food & Motorbike Adventure',
+    pickupLocation: 'Pullman Saigon Centre, Dist 1',
+    transportMode: 'scooter',
+    groupSize: 2,
+    totalPriceUSD: 76,
+    scheduledTime: '2026-08-11 (05:30 PM - 09:30 PM)',
+    status: 'completed',
+    createdAt: '2026-08-10T14:20:00.000Z',
+    pinCode: '7241',
+    paymentStatus: 'released',
+    travelerConfirmedCompletion: true,
+    guideConfirmedCompletion: true,
+    escrowReleasedAt: '2026-08-11T21:40:00.000Z',
+    escrowHoldTxId: 'ESCROW_TX_1004',
+    inclusions: ['8 Street food tasting stops', 'Craft beer & sugarcane juice', 'DOT helmets & accident insurance', 'Photo album']
   }
 ];
 
@@ -667,5 +703,82 @@ export const initialChatMessages: ChatMessage[] = [
     senderRole: 'guide',
     text: 'Great! I have the two clean helmets and cold water ready. Arriving on the SH150i in 5 mins.',
     timestamp: '07:53 AM'
+  }
+];
+
+export const initialNotifications: AppNotification[] = [
+  {
+    id: 'notif_1',
+    userId: 'u_traveler_1',
+    targetRole: 'traveler',
+    type: 'bid',
+    title: '💬 New Bid Received',
+    message: 'Guide Minh Nguyen placed a bid of $50 USD on "Saigon Street Food & Coffee Trail".',
+    isRead: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 12).toISOString(),
+    icon: 'local_offer',
+    actionUrl: '/traveler',
+    postId: 'post_1',
+    negotiationId: 'neg_1',
+    senderName: 'Minh Nguyen',
+    senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+    amountUSD: 50
+  },
+  {
+    id: 'notif_2',
+    userId: 'u_traveler_1',
+    targetRole: 'traveler',
+    type: 'chat',
+    title: '💬 Minh Nguyen: "Great! I have the two clean helmets..."',
+    message: 'New message in booking #BK_1001: "Great! I have the two clean helmets and cold water ready. Arriving on the SH150i in 5 mins."',
+    isRead: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    icon: 'chat',
+    actionUrl: '/traveler',
+    bookingId: 'bk_1001',
+    senderName: 'Minh Nguyen',
+    senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80'
+  },
+  {
+    id: 'notif_3',
+    userId: 'u_guide_1',
+    targetRole: 'guide',
+    type: 'payout',
+    title: '💰 Escrow Payout Released',
+    message: '$76 USD for "Night Street Food & Motorbike Adventure" has been transferred to your connected bank account.',
+    isRead: true,
+    createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+    icon: 'payments',
+    actionUrl: '/guide',
+    bookingId: 'bk_1004',
+    amountUSD: 76
+  },
+  {
+    id: 'notif_4',
+    userId: 'u_guide_1',
+    targetRole: 'guide',
+    type: 'booking',
+    title: '🚀 Tour Booking Confirmed',
+    message: 'Sarah Jenkins confirmed "Morning Saigon Coffee & Historical Alleyways" ($55 USD). Escrow is secured.',
+    isRead: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+    icon: 'confirmation_number',
+    actionUrl: '/guide',
+    bookingId: 'bk_1001',
+    senderName: 'Sarah Jenkins',
+    senderAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+    amountUSD: 55
+  },
+  {
+    id: 'notif_5',
+    userId: 'u_admin',
+    targetRole: 'admin',
+    type: 'kyc',
+    title: '🛡️ New KYC Verification Submission',
+    message: 'Guide Lan Pham submitted a tourist guide card for verification (Card #101180293).',
+    isRead: false,
+    createdAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    icon: 'verified_user',
+    actionUrl: '/admin'
   }
 ];

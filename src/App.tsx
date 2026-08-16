@@ -12,6 +12,7 @@ import { Language, getDefaultLanguage } from './lib/translations';
 import { 
   User, 
   GuideProfile, 
+  GuideBankAccount,
   TourPackage, 
   TourBooking, 
   KYCApplication, 
@@ -125,10 +126,10 @@ export default function App() {
     }
   };
 
-  // Fetch initial data & re-fetch on city, user change, or route navigation
+  // Fetch initial data & re-fetch on city or user change
   useEffect(() => {
     fetchAllData();
-  }, [selectedCity, currentUser?.id, location.pathname]);
+  }, [selectedCity, currentUser?.id]);
 
   // Language change handler
   const handleLanguageChange = (lang: Language) => {
@@ -225,12 +226,15 @@ export default function App() {
     agreedToTerms: boolean;
   }) => {
     try {
-      const guideId = currentUser?.guideProfile?.id || 'g_1';
+      const guideId = currentGuideProfile?.id || (currentUser ? 'g_' + currentUser.id : 'g_1');
       const res = await fetch('/api/guide/kyc', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           guideId,
+          guideUserId: currentUser?.id,
+          guideName: currentUser?.name || currentGuideProfile?.fullName,
+          guideAvatar: currentUser?.avatar || currentGuideProfile?.avatar,
           ...payload
         })
       });
@@ -252,16 +256,49 @@ export default function App() {
     }
   };
 
+  const handleSaveGuideBankAccount = async (bankAccount: GuideBankAccount) => {
+    try {
+      const guideId = currentGuideProfile?.id || (currentUser ? 'g_' + currentUser.id : 'g_1');
+      const res = await fetch(`/api/guide/${guideId}/bank-account`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...bankAccount, userId: currentUser?.id })
+      });
+      const data = await res.json();
+      if (data.guide && currentUser && currentUser.role === 'guide') {
+        const updatedUser = {
+          ...currentUser,
+          guideProfile: data.guide
+        };
+        setCurrentUser(updatedUser);
+        localStorage.setItem('auth_user', JSON.stringify(updatedUser));
+        fetchAllData();
+      }
+    } catch (err) {
+      console.error('Failed to save guide bank account:', err);
+    }
+  };
+
   const handleCreateTour = async (tourData: any) => {
     try {
+      const payload = {
+        ...tourData,
+        guideId: currentGuideProfile?.id || (currentUser?.role === 'guide' ? 'g_' + currentUser.id : 'g_1'),
+        guideUserId: currentUser?.id,
+        guideName: currentGuideProfile?.fullName || currentUser?.name || 'Local Guide',
+        guideAvatar: currentGuideProfile?.avatar || currentUser?.avatar
+      };
       const res = await fetch('/api/tours/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(tourData)
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (data.tour) {
-        setTours([data.tour, ...tours]);
+        setTours(prev => [data.tour, ...prev]);
+        fetchAllData();
+      } else if (data.error) {
+        alert(data.error);
       }
     } catch (err) {
       console.error(err);
@@ -278,6 +315,7 @@ export default function App() {
       const data = await res.json();
       if (data.tour) {
         setTours(tours.map(t => t.id === data.tour.id ? data.tour : t));
+        fetchAllData();
       } else if (data.error) {
         alert(data.error);
       }
@@ -362,10 +400,13 @@ export default function App() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           postId,
-          travelerId: targetPost?.travelerId || 'u_traveler_1',
-          travelerName: targetPost?.travelerName || 'Traveler',
+          travelerId: targetPost?.travelerId,
+          travelerName: targetPost?.travelerName,
           tourTitle: targetPost?.title,
-          guideId: currentGuideProfile ? currentGuideProfile.id : 'g_1',
+          guideId: currentGuideProfile ? currentGuideProfile.id : (currentUser?.role === 'guide' ? 'g_' + currentUser.id : 'g_1'),
+          guideUserId: currentUser?.id,
+          guideName: currentGuideProfile?.fullName || currentUser?.name || 'Local Guide',
+          guideAvatar: currentGuideProfile?.avatar || currentUser?.avatar,
           offeredPriceUSD: offerPrice,
           originalPriceUSD: targetPost?.maxBudgetUSD || offerPrice,
           selectedSlot: targetSlot,
@@ -395,13 +436,21 @@ export default function App() {
     originalPriceUSD?: number
   ) => {
     try {
+      if (!currentUser) {
+        setIsAuthOpen(true);
+        return;
+      }
       const res = await fetch('/api/negotiations/offer', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          travelerId: currentUser?.id || 'u_traveler_1',
-          travelerName: currentUser?.name || 'Sarah Jenkins',
+          travelerId: currentUser.id,
+          travelerName: currentUser.name,
+          travelerEmail: currentUser.email,
+          travelerAvatar: currentUser.avatar,
           guideId: guide.id,
+          guideName: guide.fullName,
+          guideAvatar: guide.avatar,
           tourId,
           tourTitle,
           selectedSlot,
@@ -476,6 +525,19 @@ export default function App() {
 
   const handleConfirmCompletion = async (bookingId: string, role: 'traveler' | 'guide') => {
     try {
+      // Optimistically update only the confirming role's completion state
+      setBookings(prev => prev.map(b => {
+        if (b.id !== bookingId) return b;
+        const updated = { ...b };
+        if (role === 'guide') updated.guideConfirmedCompletion = true;
+        if (role === 'traveler') updated.travelerConfirmedCompletion = true;
+        if (updated.guideConfirmedCompletion && updated.travelerConfirmedCompletion) {
+          updated.status = 'completed';
+          updated.paymentStatus = 'released';
+        }
+        return updated;
+      }));
+
       const res = await fetch(`/api/bookings/${bookingId}/confirm-completion`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -491,15 +553,31 @@ export default function App() {
     }
   };
 
-  const handleUpdateBookingStatus = async (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => {
+  const handleUpdateBookingStatus = async (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed', role?: 'traveler' | 'guide') => {
     try {
-      // Optimistically update React state so UI updates immediately
-      setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b));
+      const userRole = role || (currentUser?.role === 'guide' || (typeof window !== 'undefined' && window.location.pathname.includes('/guide')) ? 'guide' : 'traveler');
+
+      // Optimistically update React state
+      setBookings(prev => prev.map(b => {
+        if (b.id !== bookingId) return b;
+        const updated = { ...b };
+        if (status === 'completed') {
+          if (userRole === 'guide') updated.guideConfirmedCompletion = true;
+          if (userRole === 'traveler') updated.travelerConfirmedCompletion = true;
+          if (updated.guideConfirmedCompletion && updated.travelerConfirmedCompletion) {
+            updated.status = 'completed';
+            updated.paymentStatus = 'released';
+          }
+        } else {
+          updated.status = status;
+        }
+        return updated;
+      }));
 
       const res = await fetch(`/api/bookings/${bookingId}/status`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, role: userRole })
       });
 
       const data = await res.json();
@@ -529,24 +607,25 @@ export default function App() {
       };
     }
     if (currentUser && currentUser.role === 'guide') {
+      const isKyced = currentUser.guideProfile?.kycStatus === 'verified' || currentUser.guideProfile?.verified;
       return {
         id: 'g_' + currentUser.id,
         userId: currentUser.id,
         fullName: currentUser.name,
-        avatar: currentUser.avatar || 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
-        city: selectedCity || 'Ho Chi Minh City',
+        avatar: currentUser.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(currentUser.name)}`,
+        city: selectedCity && selectedCity !== 'All' ? selectedCity : 'Ho Chi Minh City',
         rating: 5.0,
         reviewCount: 0,
         hourlyRateUSD: 25,
         languages: ['English', 'Vietnamese'],
-        bio: currentUser.bio || 'Licensed Tourist Guide',
+        bio: currentUser.bio || 'Tourist Guide',
         tourTypes: ['walking', 'food', 'culture'],
-        badges: ['Verified Guide 📜'],
+        badges: isKyced ? ['Verified Guide 📜'] : ['New Guide 🌟'],
         isOnline: true,
         currentLat: 10.7769,
         currentLng: 106.7009,
-        verified: true,
-        kycStatus: 'verified',
+        verified: !!isKyced,
+        kycStatus: currentUser.guideProfile?.kycStatus || 'unsubmitted',
         completedTours: 0
       };
     }
@@ -653,6 +732,7 @@ export default function App() {
                   onRespondNegotiation={handleRespondNegotiation}
                   onConfirmCompletion={handleConfirmCompletion}
                   onUpdateStatus={handleUpdateBookingStatus}
+                  onSaveBankAccount={handleSaveGuideBankAccount}
                   language={language}
                 />
               ) : (

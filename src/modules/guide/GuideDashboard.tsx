@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { GuideProfile, TourBooking, TravelerPostRequest, NegotiationOffer, TourPackage } from '../../types';
+import { GuideProfile, GuideBankAccount, TourBooking, TravelerPostRequest, NegotiationOffer, TourPackage } from '../../types';
 import { KYCSubmissionModal } from './KYCSubmissionModal';
 import { CreateTourModal } from './CreateTourModal';
 import { TourDetailModal } from './TourDetailModal';
 import { EditTourModal } from './EditTourModal';
+import { GuidePayoutAccountModal } from './GuidePayoutAccountModal';
 import { GuideBookingsAndNegotiations } from './GuideBookingsAndNegotiations';
 import { Language } from '../../lib/translations';
 
@@ -33,6 +34,7 @@ interface GuideDashboardProps {
   onRespondNegotiation: (offerId: string, action: 'accept' | 'counter' | 'decline', counterPrice?: number, message?: string, senderRole?: 'traveler' | 'guide') => void;
   onConfirmCompletion?: (bookingId: string, role: 'traveler' | 'guide') => void;
   onUpdateStatus?: (bookingId: string, status: 'matched' | 'en_route' | 'in_progress' | 'completed') => void;
+  onSaveBankAccount?: (account: GuideBankAccount) => Promise<void>;
   language?: Language;
 }
 
@@ -51,17 +53,21 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
   onRespondNegotiation,
   onConfirmCompletion,
   onUpdateStatus,
+  onSaveBankAccount,
   language = 'en'
 }) => {
   const [isKYCModalOpen, setIsKYCModalOpen] = useState<boolean>(false);
   const [isCreateTourOpen, setIsCreateTourOpen] = useState<boolean>(false);
+  const [isPayoutModalOpen, setIsPayoutModalOpen] = useState<boolean>(false);
 
   // Detail & Edit Modals state
   const [selectedTourForDetail, setSelectedTourForDetail] = useState<TourPackage | null>(null);
   const [selectedTourForEdit, setSelectedTourForEdit] = useState<TourPackage | null>(null);
 
   const myTours = (tours || []).filter(
-    t => t.guideId === guideProfile.id || t.guideName?.toLowerCase() === guideProfile.fullName?.toLowerCase()
+    t => t.guideId === guideProfile.id ||
+         (guideProfile.userId && (t as any).guideUserId === guideProfile.userId) ||
+         (guideProfile.fullName && t.guideName?.toLowerCase().trim() === guideProfile.fullName?.toLowerCase().trim())
   );
 
   return (
@@ -159,6 +165,23 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
                   : guideProfile.kycStatus === 'rejected'
                   ? 'Re-submit License ⚠️'
                   : 'Verify Tour Guide Card'}
+              </span>
+            </button>
+
+            {/* Payout Bank Account Button */}
+            <button
+              onClick={() => setIsPayoutModalOpen(true)}
+              className={`px-4 py-2 rounded-2xl font-extrabold text-xs transition-all cursor-pointer shadow-md flex items-center space-x-1.5 ${
+                guideProfile.bankAccount?.accountNumber
+                  ? 'bg-emerald-600 hover:bg-emerald-500 text-white'
+                  : 'bg-amber-500 hover:bg-amber-400 text-slate-950'
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">account_balance</span>
+              <span>
+                {guideProfile.bankAccount?.accountNumber
+                  ? `${guideProfile.bankAccount.bankName.split(' ')[0]} (••${guideProfile.bankAccount.accountNumber.slice(-4)})`
+                  : 'Add Payout Bank Account'}
               </span>
             </button>
 
@@ -365,6 +388,7 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
         onConfirmCompletion={onConfirmCompletion}
         onUpdateStatus={onUpdateStatus}
         onOpenKYCModal={() => setIsKYCModalOpen(true)}
+        onOpenPayoutModal={() => setIsPayoutModalOpen(true)}
         language={language}
       />
 
@@ -408,6 +432,18 @@ export const GuideDashboard: React.FC<GuideDashboardProps> = ({
         bookings={bookings}
         onUpdateTour={(tourData) => {
           if (onUpdateTour) onUpdateTour(tourData);
+        }}
+        language={language}
+      />
+
+      <GuidePayoutAccountModal
+        isOpen={isPayoutModalOpen}
+        onClose={() => setIsPayoutModalOpen(false)}
+        guideProfile={guideProfile}
+        onSaveBankAccount={async (account) => {
+          if (onSaveBankAccount) {
+            await onSaveBankAccount(account);
+          }
         }}
         language={language}
       />

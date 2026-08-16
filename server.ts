@@ -4,6 +4,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI } from '@google/genai';
 import { 
   initFirebaseDatabase, 
+  getFirestoreStatus,
   dbResetAndReseedDatabase,
   dbFindUserByEmail,
   dbFindUserById,
@@ -33,15 +34,58 @@ import {
   dbGetBookingsByUser,
   dbGetAllBookings,
   dbGetChatMessages,
-  dbSaveChatMessage
+  dbSaveChatMessage,
+  dbGetNotifications,
+  dbSaveNotification,
+  dbMarkNotificationAsRead,
+  dbMarkAllNotificationsAsRead,
+  dbClearNotifications
 } from './src/db/firebase.js';
-import { AdminSystemStats } from './src/types.js';
+import { AdminSystemStats, AppNotification } from './src/types.js';
 
 // Initialize Express App
 const app = express();
 const PORT = 3000;
 
 app.use(express.json({ limit: '10mb' }));
+
+// Helper to create and broadcast in-app notifications
+async function sendInAppNotification(params: {
+  userId: string;
+  targetRole?: 'traveler' | 'guide' | 'admin' | 'all';
+  type: 'bid' | 'accept' | 'counter' | 'chat' | 'booking' | 'escrow' | 'kyc' | 'system' | 'payout';
+  title: string;
+  message: string;
+  icon?: string;
+  actionUrl?: string;
+  bookingId?: string;
+  postId?: string;
+  negotiationId?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  amountUSD?: number;
+}): Promise<AppNotification> {
+  const notif: AppNotification = {
+    id: 'notif_' + Date.now() + '_' + Math.floor(Math.random() * 1000),
+    userId: params.userId,
+    targetRole: params.targetRole || 'all',
+    type: params.type,
+    title: params.title,
+    message: params.message,
+    isRead: false,
+    createdAt: new Date().toISOString(),
+    icon: params.icon || 'notifications',
+    actionUrl: params.actionUrl || '/',
+    bookingId: params.bookingId,
+    postId: params.postId,
+    negotiationId: params.negotiationId,
+    senderName: params.senderName,
+    senderAvatar: params.senderAvatar,
+    amountUSD: params.amountUSD
+  };
+  await dbSaveNotification(notif);
+  return notif;
+}
 
 // Helper to safely initialize Google Gemini client
 function getGeminiClient() {
@@ -59,40 +103,46 @@ function getGeminiClient() {
 
 app.post('/api/auth/google-verify', async (req, res) => {
   try {
-    const { credential, role } = req.body;
+    const { credential, role, email: clientEmail, name: clientName, picture: clientPic, firebaseUid } = req.body;
 
-    if (!credential) {
+    if (!credential && !clientEmail) {
       return res.status(400).json({ error: 'Missing credential payload from Google Sign-In' });
     }
 
-    let verifiedEmail = '';
-    let name = '';
-    let picture = '';
-    let googleSub = '';
+    let verifiedEmail = clientEmail || '';
+    let name = clientName || '';
+    let picture = clientPic || '';
+    let googleSub = firebaseUid || '';
 
-    try {
-      const parts = credential.split('.');
-      if (parts.length === 3) {
-        const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
-        const payload = JSON.parse(payloadJson);
-        verifiedEmail = payload.email;
-        name = payload.name || payload.given_name || 'Google User';
-        picture = payload.picture;
-        googleSub = payload.sub;
+    if (credential) {
+      try {
+        const parts = credential.split('.');
+        if (parts.length === 3) {
+          const payloadJson = Buffer.from(parts[1], 'base64').toString('utf-8');
+          const payload = JSON.parse(payloadJson);
+          if (payload.email) verifiedEmail = payload.email;
+          if (payload.name || payload.given_name) name = payload.name || payload.given_name;
+          if (payload.picture) picture = payload.picture;
+          if (payload.sub || payload.user_id) googleSub = payload.sub || payload.user_id;
+        }
+      } catch (e) {
+        console.warn('Backend JWT decode warning:', e);
       }
-    } catch (e) {
-      console.warn('Backend JWT decode warning:', e);
-    }
 
-    if (!verifiedEmail) {
-      const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
-      const googleUser = await googleRes.json();
-      if (googleUser.error_description || !googleUser.email) {
-        return res.status(401).json({ error: 'Google ID token verification failed or expired' });
+      if (!verifiedEmail) {
+        try {
+          const googleRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+          const googleUser = await googleRes.json();
+          if (!googleUser.error_description && googleUser.email) {
+            verifiedEmail = googleUser.email;
+            name = googleUser.name || name;
+            picture = googleUser.picture || picture;
+            googleSub = googleUser.sub || googleSub;
+          }
+        } catch (fetchErr) {
+          console.warn('Google tokeninfo fetch warning:', fetchErr);
+        }
       }
-      verifiedEmail = googleUser.email;
-      name = googleUser.name;
-      picture = googleUser.picture;
     }
 
     if (!verifiedEmail) {
@@ -366,6 +416,19 @@ app.post('/api/admin/reset-database', async (req, res) => {
   }
 });
 
+app.get('/api/health', (req, res) => {
+  const dbStatus = getFirestoreStatus();
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    database: dbStatus
+  });
+});
+
+app.get('/api/admin/db-status', (req, res) => {
+  res.json(getFirestoreStatus());
+});
+
 app.get('/api/admin/reset-database', async (req, res) => {
   try {
     const result = await dbResetAndReseedDatabase();
@@ -432,6 +495,15 @@ app.post('/api/admin/kyc/:id/review', async (req, res) => {
         }
         await dbSaveGuide(guide);
       }
+      await sendInAppNotification({
+        userId: application.guideId,
+        targetRole: 'guide',
+        type: 'kyc',
+        title: '🎉 Tour Guide License Approved!',
+        message: 'Congratulations! Your tourist guide card has been verified. You can now publish custom tour packages and place bids on traveler requests.',
+        icon: 'verified',
+        actionUrl: '/guide'
+      });
     } else {
       application.status = 'rejected';
       application.rejectionReason = rejectionReason || 'Tour Guide card or CCCD unverified on official portal.';
@@ -441,6 +513,15 @@ app.post('/api/admin/kyc/:id/review', async (req, res) => {
         guide.kycStatus = 'rejected';
         await dbSaveGuide(guide);
       }
+      await sendInAppNotification({
+        userId: application.guideId,
+        targetRole: 'guide',
+        type: 'kyc',
+        title: '⚠️ KYC License Verification Notice',
+        message: application.rejectionReason || 'Please review your guide card credentials and re-submit.',
+        icon: 'warning',
+        actionUrl: '/guide'
+      });
     }
 
     await dbSaveKYC(application);
@@ -525,7 +606,68 @@ app.post('/api/guide/kyc', async (req, res) => {
     guide.kycCardNumber = newApp.cardNumber;
     await dbSaveGuide(guide);
 
+    await sendInAppNotification({
+      userId: 'u_admin',
+      targetRole: 'admin',
+      type: 'kyc',
+      title: '🛡️ New KYC Verification Submission',
+      message: `Guide ${guide.fullName} submitted a tourist guide card for verification (Card #${finalCardNumber}).`,
+      icon: 'verified_user',
+      actionUrl: '/admin'
+    });
+
     res.json({ kycApplication: newApp, guide });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Guide Payout Bank Account Setting
+app.post('/api/guide/:id/bank-account', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { bankName, accountNumber, accountHolder, swiftCode, branchName } = req.body;
+
+    if (!bankName || !accountNumber || !accountHolder) {
+      return res.status(400).json({ error: 'Bank name, account number, and account holder name are required' });
+    }
+
+    const guide = await dbFindGuideById(id);
+    if (!guide) {
+      return res.status(404).json({ error: 'Guide not found' });
+    }
+
+    const bankAccount = {
+      bankName: bankName.trim(),
+      accountNumber: accountNumber.trim(),
+      accountHolder: accountHolder.trim().toUpperCase(),
+      swiftCode: swiftCode ? swiftCode.trim().toUpperCase() : '',
+      branchName: branchName ? branchName.trim() : '',
+      isVerified: true,
+      updatedAt: new Date().toISOString()
+    };
+
+    guide.bankAccount = bankAccount;
+    await dbSaveGuide(guide);
+
+    // Also sync to user object if matching
+    const user = await dbFindUserById(guide.userId);
+    if (user && user.guideProfile) {
+      user.guideProfile.bankAccount = bankAccount;
+      await dbSaveUser(user);
+    }
+
+    await sendInAppNotification({
+      userId: guide.id,
+      targetRole: 'guide',
+      type: 'payout',
+      title: '🏦 Payout Account Connected',
+      message: `Bank account ${bankAccount.bankName} (••••${bankAccount.accountNumber.slice(-4)}) connected for instant NAPAS 24/7 disbursements.`,
+      icon: 'account_balance',
+      actionUrl: '/guide'
+    });
+
+    res.json({ success: true, bankAccount, guide });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -787,6 +929,21 @@ app.post('/api/traveler/posts', async (req, res) => {
     };
 
     await dbSavePost(newPost);
+
+    // Dispatch in-app notification to all guides
+    await sendInAppNotification({
+      userId: 'all',
+      targetRole: 'guide',
+      type: 'bid',
+      title: `📢 New Traveler Request in ${city}`,
+      message: `${newPost.travelerName} created a new tour request: "${newPost.title}" (Budget: $${newPost.minBudgetUSD}-$${newPost.maxBudgetUSD} USD).`,
+      icon: 'campaign',
+      actionUrl: '/guide',
+      postId: newPost.id,
+      senderName: newPost.travelerName,
+      senderAvatar: newPost.travelerAvatar
+    });
+
     res.json({ post: newPost });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -934,6 +1091,39 @@ app.post('/api/negotiations/offer', async (req, res) => {
     }
 
     await dbSaveNegotiation(offer);
+
+    // Send in-app notification to receiver
+    if (senderRole === 'guide') {
+      await sendInAppNotification({
+        userId: offer.travelerId,
+        targetRole: 'traveler',
+        type: 'bid',
+        title: `💬 New Bid: $${offer.offeredPriceUSD} USD`,
+        message: `Guide ${guide.fullName} placed a bid of $${offer.offeredPriceUSD} USD on "${offer.tourTitle}".${message ? ` Message: "${message}"` : ''}`,
+        icon: 'local_offer',
+        actionUrl: '/traveler',
+        postId: offer.postId,
+        negotiationId: offer.id,
+        senderName: guide.fullName,
+        senderAvatar: guide.avatar,
+        amountUSD: offer.offeredPriceUSD
+      });
+    } else {
+      await sendInAppNotification({
+        userId: guide.id,
+        targetRole: 'guide',
+        type: 'bid',
+        title: `🏷️ Custom Offer: $${offer.offeredPriceUSD} USD`,
+        message: `${offer.travelerName} requested a tour offer at $${offer.offeredPriceUSD} USD for "${offer.tourTitle}".`,
+        icon: 'handshake',
+        actionUrl: '/guide',
+        postId: offer.postId,
+        negotiationId: offer.id,
+        senderName: offer.travelerName,
+        amountUSD: offer.offeredPriceUSD
+      });
+    }
+
     res.json({ offer });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1034,6 +1224,34 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
         }
       }
 
+      // Send in-app notification to Guide
+      await sendInAppNotification({
+        userId: offer.guideId,
+        targetRole: 'guide',
+        type: 'accept',
+        title: '🎉 Offer Accepted & Tour Booked!',
+        message: `${offer.travelerName} accepted your offer for "${offer.tourTitle}" ($${offer.offeredPriceUSD} USD). Funds are secured in Escrow.`,
+        icon: 'check_circle',
+        actionUrl: '/guide',
+        bookingId: newBooking.id,
+        senderName: offer.travelerName,
+        amountUSD: offer.offeredPriceUSD
+      });
+
+      // Send in-app notification to Traveler
+      await sendInAppNotification({
+        userId: offer.travelerId,
+        targetRole: 'traveler',
+        type: 'accept',
+        title: '🎉 Tour Booking Confirmed!',
+        message: `Booking for "${offer.tourTitle}" with Guide ${offer.guideName} is confirmed. Safety PIN: ${newBooking.pinCode}. Escrow deposit secured.`,
+        icon: 'confirmation_number',
+        actionUrl: '/traveler',
+        bookingId: newBooking.id,
+        senderName: offer.guideName,
+        amountUSD: offer.offeredPriceUSD
+      });
+
       return res.json({ offer, booking: newBooking });
 
     } else if (action === 'counter') {
@@ -1047,9 +1265,51 @@ app.post('/api/negotiations/:id/respond', async (req, res) => {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       });
       await dbSaveNegotiation(offer);
+
+      if (senderRole === 'guide') {
+        await sendInAppNotification({
+          userId: offer.travelerId,
+          targetRole: 'traveler',
+          type: 'counter',
+          title: `⚖️ Counter-Offer: $${offer.offeredPriceUSD} USD`,
+          message: `Guide ${offer.guideName} countered with $${offer.offeredPriceUSD} USD for "${offer.tourTitle}".`,
+          icon: 'price_change',
+          actionUrl: '/traveler',
+          negotiationId: offer.id,
+          senderName: offer.guideName,
+          amountUSD: offer.offeredPriceUSD
+        });
+      } else {
+        await sendInAppNotification({
+          userId: offer.guideId,
+          targetRole: 'guide',
+          type: 'counter',
+          title: `⚖️ Counter-Offer: $${offer.offeredPriceUSD} USD`,
+          message: `${offer.travelerName} countered with $${offer.offeredPriceUSD} USD for "${offer.tourTitle}".`,
+          icon: 'price_change',
+          actionUrl: '/guide',
+          negotiationId: offer.id,
+          senderName: offer.travelerName,
+          amountUSD: offer.offeredPriceUSD
+        });
+      }
+
     } else if (action === 'decline') {
       offer.status = 'declined';
       await dbSaveNegotiation(offer);
+
+      const targetId = senderRole === 'guide' ? offer.travelerId : offer.guideId;
+      const targetRole = senderRole === 'guide' ? 'traveler' : 'guide';
+      await sendInAppNotification({
+        userId: targetId,
+        targetRole,
+        type: 'system',
+        title: '❌ Offer Declined',
+        message: `The proposal for "${offer.tourTitle}" was declined.`,
+        icon: 'cancel',
+        actionUrl: targetRole === 'guide' ? '/guide' : '/traveler',
+        negotiationId: offer.id
+      });
     }
 
     res.json({ offer });
@@ -1099,6 +1359,7 @@ app.post('/api/bookings/:id/status', async (req, res) => {
   try {
     const { id } = req.params;
     const status = req.body?.status || req.body?.newStatus;
+    const role = req.body?.role; // 'traveler' | 'guide'
 
     if (!status) {
       return res.status(400).json({ error: 'Missing status in request body' });
@@ -1119,19 +1380,63 @@ app.post('/api/bookings/:id/status', async (req, res) => {
         paymentStatus: 'held_in_escrow',
         createdAt: new Date().toISOString()
       };
-    } else {
-      booking.id = id;
-      booking.status = status;
     }
 
     if (status === 'completed') {
-      booking.travelerConfirmedCompletion = true;
-      booking.guideConfirmedCompletion = true;
-      booking.paymentStatus = 'released';
-      booking.escrowReleasedAt = new Date().toISOString();
+      // Dual-confirmation escrow model: record the requesting role's side
+      if (role === 'guide') {
+        booking.guideConfirmedCompletion = true;
+      } else if (role === 'traveler') {
+        booking.travelerConfirmedCompletion = true;
+      } else {
+        // Default to guide if role not specified in body
+        booking.guideConfirmedCompletion = true;
+      }
+
+      const isBothConfirmed = Boolean(booking.travelerConfirmedCompletion && booking.guideConfirmedCompletion);
+
+      booking.status = 'completed';
+
+      if (isBothConfirmed) {
+        booking.paymentStatus = 'released';
+        booking.escrowReleasedAt = new Date().toISOString();
+
+        if (booking.guideId) {
+          await sendInAppNotification({
+            userId: booking.guideId,
+            targetRole: 'guide',
+            type: 'payout',
+            title: `💰 Escrow Payout Released (+$${booking.totalPriceUSD || 0} USD)`,
+            message: `Dual confirmation complete! Escrow funds for "${booking.tourTitle}" have been released to your account.`,
+            icon: 'payments',
+            actionUrl: '/guide',
+            bookingId: booking.id,
+            amountUSD: booking.totalPriceUSD
+          });
+        }
+      } else {
+        booking.paymentStatus = 'held_in_escrow';
+      }
+    } else {
+      booking.status = status;
     }
 
     await dbSaveBooking(booking);
+
+    // Notify traveler on live status change
+    if (booking.travelerId && ['en_route', 'in_progress'].includes(status)) {
+      await sendInAppNotification({
+        userId: booking.travelerId,
+        targetRole: 'traveler',
+        type: 'booking',
+        title: `📍 Tour Status: ${status === 'en_route' ? 'Guide En Route' : 'Tour In Progress'}`,
+        message: `Your guide is ${status === 'en_route' ? 'heading to your pickup spot' : 'now conducting the tour with you'}.`,
+        icon: 'near_me',
+        actionUrl: '/traveler',
+        bookingId: booking.id
+      });
+    }
+
     res.json({ booking });
   } catch (err: any) {
     console.error('API /api/bookings/:id/status error:', err);
@@ -1144,7 +1449,11 @@ app.post('/api/bookings/:id/confirm-completion', async (req, res) => {
     const { id } = req.params;
     const { role } = req.body; // 'traveler' | 'guide'
 
-    const booking: any = await dbFindBookingById(id);
+    let booking: any = await dbFindBookingById(id);
+    if (!booking) {
+      const allBookings = await dbGetAllBookings();
+      booking = allBookings.find((b: any) => b.id === id);
+    }
     if (!booking) return res.status(404).json({ error: 'Booking not found' });
 
     if (role === 'traveler') {
@@ -1162,9 +1471,60 @@ app.post('/api/bookings/:id/confirm-completion', async (req, res) => {
       booking.status = 'completed';
       booking.paymentStatus = 'released';
       booking.escrowReleasedAt = new Date().toISOString();
+
+      // Dual acceptance released funds to guide
+      await sendInAppNotification({
+        userId: booking.guideId,
+        targetRole: 'guide',
+        type: 'payout',
+        title: `💰 Escrow Payout Released (+$${booking.totalPriceUSD} USD)`,
+        message: `Dual confirmation complete! $${booking.totalPriceUSD} USD for "${booking.tourTitle}" has been transferred to your connected bank account.`,
+        icon: 'payments',
+        actionUrl: '/guide',
+        bookingId: booking.id,
+        amountUSD: booking.totalPriceUSD
+      });
+
+      await sendInAppNotification({
+        userId: booking.travelerId,
+        targetRole: 'traveler',
+        type: 'escrow',
+        title: `🌟 Tour Completed Successfully!`,
+        message: `Thank you for exploring Vietnam with Guide ${booking.guideName}! "${booking.tourTitle}" has been settled.`,
+        icon: 'star',
+        actionUrl: '/traveler',
+        bookingId: booking.id
+      });
+
     } else {
+      booking.status = 'completed';
       if (!booking.paymentStatus || booking.paymentStatus === 'held_in_escrow') {
         booking.paymentStatus = 'held_in_escrow';
+      }
+
+      // Notify counterparty to confirm completion
+      if (role === 'traveler') {
+        await sendInAppNotification({
+          userId: booking.guideId,
+          targetRole: 'guide',
+          type: 'escrow',
+          title: `🏁 Traveler Confirmed Tour Completion`,
+          message: `${booking.travelerName || 'Traveler'} verified tour completion for "${booking.tourTitle}". Confirm now to unlock your escrow funds!`,
+          icon: 'task_alt',
+          actionUrl: '/guide',
+          bookingId: booking.id
+        });
+      } else {
+        await sendInAppNotification({
+          userId: booking.travelerId,
+          targetRole: 'traveler',
+          type: 'escrow',
+          title: `🏁 Guide Confirmed Tour Completion`,
+          message: `Guide ${booking.guideName || 'Tour Guide'} marked "${booking.tourTitle}" as finished. Please tap to confirm and release funds.`,
+          icon: 'task_alt',
+          actionUrl: '/traveler',
+          bookingId: booking.id
+        });
       }
     }
 
@@ -1195,9 +1555,45 @@ app.post('/api/admin/bookings/:id/escrow-action', async (req, res) => {
       booking.status = 'completed';
       booking.paymentStatus = 'released';
       booking.escrowReleasedAt = new Date().toISOString();
+
+      await sendInAppNotification({
+        userId: booking.guideId,
+        targetRole: 'guide',
+        type: 'payout',
+        title: `💰 Escrow Released by Admin (+$${booking.totalPriceUSD} USD)`,
+        message: `Admin verified and released escrow payout of $${booking.totalPriceUSD} USD for "${booking.tourTitle}".`,
+        icon: 'payments',
+        actionUrl: '/guide',
+        bookingId: booking.id,
+        amountUSD: booking.totalPriceUSD
+      });
+
+      await sendInAppNotification({
+        userId: booking.travelerId,
+        targetRole: 'traveler',
+        type: 'escrow',
+        title: `🛡️ Tour Escrow Settled by Admin`,
+        message: `Booking #${booking.id.toUpperCase()} has been settled by platform administration.`,
+        icon: 'verified',
+        actionUrl: '/traveler',
+        bookingId: booking.id
+      });
+
     } else if (action === 'refund') {
       booking.status = 'cancelled';
       booking.paymentStatus = 'refunded';
+
+      await sendInAppNotification({
+        userId: booking.travelerId,
+        targetRole: 'traveler',
+        type: 'escrow',
+        title: `💸 Full Refund Issued ($${booking.totalPriceUSD} USD)`,
+        message: `Escrow funds for "${booking.tourTitle}" have been refunded to your payment method.`,
+        icon: 'replay',
+        actionUrl: '/traveler',
+        bookingId: booking.id,
+        amountUSD: booking.totalPriceUSD
+      });
     } else {
       return res.status(400).json({ error: 'Invalid action specified' });
     }
@@ -1285,6 +1681,37 @@ app.post('/api/bookings/scheduled', async (req, res) => {
     };
 
     await dbSaveBooking(newBooking);
+
+    // Notify Guide
+    await sendInAppNotification({
+      userId: newBooking.guideId,
+      targetRole: 'guide',
+      type: 'booking',
+      title: '🚀 New Scheduled Tour Booking!',
+      message: `${newBooking.travelerName} booked "${newBooking.tourTitle}" ($${newBooking.totalPriceUSD} USD) for ${newBooking.scheduledTime}.`,
+      icon: 'airplane_ticket',
+      actionUrl: '/guide',
+      bookingId: newBooking.id,
+      senderName: newBooking.travelerName,
+      senderAvatar: newBooking.travelerAvatar,
+      amountUSD: newBooking.totalPriceUSD
+    });
+
+    // Notify Traveler
+    await sendInAppNotification({
+      userId: newBooking.travelerId,
+      targetRole: 'traveler',
+      type: 'booking',
+      title: '✅ Tour Booked & Escrow Secured',
+      message: `Booking for "${newBooking.tourTitle}" with Guide ${newBooking.guideName} is confirmed! Safety PIN: ${newBooking.pinCode}.`,
+      icon: 'shield_lock',
+      actionUrl: '/traveler',
+      bookingId: newBooking.id,
+      senderName: newBooking.guideName,
+      senderAvatar: newBooking.guideAvatar,
+      amountUSD: newBooking.totalPriceUSD
+    });
+
     res.json({ booking: newBooking });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1327,6 +1754,37 @@ app.post('/api/bookings/instant', async (req, res) => {
     };
 
     await dbSaveBooking(newBooking);
+
+    // Notify Guide
+    await sendInAppNotification({
+      userId: newBooking.guideId,
+      targetRole: 'guide',
+      type: 'booking',
+      title: '⚡ Instant On-Demand Guide Requested!',
+      message: `${newBooking.travelerName} requested immediate dispatch at ${newBooking.pickupLocation}. Total: $${newBooking.totalPriceUSD} USD.`,
+      icon: 'bolt',
+      actionUrl: '/guide',
+      bookingId: newBooking.id,
+      senderName: newBooking.travelerName,
+      senderAvatar: newBooking.travelerAvatar,
+      amountUSD: newBooking.totalPriceUSD
+    });
+
+    // Notify Traveler
+    await sendInAppNotification({
+      userId: newBooking.travelerId,
+      targetRole: 'traveler',
+      type: 'booking',
+      title: '🛵 Guide Dispatched & En Route!',
+      message: `Guide ${newBooking.guideName} has been assigned and is heading to your pickup location. PIN: ${newBooking.pinCode}.`,
+      icon: 'near_me',
+      actionUrl: '/traveler',
+      bookingId: newBooking.id,
+      senderName: newBooking.guideName,
+      senderAvatar: newBooking.guideAvatar,
+      amountUSD: newBooking.totalPriceUSD
+    });
+
     res.json({ booking: newBooking, guide });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1373,6 +1831,39 @@ app.post('/api/chat/:bookingId', async (req, res) => {
     };
 
     await dbSaveChatMessage(newMsg);
+
+    // Find booking to determine recipient
+    const allBookings = await dbGetAllBookings();
+    const bk = allBookings.find((b: any) => b.id === bookingId);
+
+    if (bk) {
+      if (senderRole === 'traveler') {
+        await sendInAppNotification({
+          userId: bk.guideId,
+          targetRole: 'guide',
+          type: 'chat',
+          title: `💬 ${newMsg.senderName}`,
+          message: newMsg.text.length > 80 ? newMsg.text.slice(0, 77) + '...' : newMsg.text,
+          icon: 'chat',
+          actionUrl: '/guide',
+          bookingId,
+          senderName: newMsg.senderName
+        });
+      } else if (senderRole === 'guide') {
+        await sendInAppNotification({
+          userId: bk.travelerId,
+          targetRole: 'traveler',
+          type: 'chat',
+          title: `💬 Guide ${newMsg.senderName}`,
+          message: newMsg.text.length > 80 ? newMsg.text.slice(0, 77) + '...' : newMsg.text,
+          icon: 'chat',
+          actionUrl: '/traveler',
+          bookingId,
+          senderName: newMsg.senderName
+        });
+      }
+    }
+
     res.json({ message: newMsg });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
@@ -1414,6 +1905,75 @@ app.post('/api/ai/recommend-itinerary', async (req, res) => {
         recommendations: `Day 1: Start morning at local coffee spot, explore historic heritage sites, lunch at famous street food alley, afternoon scooter ride, and evening night market tour.`
       }
     });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ==================== IN-APP NOTIFICATIONS API ====================
+
+app.get('/api/notifications', async (req, res) => {
+  try {
+    const { userId, role } = req.query;
+    const notifications = await dbGetNotifications(userId as string, role as string);
+    res.json({ notifications });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/create', async (req, res) => {
+  try {
+    const { userId, targetRole, type, title, message, icon, actionUrl, bookingId, postId, negotiationId, senderName, senderAvatar, amountUSD } = req.body;
+    if (!title || !message) {
+      return res.status(400).json({ error: 'Title and message are required' });
+    }
+    const notif = await sendInAppNotification({
+      userId: userId || 'all',
+      targetRole: targetRole || 'all',
+      type: type || 'system',
+      title,
+      message,
+      icon,
+      actionUrl,
+      bookingId,
+      postId,
+      negotiationId,
+      senderName,
+      senderAvatar,
+      amountUSD
+    });
+    res.json({ notification: notif });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const notification = await dbMarkNotificationAsRead(id);
+    res.json({ success: true, notification });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/mark-all-read', async (req, res) => {
+  try {
+    const { userId, role } = req.body;
+    await dbMarkAllNotificationsAsRead(userId, role);
+    res.json({ success: true });
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/clear', async (req, res) => {
+  try {
+    const { userId, role } = req.body;
+    await dbClearNotifications(userId, role);
+    res.json({ success: true });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }

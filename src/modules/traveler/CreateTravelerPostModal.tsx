@@ -105,9 +105,10 @@ export const CreateTravelerPostModal: React.FC<CreateTravelerPostModalProps> = (
     const totalDurationHours = mergedSlots.reduce((sum, s) => sum + calculateSlotDuration(s), 0);
 
     const postPayload = {
-      travelerId: currentUser?.id || 'u_traveler_1',
-      travelerName: currentUser?.name || 'Sarah Jenkins',
-      travelerAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80',
+      travelerId: currentUser?.id || 'u_' + Date.now(),
+      travelerName: currentUser?.name || 'Traveler',
+      travelerEmail: currentUser?.email,
+      travelerAvatar: currentUser?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
       title,
       city,
       preferredDate: aggregatedPreferredDate,

@@ -24,6 +24,8 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
   onConfirmCompletion,
   language = 'en'
 }) => {
+  const activeRole = currentUser?.role === 'guide' ? 'guide' : currentUser?.role === 'traveler' ? 'traveler' : (typeof window !== 'undefined' && window.location.pathname.includes('/guide')) ? 'guide' : 'traveler';
+
   return (
     <TourBookingHubModal
       isOpen={isOpen}
@@ -31,6 +33,7 @@ export const LiveBookingTrackerModal: React.FC<LiveBookingTrackerModalProps> = (
       booking={selectedBooking || bookings[0] || null}
       allBookings={bookings}
       currentUser={currentUser}
+      currentUserRole={activeRole}
       onUpdateStatus={onUpdateStatus}
       onConfirmCompletion={onConfirmCompletion}
       language={language}

@@ -2,6 +2,7 @@ import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { User } from '../types';
 import { Language, translations } from '../lib/translations';
+import { NotificationBell } from './NotificationBell';
 
 interface HeaderNavbarProps {
   currentUser: User | null;
@@ -122,9 +123,12 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           )}
         </nav>
 
-        {/* Right Actions: City Dropdown, Tracker, Language Switcher & User Avatar */}
+        {/* Right Actions: City Dropdown, Tracker, Notification Bell, Language Switcher & User Avatar */}
         <div className="flex items-center space-x-2 sm:space-x-3">
           
+          {/* In-App Notification Bell */}
+          <NotificationBell currentUser={currentUser} onOpenTracker={onOpenTracker} />
+
           {/* Active Escrow & Tour Tracker Button */}
           {currentUser && onOpenTracker && (
             <button

@@ -38,6 +38,16 @@ export interface KYCApplication {
   declineInstructions?: string;
 }
 
+export interface GuideBankAccount {
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  swiftCode?: string;
+  branchName?: string;
+  isVerified?: boolean;
+  updatedAt?: string;
+}
+
 export interface GuideProfile {
   id: string;
   userId: string;
@@ -59,6 +69,7 @@ export interface GuideProfile {
   kycStatus: KYCStatus;
   kycCardNumber?: string;
   completedTours: number;
+  bankAccount?: GuideBankAccount;
 }
 
 export interface ScheduleSlot {
@@ -135,10 +146,10 @@ export interface NegotiationOffer {
   guideRating: number;
   offeredPriceUSD: number;
   originalPriceUSD: number;
-  lastSenderRole: 'traveler' | 'guide';
+  lastSenderRole: 'traveler' | 'guide' | 'system';
   status: NegotiationStatus;
   messages: {
-    senderRole: 'traveler' | 'guide';
+    senderRole: 'traveler' | 'guide' | 'system';
     text: string;
     priceUSD?: number;
     timestamp: string;
@@ -242,4 +253,25 @@ export interface AdminSystemStats {
   totalTours: number;
   totalBookings: number;
   totalRevenueUSD: number;
+}
+
+export type NotificationType = 'bid' | 'accept' | 'counter' | 'chat' | 'booking' | 'escrow' | 'kyc' | 'system' | 'payout';
+
+export interface AppNotification {
+  id: string;
+  userId: string; // Target user ID (or 'all' / role like 'admin')
+  targetRole?: UserRole | 'all';
+  type: NotificationType;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+  icon?: string;
+  actionUrl?: string;
+  bookingId?: string;
+  postId?: string;
+  negotiationId?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  amountUSD?: number;
 }

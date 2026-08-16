@@ -41,10 +41,6 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
   // Tour Negotiation Modal State
   const [selectedTour, setSelectedTour] = useState<TourPackage | null>(null);
   const [selectedSlot, setSelectedSlot] = useState<ScheduleSlot | null>(null);
-  const [useCustomTime, setUseCustomTime] = useState<boolean>(false);
-  const [customDateStr, setCustomDateStr] = useState<string>('');
-  const [customStartTime, setCustomStartTime] = useState<string>('09:00');
-  const [customEndTime, setCustomEndTime] = useState<string>('12:00');
   const [groupSize, setGroupSize] = useState<number>(2);
   const [offeredPrice, setOfferedPrice] = useState<number>(50);
   const [offerMessage, setOfferMessage] = useState<string>('');
@@ -84,12 +80,11 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
     });
   }, [tours, guides, selectedCity, categoryFilter, searchQuery, maxPriceUSD, filterVerifiedOnly]);
 
-  // Open modal for tour
+  // Open modal for tour - respects guide's picked slot
   const handleOpenTourNegotiation = (tour: TourPackage) => {
     setSelectedTour(tour);
-    const defaultSlot = tour.scheduleSlots && tour.scheduleSlots.length > 0 ? tour.scheduleSlots[0] : null;
-    setSelectedSlot(defaultSlot);
-    setUseCustomTime(!defaultSlot);
+    const guidePickedSlot = tour.scheduleSlots && tour.scheduleSlots.length > 0 ? tour.scheduleSlots[0] : null;
+    setSelectedSlot(guidePickedSlot);
     setGroupSize(2);
     const baseTotal = tour.priceUSDPerPerson * 2;
     setOfferedPrice(baseTotal);
@@ -133,26 +128,16 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
       };
     }
 
-    let slotObj: ScheduleSlot | undefined = undefined;
-    if (!useCustomTime && selectedSlot) {
-      slotObj = selectedSlot;
-    } else if (customDateStr) {
-      slotObj = {
-        id: 'custom_' + Date.now(),
-        dateStr: customDateStr,
-        startTime: customStartTime,
-        endTime: customEndTime,
-        displayLabel: `${customDateStr} (${customStartTime} - ${customEndTime})`
-      };
-    } else {
-      slotObj = {
-        id: 'slot_default',
-        dateStr: 'Flexible Date',
-        startTime: '09:00',
-        endTime: '12:00',
-        displayLabel: 'Flexible Schedule as Agreed'
-      };
-    }
+    // Automatically respect the tour guide's assigned schedule slot
+    const slotObj: ScheduleSlot = selectedSlot || (selectedTour.scheduleSlots && selectedTour.scheduleSlots.length > 0
+      ? selectedTour.scheduleSlots[0]
+      : {
+          id: 'slot_default',
+          dateStr: 'Flexible Date',
+          startTime: '09:00',
+          endTime: '12:00',
+          displayLabel: 'Scheduled as agreed with guide'
+        });
 
     const baseTotal = selectedTour.priceUSDPerPerson * groupSize;
 
@@ -374,7 +359,7 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
                           className="w-full py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md transition-all cursor-pointer flex items-center justify-center space-x-2 active:scale-95"
                         >
                           <span className="material-symbols-outlined text-sm">handshake</span>
-                          <span>{language === 'vi' ? 'Chọn Tour & Thương Lượng Giá' : 'Select Tour & Negotiate Slot'}</span>
+                          <span>{language === 'vi' ? 'Chọn Tour & Thương Lượng Giá' : 'Select Tour & Negotiate Price'}</span>
                         </button>
                       )}
                     </div>
@@ -448,109 +433,36 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
               )}
             </div>
 
-            {/* STEP 1: SELECT TIME SLOT / SCHEDULE */}
-            <div className="space-y-3">
-              <h5 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide flex items-center space-x-1">
-                <span className="material-symbols-outlined text-teal-600 text-base">calendar_clock</span>
-                <span>{language === 'vi' ? '1. Chọn Khung Giờ HDV Mở Hoặc Tùy Chỉnh' : '1. Select Available Schedule Slot'}</span>
-              </h5>
-
-              {/* Slots List */}
-              {selectedTour.scheduleSlots && selectedTour.scheduleSlots.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                  {selectedTour.scheduleSlots.map((slot) => {
-                    const isSelected = !useCustomTime && selectedSlot?.id === slot.id;
-                    return (
-                      <button
-                        key={slot.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedSlot(slot);
-                          setUseCustomTime(false);
-                        }}
-                        className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
-                          isSelected
-                            ? 'bg-teal-50 border-teal-500 shadow-sm ring-2 ring-teal-500/20'
-                            : 'bg-white border-slate-200 hover:border-slate-300'
-                        }`}
-                      >
-                        <p className="text-xs font-extrabold text-slate-900">{slot.displayLabel || `${slot.dateStr} (${slot.startTime} - ${slot.endTime})`}</p>
-                        <p className="text-[10px] text-teal-700 font-bold mt-0.5">
-                          {isSelected ? '✓ Selected Slot' : 'Click to select'}
-                        </p>
-                      </button>
-                    );
-                  })}
-
-                  {/* Custom Time Option */}
-                  <button
-                    type="button"
-                    onClick={() => setUseCustomTime(true)}
-                    className={`p-3 rounded-2xl border text-left cursor-pointer transition-all ${
-                      useCustomTime
-                        ? 'bg-teal-50 border-teal-500 shadow-sm ring-2 ring-teal-500/20'
-                        : 'bg-white border-slate-200 hover:border-slate-300'
-                    }`}
-                  >
-                    <p className="text-xs font-extrabold text-slate-900">
-                      ✏️ {language === 'vi' ? 'Đề xuất ngày & giờ riêng' : 'Propose custom date & time'}
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-bold mt-0.5">
-                      {useCustomTime ? '✓ Custom time active' : 'Click to input custom schedule'}
-                    </p>
-                  </button>
+            {/* GUIDE'S PRESET TOUR SCHEDULE (RESPECTED SLOT) */}
+            <div className="p-4 rounded-2xl bg-teal-50/80 border border-teal-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center shrink-0 shadow-sm">
+                  <span className="material-symbols-outlined text-xl">event_available</span>
                 </div>
-              ) : (
-                <p className="text-xs text-slate-500 italic">
-                  {language === 'vi' ? 'HDV chưa mở khung giờ cố định. Nhập thời gian bạn muốn bên dưới:' : 'No set slots available. Input your preferred schedule below:'}
-                </p>
-              )}
-
-              {/* Custom Date & Time Inputs */}
-              {(useCustomTime || !selectedTour.scheduleSlots || selectedTour.scheduleSlots.length === 0) && (
-                <div className="p-3.5 bg-amber-50/80 rounded-2xl border border-amber-200 space-y-3">
-                  <p className="text-xs font-bold text-amber-900">
-                    📅 {language === 'vi' ? 'Nhập ngày giờ đề xuất của bạn:' : 'Enter your proposed date & time slot:'}
-                  </p>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-700 mb-0.5">{language === 'vi' ? 'Ngày' : 'Date'}</label>
-                      <input
-                        type="date"
-                        min={new Date().toISOString().split('T')[0]}
-                        value={customDateStr}
-                        onChange={(e) => setCustomDateStr(e.target.value)}
-                        className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-700 mb-0.5">{language === 'vi' ? 'Giờ bắt đầu' : 'Start Time'}</label>
-                      <input
-                        type="time"
-                        value={customStartTime}
-                        onChange={(e) => setCustomStartTime(e.target.value)}
-                        className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] font-extrabold text-slate-700 mb-0.5">{language === 'vi' ? 'Giờ kết thúc' : 'End Time'}</label>
-                      <input
-                        type="time"
-                        value={customEndTime}
-                        onChange={(e) => setCustomEndTime(e.target.value)}
-                        className="w-full p-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-900"
-                      />
-                    </div>
+                <div>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-xs font-black text-teal-950 uppercase tracking-wide">
+                      {language === 'vi' ? 'Lịch Trình Khung Giờ Của HDV' : "Guide's Confirmed Schedule Slot"}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-md bg-teal-200 text-teal-900 text-[10px] font-black">
+                      {language === 'vi' ? 'HDV Đã Định' : 'Guide Assigned'}
+                    </span>
                   </div>
+                  <p className="text-sm font-extrabold text-teal-900 mt-0.5">
+                    📅 {selectedSlot?.displayLabel || (selectedSlot ? `${selectedSlot.dateStr} • ${selectedSlot.startTime} - ${selectedSlot.endTime}` : (selectedTour.scheduleSlots?.[0]?.displayLabel || (selectedTour.scheduleSlots?.[0] ? `${selectedTour.scheduleSlots[0].dateStr} (${selectedTour.scheduleSlots[0].startTime} - ${selectedTour.scheduleSlots[0].endTime})` : 'Flexible schedule as agreed with guide')))}
+                  </p>
                 </div>
-              )}
+              </div>
+              <div className="text-[11px] font-bold text-teal-800 bg-white px-3 py-1.5 rounded-xl border border-teal-200 self-start sm:self-auto shrink-0">
+                ⏱️ {selectedTour.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
+              </div>
             </div>
 
-            {/* STEP 2: NUMBER OF TRAVELERS */}
+            {/* STEP 1: NUMBER OF TRAVELERS */}
             <div className="space-y-2">
               <h5 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide flex items-center space-x-1">
                 <span className="material-symbols-outlined text-teal-600 text-base">groups</span>
-                <span>{language === 'vi' ? '2. Số Lượng Khách Du Lịch' : '2. Number of Travelers'}</span>
+                <span>{language === 'vi' ? '1. Số Lượng Khách Du Lịch' : '1. Number of Travelers'}</span>
               </h5>
 
               <div className="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-200">
@@ -583,11 +495,11 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
               </div>
             </div>
 
-            {/* STEP 3: NEGOTIATE PROPOSED PRICE & OFFER MESSAGE */}
+            {/* STEP 2: NEGOTIATE PROPOSED PRICE & OFFER MESSAGE */}
             <div className="space-y-4 pt-2 border-t border-slate-100">
               <h5 className="text-xs font-extrabold text-slate-900 uppercase tracking-wide flex items-center space-x-1">
                 <span className="material-symbols-outlined text-teal-600 text-base">handshake</span>
-                <span>{language === 'vi' ? '3. Đề Xuất Mức Giá Thương Lượng & Lời Nhắn' : '3. Negotiate Offer Price & Custom Request'}</span>
+                <span>{language === 'vi' ? '2. Đề Xuất Mức Giá Thương Lượng & Lời Nhắn' : '2. Negotiate Offer Price & Custom Request'}</span>
               </h5>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

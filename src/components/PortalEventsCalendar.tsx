@@ -1,7 +1,9 @@
 import React, { useState, useMemo } from 'react';
-import { TourBooking, NegotiationOffer, TravelerPostRequest } from '../types';
+import { TourBooking, NegotiationOffer, TravelerPostRequest, User } from '../types';
 import { Language } from '../lib/translations';
 import { TourBookingHubModal } from './TourBookingHubModal';
+import { AddToGoogleCalendarButton } from './AddToGoogleCalendarButton';
+import { CalendarEventPayload, buildGoogleCalendarUrl, downloadIcsFile } from '../lib/googleCalendar';
 
 export interface CalendarEvent {
   id: string;
@@ -22,6 +24,7 @@ export interface CalendarEvent {
 
 interface PortalEventsCalendarProps {
   userRole: 'guide' | 'traveler';
+  currentUser?: User | null;
   bookings?: TourBooking[];
   negotiations?: NegotiationOffer[];
   posts?: TravelerPostRequest[];
@@ -116,6 +119,7 @@ const formatReadableDate = (isoStr: string, lang: string = 'en'): string => {
 
 export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
   userRole,
+  currentUser,
   bookings = [],
   negotiations = [],
   posts = [],
@@ -443,6 +447,29 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
+          {/* Quick Add Next Confirmed Event to Google Calendar if any confirmed event exists */}
+          {(() => {
+            const nextAcceptedEvent = calendarEvents.find(e => e.type === 'accepted');
+            if (!nextAcceptedEvent) return null;
+            return (
+              <AddToGoogleCalendarButton
+                payload={{
+                  title: nextAcceptedEvent.title,
+                  dateStr: nextAcceptedEvent.dateStr,
+                  timeRangeStr: nextAcceptedEvent.timeDisplay,
+                  partnerName: nextAcceptedEvent.partnerName,
+                  partnerRole: userRole === 'guide' ? 'traveler' : 'guide',
+                  priceUSD: nextAcceptedEvent.priceUSD,
+                  location: nextAcceptedEvent.location || 'Vietnam',
+                  bookingId: nextAcceptedEvent.id
+                }}
+                variant="outline"
+                size="sm"
+                language={language}
+              />
+            );
+          })()}
+
           {/* Today Button */}
           <button
             onClick={handleGoToday}
@@ -668,27 +695,48 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
                     </p>
                   </div>
 
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      if (evt.category === 'negotiation' && onOpenNegotiationModal) {
-                        onOpenNegotiationModal(evt.originalObject as NegotiationOffer);
-                      } else if (evt.category === 'booking' && onOpenBookingDetail) {
-                        onOpenBookingDetail(evt.originalObject as TourBooking);
-                      } else if (evt.category === 'post' && onOpenPostDetail) {
-                        onOpenPostDetail(evt.originalObject as TravelerPostRequest);
-                      } else {
-                        setActiveModalEvent(evt);
-                      }
-                    }}
-                    className={`w-full py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer mt-2 text-center ${
-                      evt.type === 'accepted'
-                        ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
-                        : 'bg-amber-600 hover:bg-amber-700 text-white'
-                    }`}
-                  >
-                    {language === 'vi' ? 'Xem chi tiết sự kiện' : 'View Event Details'}
-                  </button>
+                  <div className="flex items-center space-x-1.5 pt-2 mt-auto">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (evt.category === 'negotiation' && onOpenNegotiationModal) {
+                          onOpenNegotiationModal(evt.originalObject as NegotiationOffer);
+                        } else if (evt.category === 'booking' && onOpenBookingDetail) {
+                          onOpenBookingDetail(evt.originalObject as TourBooking);
+                        } else if (evt.category === 'post' && onOpenPostDetail) {
+                          onOpenPostDetail(evt.originalObject as TravelerPostRequest);
+                        } else {
+                          setActiveModalEvent(evt);
+                        }
+                      }}
+                      className={`flex-1 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer text-center ${
+                        evt.type === 'accepted'
+                          ? 'bg-emerald-700 hover:bg-emerald-800 text-white'
+                          : 'bg-amber-600 hover:bg-amber-700 text-white'
+                      }`}
+                    >
+                      {language === 'vi' ? 'Chi tiết' : 'Details'}
+                    </button>
+
+                    {evt.type === 'accepted' && (
+                      <AddToGoogleCalendarButton
+                        payload={{
+                          title: evt.title,
+                          dateStr: evt.dateStr,
+                          timeRangeStr: evt.timeDisplay,
+                          partnerName: evt.partnerName,
+                          partnerRole: userRole === 'guide' ? 'traveler' : 'guide',
+                          priceUSD: evt.priceUSD,
+                          location: evt.location || 'Vietnam',
+                          bookingId: evt.id
+                        }}
+                        variant="outline"
+                        size="sm"
+                        dropdownPlacement="top"
+                        language={language}
+                      />
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
@@ -703,7 +751,8 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
           onClose={() => setActiveModalEvent(null)}
           booking={activeModalEvent.originalObject as TourBooking}
           allBookings={bookings && bookings.length > 0 ? bookings : [activeModalEvent.originalObject as TourBooking]}
-          currentUser={{ id: userRole === 'guide' ? 'u_guide_1' : 'u_traveler_1', name: userRole === 'guide' ? 'Local Guide' : 'Traveler', role: userRole } as any}
+          currentUserRole={userRole}
+          currentUser={currentUser || ({ id: userRole === 'guide' ? 'u_guide_1' : 'u_traveler_1', name: userRole === 'guide' ? 'Local Guide' : 'Traveler', role: userRole } as any)}
           onUpdateStatus={onUpdateStatus}
           onConfirmCompletion={onConfirmCompletion}
           language={language}
@@ -738,7 +787,8 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
             }
           }
           allBookings={bookings && bookings.length > 0 ? bookings : []}
-          currentUser={{ id: userRole === 'guide' ? 'u_guide_1' : 'u_traveler_1', name: userRole === 'guide' ? 'Local Guide' : 'Traveler', role: userRole } as any}
+          currentUserRole={userRole}
+          currentUser={currentUser || ({ id: userRole === 'guide' ? 'u_guide_1' : 'u_traveler_1', name: userRole === 'guide' ? 'Local Guide' : 'Traveler', role: userRole } as any)}
           onUpdateStatus={onUpdateStatus}
           onConfirmCompletion={onConfirmCompletion}
           language={language}
@@ -746,11 +796,11 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
       )}
 
       {activeModalEvent && activeModalEvent.category === 'negotiation' && activeModalEvent.type === 'negotiating' && (
-        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden space-y-4">
+        <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden space-y-4 my-auto max-h-[90vh] flex flex-col">
             
             {/* Modal Header */}
-            <div className="p-5 text-white flex items-center justify-between bg-gradient-to-r from-amber-900 via-slate-900 to-amber-950">
+            <div className="p-5 text-white flex items-center justify-between bg-gradient-to-r from-amber-900 via-slate-900 to-amber-950 shrink-0">
               <div className="flex items-center space-x-2">
                 <span className="material-symbols-outlined text-2xl">hourglass_top</span>
                 <div>
@@ -772,7 +822,7 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
             </div>
 
             {/* Modal Content Details */}
-            <div className="p-6 space-y-4 text-xs text-slate-700">
+            <div className="p-5 sm:p-6 space-y-4 text-xs text-slate-700 overflow-y-auto flex-1 overscroll-contain">
               <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="font-bold text-slate-500">{language === 'vi' ? 'Tên sự kiện:' : 'Event Title:'}</span>
@@ -803,29 +853,29 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
                 </span>
               </div>
 
-              {/* Action Button */}
-              <div className="flex items-center justify-end space-x-2 pt-2">
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
                 <button
                   onClick={() => setActiveModalEvent(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer transition-colors"
                 >
                   {language === 'vi' ? 'Đóng' : 'Close'}
                 </button>
 
-                {onOpenNegotiationModal && (
-                  <button
-                    onClick={() => {
-                      const neg = activeModalEvent.originalObject as NegotiationOffer;
-                      setActiveModalEvent(null);
-                      onOpenNegotiationModal(neg);
-                    }}
-                    className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-extrabold cursor-pointer shadow-sm"
-                  >
-                    {language === 'vi' ? 'Mở Chat Thương Lượng 💬' : 'Open Proposal Chat 💬'}
-                  </button>
-                )}
+                  {onOpenNegotiationModal && (
+                    <button
+                      onClick={() => {
+                        const neg = activeModalEvent.originalObject as NegotiationOffer;
+                        setActiveModalEvent(null);
+                        onOpenNegotiationModal(neg);
+                      }}
+                      className="px-4 py-2 rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-extrabold cursor-pointer shadow-sm"
+                    >
+                      {language === 'vi' ? 'Mở Chat Thương Lượng 💬' : 'Open Proposal Chat 💬'}
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
 
           </div>
         </div>
@@ -833,11 +883,11 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
 
       {/* Traveler Request Post Inspection Modal */}
       {activeModalEvent && activeModalEvent.category === 'post' && (
-        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-fade-in">
-          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden space-y-0">
+        <div className="fixed inset-0 bg-slate-950/75 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 z-50 animate-fade-in overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-lg w-full border border-slate-200 shadow-2xl overflow-hidden space-y-0 my-auto max-h-[90vh] flex flex-col">
             
             {/* Modal Header */}
-            <div className="p-5 text-white flex items-center justify-between bg-gradient-to-r from-teal-900 via-slate-900 to-teal-950">
+            <div className="p-5 text-white flex items-center justify-between bg-gradient-to-r from-teal-900 via-slate-900 to-teal-950 shrink-0">
               <div className="flex items-center space-x-2.5">
                 <span className="material-symbols-outlined text-2xl text-teal-400">campaign</span>
                 <div>
@@ -949,7 +999,7 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
                   )}
 
                   {/* Modal Footer Actions */}
-                  <div className="flex items-center justify-end space-x-2 pt-2 border-t border-slate-100">
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-2 border-t border-slate-100">
                     <button
                       onClick={() => setActiveModalEvent(null)}
                       className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer transition-colors"
@@ -957,26 +1007,26 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
                       {language === 'vi' ? 'Đóng' : 'Close'}
                     </button>
 
-                    {userRole === 'guide' && post.status !== 'booked' && (
-                      <button
-                        onClick={() => {
-                          const p = post;
-                          setActiveModalEvent(null);
-                          if (onOpenPostDetail) {
-                            onOpenPostDetail(p);
-                          }
-                        }}
-                        className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-black cursor-pointer shadow-md transition-all flex items-center space-x-1.5"
-                      >
-                        <span className="material-symbols-outlined text-sm">send</span>
-                        <span>{language === 'vi' ? 'Gửi Báo Giá Ngay' : 'Bid / Send Price Offer'}</span>
-                      </button>
-                    )}
-                  </div>
+                      {userRole === 'guide' && post.status !== 'booked' && (
+                        <button
+                          onClick={() => {
+                            const p = post;
+                            setActiveModalEvent(null);
+                            if (onOpenPostDetail) {
+                              onOpenPostDetail(p);
+                            }
+                          }}
+                          className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-black cursor-pointer shadow-md transition-all flex items-center space-x-1.5"
+                        >
+                          <span className="material-symbols-outlined text-sm">send</span>
+                          <span>{language === 'vi' ? 'Gửi Báo Giá Ngay' : 'Bid / Send Price Offer'}</span>
+                        </button>
+                      )}
+                    </div>
 
-                </div>
-              );
-            })()}
+                  </div>
+                );
+              })()}
 
           </div>
         </div>
