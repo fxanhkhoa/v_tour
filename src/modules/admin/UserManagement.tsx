@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { User } from '../../types';
+import { Language } from '../../lib/translations';
 
 interface UserManagementProps {
   users: User[];
   onToggleUserStatus: (userId: string, status: 'active' | 'suspended') => void;
   onRefreshUsers?: () => void;
+  language?: Language;
 }
 
-export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onToggleUserStatus, onRefreshUsers }) => {
+export const UserManagement: React.FC<UserManagementProps> = ({
+  users = [],
+  onToggleUserStatus,
+  onRefreshUsers,
+  language = 'en'
+}) => {
   const safeUsers = users || [];
   const [searchTerm, setSearchTerm] = useState('');
   const [roleFilter, setRoleFilter] = useState<'all' | 'traveler' | 'guide' | 'admin'>('all');
@@ -24,16 +31,30 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
     return matchesSearch && matchesRole;
   });
 
+  const getRoleLabel = (r: 'all' | 'traveler' | 'guide' | 'admin') => {
+    if (language === 'vi') {
+      switch (r) {
+        case 'all': return 'Tất cả';
+        case 'traveler': return 'Du khách';
+        case 'guide': return 'Hướng dẫn viên';
+        case 'admin': return 'Quản trị viên';
+      }
+    }
+    return r === 'all' ? 'All' : r === 'traveler' ? 'Traveler' : r === 'guide' ? 'Guide' : 'Admin';
+  };
+
   return (
     <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
       <div className="p-5 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/50">
         <div>
           <h3 className="font-extrabold text-slate-900 text-lg flex items-center space-x-2">
             <span className="material-symbols-outlined text-teal-600">manage_accounts</span>
-            <span>Platform User Directory</span>
+            <span>{language === 'vi' ? 'Danh Bạ Người Dùng Nền Tảng' : 'Platform User Directory'}</span>
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
-            Manage Travelers, Tourist Guides, and Back-Office Admins.
+            {language === 'vi'
+              ? 'Quản lý tài khoản Du Khách, Hướng Dẫn Viên và Quản Trị Viên.'
+              : 'Manage Travelers, Tourist Guides, and Back-Office Admins.'}
           </p>
         </div>
 
@@ -42,15 +63,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
             <button
               onClick={onRefreshUsers}
               className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 flex items-center space-x-1.5 transition-all cursor-pointer"
-              title="Fetch latest user list from server"
+              title={language === 'vi' ? 'Lấy danh sách người dùng mới nhất từ máy chủ' : 'Fetch latest user list from server'}
             >
               <span className="material-symbols-outlined text-sm">refresh</span>
-              <span>Refresh Users</span>
+              <span>{language === 'vi' ? 'Làm Mới' : 'Refresh Users'}</span>
             </button>
           )}
 
           <span className="px-3 py-1.5 rounded-full bg-teal-100 text-teal-800 text-xs font-bold border border-teal-200">
-            {filteredUsers.length} of {safeUsers.length} Users
+            {filteredUsers.length} / {safeUsers.length} {language === 'vi' ? 'Người Dùng' : 'Users'}
           </span>
         </div>
       </div>
@@ -65,13 +86,15 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search by name, email, phone, ID..."
+            placeholder={language === 'vi' ? 'Tìm theo tên, email, SĐT, ID...' : 'Search by name, email, phone, ID...'}
             className="w-full pl-9 pr-4 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 font-medium"
           />
         </div>
 
         <div className="flex items-center space-x-2 w-full sm:w-auto">
-          <span className="text-xs text-slate-500 font-bold hidden sm:inline">Role:</span>
+          <span className="text-xs text-slate-500 font-bold hidden sm:inline">
+            {language === 'vi' ? 'Vai trò:' : 'Role:'}
+          </span>
           <div className="flex bg-slate-200/80 p-1 rounded-xl text-xs font-bold w-full sm:w-auto">
             {(['all', 'traveler', 'guide', 'admin'] as const).map((r) => (
               <button
@@ -83,7 +106,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
               >
-                {r}
+                {getRoleLabel(r)}
               </button>
             ))}
           </div>
@@ -94,11 +117,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
         <table className="w-full text-left text-xs">
           <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider">
             <tr>
-              <th className="p-4">User</th>
-              <th className="p-4">Email & Phone</th>
-              <th className="p-4">Role</th>
-              <th className="p-4">Account Status</th>
-              <th className="p-4 text-right">Actions</th>
+              <th className="p-4">{language === 'vi' ? 'Người Dùng' : 'User'}</th>
+              <th className="p-4">{language === 'vi' ? 'Email & SĐT' : 'Email & Phone'}</th>
+              <th className="p-4">{language === 'vi' ? 'Vai Trò' : 'Role'}</th>
+              <th className="p-4">{language === 'vi' ? 'Trạng Thái' : 'Account Status'}</th>
+              <th className="p-4 text-right">{language === 'vi' ? 'Hành Động' : 'Actions'}</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 font-medium">
@@ -108,7 +131,7 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
                   <span className="material-symbols-outlined text-3xl text-slate-300 block mb-1">
                     group_off
                   </span>
-                  No users found matching your criteria.
+                  {language === 'vi' ? 'Không tìm thấy người dùng nào phù hợp.' : 'No users found matching your criteria.'}
                 </td>
               </tr>
             ) : (
@@ -141,7 +164,11 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
                         ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
                         : 'bg-teal-100 text-teal-800 border-teal-200'
                     }`}>
-                      {u.role}
+                      {u.role === 'admin'
+                        ? (language === 'vi' ? 'QUẢN TRỊ' : 'ADMIN')
+                        : u.role === 'guide'
+                        ? (language === 'vi' ? 'HDV DU LỊCH' : 'GUIDE')
+                        : (language === 'vi' ? 'DU KHÁCH' : 'TRAVELER')}
                     </span>
                   </td>
 
@@ -151,7 +178,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
                         ? 'bg-rose-100 text-rose-800'
                         : 'bg-emerald-100 text-emerald-800'
                     }`}>
-                      {u.status || 'active'}
+                      {u.status === 'suspended'
+                        ? (language === 'vi' ? 'Đã Khóa' : 'Suspended')
+                        : (language === 'vi' ? 'Hoạt Động' : 'Active')}
                     </span>
                   </td>
 
@@ -165,7 +194,9 @@ export const UserManagement: React.FC<UserManagementProps> = ({ users = [], onTo
                             : 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
                         }`}
                       >
-                        {u.status === 'suspended' ? 'Re-activate' : 'Suspend User'}
+                        {u.status === 'suspended'
+                          ? (language === 'vi' ? 'Mở Khóa' : 'Re-activate')
+                          : (language === 'vi' ? 'Khóa Tài Khoản' : 'Suspend User')}
                       </button>
                     )}
                   </td>

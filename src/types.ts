@@ -99,6 +99,8 @@ export interface TourPackage {
   reviewsCount: number;
   status: 'published' | 'pending_review' | 'archived';
   createdAt: string;
+  language?: string; // Spoken language the tour will be conducted in (e.g. English, French, Japanese)
+  languages?: string[];
 }
 
 export type RequestPostStatus = 'open' | 'negotiating' | 'booked' | 'closed';
@@ -118,6 +120,7 @@ export interface TravelerPostRequest {
   maxBudgetUSD: number;
   description: string;
   preferredLanguages: string[];
+  preferredLanguage?: string;
   status: RequestPostStatus;
   createdAt: string;
   bidsCount: number;

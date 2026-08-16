@@ -300,14 +300,18 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
                       b.paymentStatus === 'released' ? 'bg-emerald-100 text-emerald-800' :
                       b.paymentStatus === 'refunded' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-900 border border-amber-300'
                     }`}>
-                      {b.paymentStatus === 'released' ? '✅ Escrow Released' : b.paymentStatus === 'refunded' ? '↩️ Refunded' : '🛡️ Held in Platform Escrow'}
+                      {b.paymentStatus === 'released' 
+                        ? (language === 'vi' ? '✅ Đã Giải Ngân Escrow' : '✅ Escrow Released')
+                        : b.paymentStatus === 'refunded' 
+                        ? (language === 'vi' ? '↩️ Đã Hoàn Tiền' : '↩️ Refunded')
+                        : (language === 'vi' ? '🛡️ Đã Ký Quỹ Đảm Bảo' : '🛡️ Held in Platform Escrow')}
                     </span>
                   </div>
                   <p className="text-xs text-slate-500">{t.guideLabel}: {b.guideName} • {t.totalLabel}: ${b.totalPriceUSD} USD</p>
                   <div className="flex flex-wrap items-center gap-2 pt-1">
                     <span className="text-xs font-mono font-bold text-teal-700">{t.safetyPinLabel}: {b.pinCode}</span>
                     <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                      Dual Acceptance: Traveler {b.travelerConfirmedCompletion ? '✓' : '⏳'} | Guide {b.guideConfirmedCompletion ? '✓' : '⏳'}
+                      {language === 'vi' ? 'Xác nhận kép' : 'Dual Acceptance'}: {language === 'vi' ? 'Khách' : 'Traveler'} {b.travelerConfirmedCompletion ? '✓' : '⏳'} | {language === 'vi' ? 'HDV' : 'Guide'} {b.guideConfirmedCompletion ? '✓' : '⏳'}
                     </span>
                   </div>
                 </div>
@@ -331,7 +335,12 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
                   />
 
                   <span className="px-3 py-1 bg-teal-100 text-teal-800 rounded-full text-xs font-bold uppercase">
-                    {(b.status || 'matched').replace('_', ' ')}
+                    {language === 'vi'
+                      ? (b.status === 'matched' ? 'Đã Ghép Nối' :
+                         b.status === 'en_route' ? 'HDV Đang Đến' :
+                         b.status === 'in_progress' ? 'Đang Đi Tour' :
+                         b.status === 'completed' ? 'Hoàn Thành' : b.status)
+                      : (b.status || 'matched').replace('_', ' ')}
                   </span>
 
                   {b.status !== 'completed' && onConfirmCompletion && (
@@ -347,7 +356,11 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
                       <span className="material-symbols-outlined text-sm">
                         {b.travelerConfirmedCompletion ? 'check_circle' : 'verified'}
                       </span>
-                      <span>{b.travelerConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                      <span>
+                        {b.travelerConfirmedCompletion
+                          ? (language === 'vi' ? '✓ Bạn Đã Xác Nhận Hoàn Thành' : '✓ You Accepted Completion')
+                          : (language === 'vi' ? 'Xác Nhận Tour Hoàn Thành' : 'Accept Tour Completed')}
+                      </span>
                     </button>
                   )}
                 </div>

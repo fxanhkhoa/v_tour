@@ -90,23 +90,25 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
           <div>
             <h3 className="font-extrabold text-slate-900 text-lg flex items-center space-x-2">
               <span className="material-symbols-outlined text-amber-500">badge</span>
-              <span>Tourist Guide Verification Queue (KYC)</span>
+              <span>{language === 'vi' ? 'Hàng Đợi Xác Minh Thẻ Hướng Dẫn Viên (KYC)' : 'Tourist Guide Verification Queue (KYC)'}</span>
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
-              Review 5-step pipeline artifacts (CCCD, Face, Guide License Card) against public records.
+              {language === 'vi'
+                ? 'Đối soát 3 ảnh minh chứng (CCCD, Khuôn mặt, Thẻ HDV) với cơ sở dữ liệu quốc gia.'
+                : 'Review 5-step pipeline artifacts (CCCD, Face, Guide License Card) against public records.'}
             </p>
           </div>
 
           <span className="px-3.5 py-1.5 rounded-full bg-amber-100 text-amber-900 text-xs font-bold border border-amber-200">
-            {safeKycList.filter(k => k.status === 'pending').length} Pending Approval
+            {safeKycList.filter(k => k.status === 'pending').length} {language === 'vi' ? 'Chờ Phê Duyệt' : 'Pending Approval'}
           </span>
         </div>
 
         {safeKycList.length === 0 ? (
           <div className="p-12 text-center text-slate-500">
             <span className="material-symbols-outlined text-4xl text-slate-300 mb-2">verified_user</span>
-            <p className="text-sm font-bold text-slate-700">No Applications Pending Review</p>
-            <p className="text-xs text-slate-400 mt-1">All tourist guide applications have been processed.</p>
+            <p className="text-sm font-bold text-slate-700">{language === 'vi' ? 'Không Có Hồ Sơ Nào Đang Chờ Duyệt' : 'No Applications Pending Review'}</p>
+            <p className="text-xs text-slate-400 mt-1">{language === 'vi' ? 'Tất cả hồ sơ hướng dẫn viên đã được xử lý xong.' : 'All tourist guide applications have been processed.'}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -150,7 +152,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
                           type="button"
                           onClick={() => handleCopy(kyc.cardNumber)}
                           className="p-1.5 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-700 font-bold border border-teal-200 cursor-pointer transition-all flex items-center"
-                          title="Copy Card Number for huongdanvien.vn Portal"
+                          title={language === 'vi' ? 'Sao chép số thẻ để tra cứu trên huongdanvien.vn' : 'Copy Card Number for huongdanvien.vn Portal'}
                         >
                           <span className="material-symbols-outlined text-sm">
                             {copiedCardNum === kyc.cardNumber ? 'check' : 'content_copy'}
@@ -158,7 +160,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
                         </button>
                       </div>
                       <p className="text-[11px] text-slate-600 mt-1">{kyc.issuingAuthority}</p>
-                      <p className="text-[10px] text-slate-400">Expires: {kyc.expiryDate}</p>
+                      <p className="text-[10px] text-slate-400">{language === 'vi' ? `Hết hạn: ${kyc.expiryDate}` : `Expires: ${kyc.expiryDate}`}</p>
                     </td>
 
                     {/* 3 Pipeline Artifacts View */}
@@ -186,13 +188,17 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
                           ? 'bg-amber-100 text-amber-800 border-amber-200'
                           : 'bg-rose-100 text-rose-800 border-rose-200'
                       }`}>
-                        {kyc.status}
+                        {kyc.status === 'verified'
+                          ? (language === 'vi' ? 'ĐÃ XÁC THỰC' : 'VERIFIED')
+                          : kyc.status === 'pending'
+                          ? (language === 'vi' ? 'CHỜ DUYỆT' : 'PENDING')
+                          : (language === 'vi' ? 'TỪ CHỐI' : 'REJECTED')}
                       </span>
                       {kyc.rejectionReason && (
                         <div className="mt-1.5 p-2 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-[10px]">
-                          <p className="font-bold">Reason: {kyc.rejectionReason}</p>
+                          <p className="font-bold">{language === 'vi' ? 'Lý do:' : 'Reason:'} {kyc.rejectionReason}</p>
                           {kyc.declineInstructions && (
-                            <p className="text-[9px] text-slate-600 mt-0.5">Instructions: {kyc.declineInstructions}</p>
+                            <p className="text-[9px] text-slate-600 mt-0.5">{language === 'vi' ? 'Hướng dẫn:' : 'Instructions:'} {kyc.declineInstructions}</p>
                           )}
                         </div>
                       )}
@@ -219,7 +225,9 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
                           </button>
                         </div>
                       ) : (
-                        <span className="text-slate-400 italic text-xs">Decision Recorded</span>
+                        <span className="text-slate-400 italic text-xs">
+                          {language === 'vi' ? 'Đã Quyết Định Xong' : 'Decision Recorded'}
+                        </span>
                       )}
                     </td>
 
@@ -244,17 +252,19 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
 
             <div className="flex items-center space-x-2 text-teal-700 font-extrabold text-xs uppercase mb-1">
               <span className="material-symbols-outlined text-base">file_present</span>
-              <span>Guide Verification Document Inspection</span>
+              <span>{language === 'vi' ? 'Kiểm Tra Hồ Sơ Xác Thực Hướng Dẫn Viên' : 'Guide Verification Document Inspection'}</span>
             </div>
             <h4 className="font-extrabold text-slate-900 text-lg mb-4">
-              KYC Artifacts for {selectedKycDoc.guideName}
+              {language === 'vi' ? `Hồ Sơ Minh Chứng KYC Của ${selectedKycDoc.guideName}` : `KYC Artifacts for ${selectedKycDoc.guideName}`}
             </h4>
 
             {/* Portal Link Reminder */}
             <div className="bg-slate-900 p-3 rounded-2xl text-white flex items-center justify-between mb-5 text-xs">
               <div>
-                <span className="text-teal-400 font-bold block">License Card #: {selectedKycDoc.cardNumber}</span>
-                <span className="text-[11px] text-slate-300">Verify this card number on the National Tourism Authority portal.</span>
+                <span className="text-teal-400 font-bold block">{language === 'vi' ? 'Số Thẻ HDV:' : 'License Card #:'} {selectedKycDoc.cardNumber}</span>
+                <span className="text-[11px] text-slate-300">
+                  {language === 'vi' ? 'Tra cứu số thẻ này trên cổng thông tin Cục Du Lịch Quốc Gia.' : 'Verify this card number on the National Tourism Authority portal.'}
+                </span>
               </div>
               <a
                 href="https://huongdanvien.vn/index.php/guide/cat/05"
@@ -262,7 +272,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
                 rel="noopener noreferrer"
                 className="px-3 py-1.5 rounded-xl bg-teal-500 text-slate-950 font-bold text-xs hover:bg-teal-400 transition-all flex items-center space-x-1"
               >
-                <span>Check Portal</span>
+                <span>{language === 'vi' ? 'Tra Cứu Cổng' : 'Check Portal'}</span>
                 <span className="material-symbols-outlined text-xs">open_in_new</span>
               </a>
             </div>
@@ -271,7 +281,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
               
               {/* CCCD Front & Back */}
               <div className="space-y-2">
-                <p className="font-extrabold text-slate-800">1. CCCD Front Side</p>
+                <p className="font-extrabold text-slate-800">{language === 'vi' ? '1. Mặt Trước CCCD' : '1. CCCD Front Side'}</p>
                 <img
                   src={selectedKycDoc.cccdFrontUrl || selectedKycDoc.cardImageUrl}
                   alt="CCCD Front"
@@ -280,7 +290,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
               </div>
 
               <div className="space-y-2">
-                <p className="font-extrabold text-slate-800">2. CCCD Back Side</p>
+                <p className="font-extrabold text-slate-800">{language === 'vi' ? '2. Mặt Sau CCCD' : '2. CCCD Back Side'}</p>
                 <img
                   src={selectedKycDoc.cccdBackUrl || selectedKycDoc.cardImageUrl}
                   alt="CCCD Back"
@@ -290,7 +300,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
 
               {/* Face Photo */}
               <div className="space-y-2">
-                <p className="font-extrabold text-slate-800">3. Face Portrait Photo</p>
+                <p className="font-extrabold text-slate-800">{language === 'vi' ? '3. Ảnh Chân Dung Trực Tiếp' : '3. Face Portrait Photo'}</p>
                 <img
                   src={selectedKycDoc.facePhotoUrl || selectedKycDoc.guideAvatar}
                   alt="Face"
@@ -300,7 +310,7 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
 
               {/* Tourist Guide License Card */}
               <div className="space-y-2">
-                <p className="font-extrabold text-slate-800">4. Tourist Guide License Card</p>
+                <p className="font-extrabold text-slate-800">{language === 'vi' ? '4. Thẻ Hướng Dẫn Viên Du Lịch' : '4. Tourist Guide License Card'}</p>
                 <img
                   src={selectedKycDoc.tourGuideCardUrl || selectedKycDoc.cardImageUrl}
                   alt="Guide Card"
@@ -312,13 +322,13 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
 
             <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between">
               <div className="text-[11px] text-slate-500">
-                Terms Policy Agreed: <strong className="text-emerald-600">Yes ✓</strong>
+                {language === 'vi' ? 'Đã Đồng Ý Điều Khoản:' : 'Terms Policy Agreed:'} <strong className="text-emerald-600">{language === 'vi' ? 'Đã Đồng Ý ✓' : 'Yes ✓'}</strong>
               </div>
               <button
                 onClick={() => setSelectedKycDoc(null)}
-                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs"
+                className="px-5 py-2 rounded-xl bg-slate-900 text-white font-bold text-xs cursor-pointer hover:bg-slate-800 transition-colors"
               >
-                Close Inspector
+                {language === 'vi' ? 'Đóng Kiểm Tra' : 'Close Inspector'}
               </button>
             </div>
           </div>
@@ -339,60 +349,63 @@ export const KYCApprovalTable: React.FC<KYCApprovalTableProps> = ({ kycList = []
 
             <div className="flex items-center space-x-2 text-rose-600 font-extrabold text-xs uppercase">
               <span className="material-symbols-outlined text-base">cancel</span>
-              <span>Decline Guide KYC Application</span>
+              <span>{language === 'vi' ? 'Từ Chối Hồ Sơ KYC Hướng Dẫn Viên' : 'Decline Guide KYC Application'}</span>
             </div>
             
             <h4 className="font-extrabold text-slate-900 text-lg">
-              Decline {declineModalKyc.guideName}'s Verification
+              {language === 'vi' ? `Từ Chối Xác Thực Của ${declineModalKyc.guideName}` : `Decline ${declineModalKyc.guideName}'s Verification`}
             </h4>
 
             <form onSubmit={handleConfirmDecline} className="space-y-3 text-xs">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Primary Decline Reason <span className="text-rose-500">*</span>
+                  {language === 'vi' ? 'Lý Do Từ Chối Chính' : 'Primary Decline Reason'} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
                   required
                   value={declineReason}
                   onChange={(e) => setDeclineReason(e.target.value)}
-                  placeholder="e.g. License card number not found on huongdanvien.vn portal"
+                  placeholder={language === 'vi' ? 'Ví dụ: Không tìm thấy số thẻ trên cổng huongdanvien.vn' : 'e.g. License card number not found on huongdanvien.vn portal'}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
-                  Instructions for Tourist Guide (How to Fix) <span className="text-rose-500">*</span>
+                  {language === 'vi' ? 'Hướng Dẫn Cho HDV (Cách Khắc Phục)' : 'Instructions for Tourist Guide (How to Fix)'} <span className="text-rose-500">*</span>
                 </label>
                 <textarea
                   rows={3}
                   required
                   value={declineInstructions}
                   onChange={(e) => setDeclineInstructions(e.target.value)}
-                  placeholder="Provide detailed instructions on what documents need to be re-uploaded..."
+                  placeholder={language === 'vi' ? 'Cung cấp hướng dẫn chi tiết về tài liệu cần tải lại...' : 'Provide detailed instructions on what documents need to be re-uploaded...'}
                   className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-rose-500"
                 />
               </div>
 
               <div className="p-3 bg-amber-50 rounded-2xl border border-amber-200 text-[11px] text-amber-900 font-medium">
-                💡 <strong>Admin Tip:</strong> Re-verify card number on <a href="https://huongdanvien.vn/index.php/guide/cat/05" target="_blank" rel="noreferrer" className="underline font-bold text-teal-800">huongdanvien.vn</a> before sending.
+                💡 <strong>{language === 'vi' ? 'Gợi ý Admin:' : 'Admin Tip:'}</strong> {language === 'vi' ? 'Kiểm tra lại số thẻ trên ' : 'Re-verify card number on '}
+                <a href="https://huongdanvien.vn/index.php/guide/cat/05" target="_blank" rel="noreferrer" className="underline font-bold text-teal-800">
+                  huongdanvien.vn
+                </a> {language === 'vi' ? 'trước khi xác nhận từ chối.' : 'before sending.'}
               </div>
 
               <div className="flex items-center space-x-2 pt-2">
                 <button
                   type="button"
                   onClick={() => setDeclineModalKyc(null)}
-                  className="w-1/2 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
+                  className="w-1/2 py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer transition-colors"
                 >
-                  Cancel
+                  {language === 'vi' ? 'Hủy Bỏ' : 'Cancel'}
                 </button>
                 <button
                   type="submit"
-                  className="w-1/2 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold shadow-md cursor-pointer flex items-center justify-center space-x-1"
+                  className="w-1/2 py-2.5 rounded-2xl bg-rose-600 hover:bg-rose-500 text-white font-extrabold shadow-md cursor-pointer flex items-center justify-center space-x-1 transition-colors"
                 >
                   <span className="material-symbols-outlined text-sm">send</span>
-                  <span>Confirm Decline</span>
+                  <span>{language === 'vi' ? 'Xác Nhận Từ Chối' : 'Confirm Decline'}</span>
                 </button>
               </div>
             </form>

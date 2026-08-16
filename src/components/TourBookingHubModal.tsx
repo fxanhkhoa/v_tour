@@ -410,19 +410,19 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
             <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border ${
               travelerConfirmed ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-white text-slate-600 border-slate-300'
             }`}>
-              Traveler: {travelerConfirmed ? '✓ Accepted' : '⏳ Pending'}
+              {language === 'vi' ? 'Khách' : 'Traveler'}: {travelerConfirmed ? (language === 'vi' ? '✓ Đã Xác Nhận' : '✓ Accepted') : (language === 'vi' ? '⏳ Đang Chờ' : '⏳ Pending')}
             </span>
             <span className={`px-2.5 py-1 rounded-xl text-[10px] font-bold border ${
               guideConfirmed ? 'bg-emerald-100 text-emerald-900 border-emerald-300' : 'bg-white text-slate-600 border-slate-300'
             }`}>
-              Guide: {guideConfirmed ? '✓ Accepted' : '⏳ Pending'}
+              {language === 'vi' ? 'HDV' : 'Guide'}: {guideConfirmed ? (language === 'vi' ? '✓ Đã Xác Nhận' : '✓ Accepted') : (language === 'vi' ? '⏳ Đang Chờ' : '⏳ Pending')}
             </span>
 
             {!isDualConfirmed ? (
               userHasConfirmed ? (
                 <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 font-bold text-[11px] flex items-center space-x-1">
                   <span className="material-symbols-outlined text-xs text-amber-700">hourglass_top</span>
-                  <span>{language === 'vi' ? `Bạn đã xác nhận (Chờ ${counterpartyRole})` : `You Accepted (Awaiting ${counterpartyRole})`}</span>
+                  <span>{language === 'vi' ? `Bạn đã xác nhận (Chờ ${userRole === 'guide' ? 'Khách' : 'HDV'})` : `You Accepted (Awaiting ${counterpartyRole})`}</span>
                 </span>
               ) : (
                 <button
@@ -572,9 +572,9 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                 >
                   <span className="flex items-center space-x-1.5">
                     <span>📍</span>
-                    <span>Matched</span>
+                    <span>{language === 'vi' ? 'Đã Ghép Nối' : 'Matched'}</span>
                   </span>
-                  {currentStatus === 'matched' && <span className="text-[9px] bg-teal-800 text-white px-1.5 py-0.5 rounded-md">ACTIVE</span>}
+                  {currentStatus === 'matched' && <span className="text-[9px] bg-teal-800 text-white px-1.5 py-0.5 rounded-md">{language === 'vi' ? 'HIỆN TẠI' : 'ACTIVE'}</span>}
                 </button>
 
                 <button
@@ -586,9 +586,9 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                 >
                   <span className="flex items-center space-x-1.5">
                     <span>🛵</span>
-                    <span>Guide En Route</span>
+                    <span>{language === 'vi' ? 'HDV Đang Đến' : 'Guide En Route'}</span>
                   </span>
-                  {currentStatus === 'en_route' && <span className="text-[9px] bg-amber-800 text-white px-1.5 py-0.5 rounded-md">ACTIVE</span>}
+                  {currentStatus === 'en_route' && <span className="text-[9px] bg-amber-800 text-white px-1.5 py-0.5 rounded-md">{language === 'vi' ? 'HIỆN TẠI' : 'ACTIVE'}</span>}
                 </button>
 
                 <button
@@ -600,9 +600,9 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                 >
                   <span className="flex items-center space-x-1.5">
                     <span>🎒</span>
-                    <span>On Tour Now</span>
+                    <span>{language === 'vi' ? 'Đang Đi Tour' : 'On Tour Now'}</span>
                   </span>
-                  {currentStatus === 'in_progress' && <span className="text-[9px] bg-emerald-800 text-white px-1.5 py-0.5 rounded-md">ACTIVE</span>}
+                  {currentStatus === 'in_progress' && <span className="text-[9px] bg-emerald-800 text-white px-1.5 py-0.5 rounded-md">{language === 'vi' ? 'HIỆN TẠI' : 'ACTIVE'}</span>}
                 </button>
 
                 <button
@@ -620,21 +620,21 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                     <span>{isDualConfirmed ? '🏁' : userHasConfirmed ? '⏳' : counterpartyHasConfirmed ? '🔔' : '🏁'}</span>
                     <span className="truncate">
                       {isDualConfirmed
-                        ? 'Completed'
+                        ? (language === 'vi' ? 'Hoàn Thành' : 'Completed')
                         : userHasConfirmed
-                          ? 'Awaiting ' + counterpartyRole
+                          ? (language === 'vi' ? `Chờ ${userRole === 'guide' ? 'Khách' : 'HDV'}` : 'Awaiting ' + counterpartyRole)
                           : counterpartyHasConfirmed
-                            ? counterpartyRole + ' Completed'
-                            : 'Completed'}
+                            ? (language === 'vi' ? `${userRole === 'guide' ? 'Khách' : 'HDV'} Đã Xong` : counterpartyRole + ' Completed')
+                            : (language === 'vi' ? 'Hoàn Thành' : 'Completed')}
                     </span>
                   </span>
                   {currentStatus === 'completed' && (
                     isDualConfirmed ? (
-                      <span className="text-[9px] bg-indigo-800 text-white px-1.5 py-0.5 rounded-md shrink-0">RELEASED</span>
+                      <span className="text-[9px] bg-indigo-800 text-white px-1.5 py-0.5 rounded-md shrink-0">{language === 'vi' ? 'ĐÃ GIẢI NGÂN' : 'RELEASED'}</span>
                     ) : userHasConfirmed ? (
-                      <span className="text-[9px] bg-amber-700 text-white px-1.5 py-0.5 rounded-md shrink-0">PENDING</span>
+                      <span className="text-[9px] bg-amber-700 text-white px-1.5 py-0.5 rounded-md shrink-0">{language === 'vi' ? 'CHỜ ĐỐI TÁC' : 'PENDING'}</span>
                     ) : (
-                      <span className="text-[9px] bg-teal-700 text-white px-1.5 py-0.5 rounded-md shrink-0">ACTION REQ</span>
+                      <span className="text-[9px] bg-teal-700 text-white px-1.5 py-0.5 rounded-md shrink-0">{language === 'vi' ? 'CẦN XÁC NHẬN' : 'ACTION REQ'}</span>
                     )
                   )}
                 </button>
@@ -659,7 +659,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                         {language === 'vi' ? 'Trạng Thái & Tiến Độ Tour' : 'Live Tour Stage Controller'}
                       </h5>
                     </div>
-                    <span className="text-[11px] font-bold text-slate-500">Tap to switch stage:</span>
+                    <span className="text-[11px] font-bold text-slate-500">{language === 'vi' ? 'Bấm để đổi giai đoạn:' : 'Tap to switch stage:'}</span>
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -673,9 +673,9 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       }`}
                     >
                       <span className="text-base">📍</span>
-                      <span className="text-[11px]">1. Matched</span>
+                      <span className="text-[11px]">{language === 'vi' ? '1. Đã Ghép Nối' : '1. Matched'}</span>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold ${currentStatus === 'matched' ? 'bg-teal-900 text-teal-200' : 'text-slate-400'}`}>
-                        {currentStatus === 'matched' ? '● CURRENT' : 'Scheduled'}
+                        {currentStatus === 'matched' ? (language === 'vi' ? '● HIỆN TẠI' : '● CURRENT') : (language === 'vi' ? 'Đã lên lịch' : 'Scheduled')}
                       </span>
                     </button>
 
@@ -689,9 +689,9 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       }`}
                     >
                       <span className="text-base">🛵</span>
-                      <span className="text-[11px]">2. Guide En Route</span>
+                      <span className="text-[11px]">{language === 'vi' ? '2. HDV Đang Đến' : '2. Guide En Route'}</span>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold ${currentStatus === 'en_route' ? 'bg-amber-900 text-amber-100' : 'text-slate-400'}`}>
-                        {currentStatus === 'en_route' ? '● CURRENT' : 'Departing'}
+                        {currentStatus === 'en_route' ? (language === 'vi' ? '● HIỆN TẠI' : '● CURRENT') : (language === 'vi' ? 'Đang đi đón' : 'Departing')}
                       </span>
                     </button>
 
@@ -705,9 +705,9 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       }`}
                     >
                       <span className="text-base">🎒</span>
-                      <span className="text-[11px]">3. On Tour Now</span>
+                      <span className="text-[11px]">{language === 'vi' ? '3. Đang Đi Tour' : '3. On Tour Now'}</span>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold ${currentStatus === 'in_progress' ? 'bg-emerald-900 text-emerald-100' : 'text-slate-400'}`}>
-                        {currentStatus === 'in_progress' ? '● CURRENT' : 'Active'}
+                        {currentStatus === 'in_progress' ? (language === 'vi' ? '● HIỆN TẠI' : '● CURRENT') : (language === 'vi' ? 'Đang diễn ra' : 'Active')}
                       </span>
                     </button>
 
@@ -725,7 +725,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       }`}
                     >
                       <span className="text-base">{isDualConfirmed ? '🏁' : userHasConfirmed ? '⏳' : counterpartyHasConfirmed ? '🔔' : '🏁'}</span>
-                      <span className="text-[11px]">4. Completed</span>
+                      <span className="text-[11px]">{language === 'vi' ? '4. Hoàn Thành' : '4. Completed'}</span>
                       <span className={`text-[9px] px-1.5 py-0.5 rounded-md font-extrabold ${
                         currentStatus === 'completed'
                           ? (isDualConfirmed
@@ -737,11 +737,11 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       }`}>
                         {currentStatus === 'completed'
                           ? (isDualConfirmed
-                              ? '● DUAL ACCEPTED'
+                              ? (language === 'vi' ? '● ĐÃ XÁC NHẬN KÉP' : '● DUAL ACCEPTED')
                               : userHasConfirmed
-                                ? `✓ YOU (${counterpartyRole.toUpperCase()} PENDING)`
-                                : `Tap to Confirm (${counterpartyRole} Done)`)
-                          : 'Tap to Complete'}
+                                ? (language === 'vi' ? `✓ BẠN (CHỜ ${userRole === 'guide' ? 'KHÁCH' : 'HDV'})` : `✓ YOU (${counterpartyRole.toUpperCase()} PENDING)`)
+                                : (language === 'vi' ? `Bấm xác nhận (${userRole === 'guide' ? 'Khách' : 'HDV'} Đã Xong)` : `Tap to Confirm (${counterpartyRole} Done)`))
+                          : (language === 'vi' ? 'Bấm hoàn thành' : 'Tap to Complete')}
                       </span>
                     </button>
                   </div>
@@ -779,7 +779,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                         language={language}
                       />
                       <span className="px-3 py-1 rounded-full bg-emerald-500 text-slate-950 font-black text-[11px] shadow-sm">
-                        ● Active Tour Pass
+                        {language === 'vi' ? '● Vé Tour Có Hiệu Lực' : '● Active Tour Pass'}
                       </span>
                     </div>
                   </div>
@@ -796,15 +796,19 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                   <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-800 text-xs">
                     <div>
                       <p className="text-[10px] text-slate-400 font-medium">{language === 'vi' ? 'Thời lượng:' : 'Duration:'}</p>
-                      <p className="font-extrabold text-white">6 Hours</p>
+                      <p className="font-extrabold text-white">{language === 'vi' ? '6 Giờ' : '6 Hours'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-slate-400 font-medium">{language === 'vi' ? 'Số lượng khách:' : 'Group Size:'}</p>
-                      <p className="font-extrabold text-white">{selectedBooking.groupSize} Traveler(s)</p>
+                      <p className="font-extrabold text-white">{selectedBooking.groupSize} {language === 'vi' ? 'Khách' : 'Traveler(s)'}</p>
                     </div>
                     <div>
                       <p className="text-[10px] text-slate-400 font-medium">{language === 'vi' ? 'Phương tiện:' : 'Transport:'}</p>
-                      <p className="font-extrabold text-teal-300 capitalize">{selectedBooking.transportMode || 'Scooter'}</p>
+                      <p className="font-extrabold text-teal-300 capitalize">
+                        {selectedBooking.transportMode 
+                          ? (language === 'vi' && (selectedBooking.transportMode.toLowerCase() === 'scooter' || selectedBooking.transportMode.toLowerCase() === 'motorbike') ? 'Xe máy' : selectedBooking.transportMode)
+                          : (language === 'vi' ? 'Xe máy' : 'Scooter')}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -818,15 +822,15 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Total Agreed Price</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">{language === 'vi' ? 'Tổng Chi Phí Chốt' : 'Total Agreed Price'}</span>
                       <p className="font-black text-teal-700 text-base">${selectedBooking.totalPriceUSD} USD</p>
-                      <p className="text-[10px] text-slate-500">All-inclusive tour rate</p>
+                      <p className="text-[10px] text-slate-500">{language === 'vi' ? 'Giá trọn gói tour đã chốt' : 'All-inclusive tour rate'}</p>
                     </div>
 
                     <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Assigned Local Guide</span>
+                      <span className="text-[10px] font-bold text-slate-400 uppercase">{language === 'vi' ? 'Hướng Dẫn Viên Bản Địa' : 'Assigned Local Guide'}</span>
                       <p className="font-bold text-slate-900 text-sm">{selectedBooking.guideName}</p>
-                      <p className="text-[10px] text-emerald-700 font-semibold">✓ Licensed & Identity Verified</p>
+                      <p className="text-[10px] text-emerald-700 font-semibold">{language === 'vi' ? '✓ Có Chứng Chỉ & Đã Xác Minh' : '✓ Licensed & Identity Verified'}</p>
                     </div>
                   </div>
                 </div>
@@ -859,7 +863,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                 <div className="p-4 rounded-3xl bg-gradient-to-r from-teal-900 via-slate-900 to-teal-950 text-white shadow-md flex items-center justify-between">
                   <div className="space-y-1">
                     <span className="px-2.5 py-0.5 rounded-full bg-teal-400/20 text-teal-300 text-[10px] font-bold border border-teal-400/30 uppercase">
-                      Safety Verification PIN
+                      {language === 'vi' ? 'Mã PIN An Toàn' : 'Safety Verification PIN'}
                     </span>
                     <h4 className="font-extrabold text-sm text-white">
                       {language === 'vi' ? 'Mã PIN Đồng Phục Đón Khách' : 'Meetup Verification PIN Code'}
@@ -880,7 +884,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       onClick={() => handleCopy(selectedBooking.pinCode || '8492', 'pin')}
                       className="px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-teal-800 font-extrabold text-[10px] cursor-pointer transition-all border border-teal-200"
                     >
-                      {copiedPin ? '✓ Copied!' : 'Copy PIN'}
+                      {copiedPin ? (language === 'vi' ? '✓ Đã Sao Chép!' : '✓ Copied!') : (language === 'vi' ? 'Sao Chép PIN' : 'Copy PIN')}
                     </button>
                   </div>
                 </div>
@@ -898,7 +902,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       className="text-xs font-bold text-teal-700 hover:text-teal-800 cursor-pointer flex items-center space-x-1"
                     >
                       <span className="material-symbols-outlined text-sm">content_copy</span>
-                      <span>{copiedAddress ? 'Copied!' : 'Copy Address'}</span>
+                      <span>{copiedAddress ? (language === 'vi' ? '✓ Đã Sao Chép!' : '✓ Copied!') : (language === 'vi' ? 'Sao Chép Địa Chỉ' : 'Copy Address')}</span>
                     </button>
                   </div>
 
@@ -906,7 +910,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                     <div className="flex items-start space-x-2">
                       <span className="material-symbols-outlined text-rose-600 text-lg">location_on</span>
                       <div>
-                        <p className="text-[10px] font-bold text-slate-400 uppercase">Exact Pickup Location</p>
+                        <p className="text-[10px] font-bold text-slate-400 uppercase">{language === 'vi' ? 'Địa Điểm Đón Chính Xác' : 'Exact Pickup Location'}</p>
                         <p className="font-extrabold text-slate-900 text-sm">{selectedBooking.pickupLocation}</p>
                       </div>
                     </div>
@@ -914,7 +918,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                     <div className="pt-2 border-t border-slate-200/80 text-xs text-slate-700 space-y-1">
                       <p className="font-bold text-slate-900 flex items-center space-x-1">
                         <span className="material-symbols-outlined text-sm text-teal-600">info</span>
-                        <span>Guide Pickup Notes:</span>
+                        <span>{language === 'vi' ? 'Ghi Chú Đón Khách Của HDV:' : 'Guide Pickup Notes:'}</span>
                       </p>
                       <p className="text-slate-600 leading-relaxed bg-white p-2.5 rounded-xl border border-slate-200">
                         {meetingInstructions}
@@ -978,7 +982,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                         {userRole === 'guide' ? selectedBooking.travelerName : selectedBooking.guideName}
                       </p>
                       <p className="text-[10px] text-teal-700 font-semibold">
-                        {userRole === 'guide' ? 'Verified Traveler' : (selectedBooking.guidePhone || '+84 908 123 456')}
+                        {userRole === 'guide' ? (language === 'vi' ? 'Du Khách Đã Xác Minh' : 'Verified Traveler') : (selectedBooking.guidePhone || '+84 908 123 456')}
                       </p>
                     </div>
                   </div>
@@ -989,14 +993,14 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       type="button"
                       onClick={() => handleStartVideoCall(true)}
                       className="px-3 py-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-sm transition-all cursor-pointer flex items-center space-x-1.5 active:scale-95"
-                      title="Start Google Meet Style Video Call"
+                      title={language === 'vi' ? "Bắt đầu cuộc gọi video trực tiếp" : "Start Google Meet Style Video Call"}
                     >
                       <span className="material-symbols-outlined text-base">video_camera_front</span>
                       <span>{language === 'vi' ? 'Gọi Video Meet' : 'Start Video Call'}</span>
                     </button>
 
                     <span className="px-2.5 py-1 rounded-full bg-emerald-600 text-white font-extrabold text-[10px] hidden sm:inline-block">
-                      ● Active
+                      ● {language === 'vi' ? 'Trực tuyến' : 'Active'}
                     </span>
                   </div>
                 </div>
@@ -1009,8 +1013,8 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                     {messages.length === 0 ? (
                       <div className="text-center py-8 text-slate-400 text-xs space-y-1">
                         <span className="material-symbols-outlined text-3xl text-slate-300">chat_bubble_outline</span>
-                        <p className="font-bold">No messages yet</p>
-                        <p className="text-[10px]">Send a quick message or start a live video call to coordinate!</p>
+                        <p className="font-bold">{language === 'vi' ? 'Chưa có tin nhắn nào' : 'No messages yet'}</p>
+                        <p className="text-[10px]">{language === 'vi' ? 'Gửi tin nhắn hoặc gọi video để trao đổi trực tiếp!' : 'Send a quick message or start a live video call to coordinate!'}</p>
                       </div>
                     ) : (
                       messages.map((m) => {
@@ -1030,8 +1034,8 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                                     <span className="material-symbols-outlined text-lg">video_camera_front</span>
                                   </div>
                                   <div>
-                                    <p className="text-xs font-black text-white">Google Meet Video Call</p>
-                                    <p className="text-[10px] text-teal-200">{m.senderName} started a call</p>
+                                    <p className="text-xs font-black text-white">{language === 'vi' ? 'Cuộc Gọi Video Google Meet' : 'Google Meet Video Call'}</p>
+                                    <p className="text-[10px] text-teal-200">{m.senderName} {language === 'vi' ? 'đã bắt đầu cuộc gọi' : 'started a call'}</p>
                                   </div>
                                 </div>
                                 <button
@@ -1066,17 +1070,17 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                   <div className="flex flex-wrap gap-1.5 pt-2 border-t border-slate-100 text-[11px]">
                     <button
                       type="button"
-                      onClick={() => handleSendMessage(undefined, "Hi! I am in the lobby waiting 👋")}
+                      onClick={() => handleSendMessage(undefined, language === 'vi' ? "Xin chào! Mình đang đợi ở sảnh 👋" : "Hi! I am in the lobby waiting 👋")}
                       className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-teal-50 hover:text-teal-800 text-slate-700 font-medium transition-colors cursor-pointer border border-slate-200"
                     >
-                      "I'm in lobby 👋"
+                      {language === 'vi' ? '"Mình đang đợi ở sảnh 👋"' : '"I\'m in lobby 👋"'}
                     </button>
                     <button
                       type="button"
-                      onClick={() => handleSendMessage(undefined, "Hi! Where is our exact meeting spot?")}
+                      onClick={() => handleSendMessage(undefined, language === 'vi' ? "Xin chào! Điểm đón chính xác ở đâu vậy?" : "Hi! Where is our exact meeting spot?")}
                       className="px-2.5 py-1 rounded-xl bg-slate-100 hover:bg-teal-50 hover:text-teal-800 text-slate-700 font-medium transition-colors cursor-pointer border border-slate-200"
                     >
-                      "Where is pickup point?"
+                      {language === 'vi' ? '"Điểm đón ở đâu?"' : '"Where is pickup point?"'}
                     </button>
                     <button
                       type="button"
@@ -1084,7 +1088,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       className="px-2.5 py-1 rounded-xl bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold transition-colors cursor-pointer border border-teal-200 flex items-center space-x-1"
                     >
                       <span className="material-symbols-outlined text-xs">videocam</span>
-                      <span>"Start Video Call 📹"</span>
+                      <span>{language === 'vi' ? '"Gọi Video 📹"' : '"Start Video Call 📹"'}</span>
                     </button>
                   </div>
 
@@ -1092,7 +1096,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                   <form onSubmit={handleSendMessage} className="flex items-center space-x-2 pt-2">
                     <input
                       type="text"
-                      placeholder="Type a message..."
+                      placeholder={language === 'vi' ? 'Nhập tin nhắn...' : 'Type a message...'}
                       value={chatInput}
                       onChange={(e) => setChatInput(e.target.value)}
                       className="flex-1 px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
@@ -1101,7 +1105,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       type="submit"
                       className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl shadow cursor-pointer transition-all"
                     >
-                      Send
+                      {language === 'vi' ? 'Gửi' : 'Send'}
                     </button>
                   </form>
 
@@ -1145,14 +1149,16 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       <div className="flex items-center space-x-2">
                         <h4 className="font-extrabold text-base text-slate-900">{selectedBooking.guideName}</h4>
                         <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px] border border-emerald-300">
-                          ✓ Verified License
+                          {language === 'vi' ? '✓ Thẻ HDV Hợp Lệ' : '✓ Verified License'}
                         </span>
                       </div>
-                      <p className="text-xs text-slate-500 mt-0.5">Licensed Local Tour Guide • Vietnam Heritage Expert</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {language === 'vi' ? 'HDV Du Lịch Bản Địa • Chuyên Gia Văn Hóa Di Sản' : 'Licensed Local Tour Guide • Vietnam Heritage Expert'}
+                      </p>
                       <div className="flex items-center space-x-2 text-xs font-bold text-amber-600 mt-1">
-                        <span>★ 4.9 (128 reviews)</span>
+                        <span>★ 4.9 (128 {language === 'vi' ? 'đánh giá' : 'reviews'})</span>
                         <span className="text-slate-300">•</span>
-                        <span className="text-slate-700">English, Vietnamese, French</span>
+                        <span className="text-slate-700">{language === 'vi' ? 'Tiếng Việt, Tiếng Anh, Tiếng Pháp' : 'English, Vietnamese, French'}</span>
                       </div>
                     </div>
                   </div>
@@ -1163,7 +1169,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       className="p-3 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 font-bold flex items-center justify-center space-x-2 hover:bg-teal-100 transition-colors cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-lg">call</span>
-                      <span>Call Guide ({selectedBooking.guidePhone || '+84 908 123 456'})</span>
+                      <span>{language === 'vi' ? 'Gọi HDV' : 'Call Guide'} ({selectedBooking.guidePhone || '+84 908 123 456'})</span>
                     </a>
 
                     <button
@@ -1171,7 +1177,7 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       className="p-3 rounded-2xl bg-slate-900 text-white font-bold flex items-center justify-center space-x-2 hover:bg-slate-800 transition-colors cursor-pointer"
                     >
                       <span className="material-symbols-outlined text-lg">chat</span>
-                      <span>Open Live Chat</span>
+                      <span>{language === 'vi' ? 'Mở Trò Chuyện Trực Tiếp' : 'Open Live Chat'}</span>
                     </button>
                   </div>
                 </div>
@@ -1184,12 +1190,12 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                   </h5>
                   <p className="text-amber-800 leading-relaxed">
                     {language === 'vi'
-                      ? 'Nêu bạn gặp sự cố trên đường tour hoặc HDV không xuất hiện, tiền cọc $ ' + selectedBooking.totalPriceUSD + ' USD của bạn luôn được bảo vệ 100% trong Escrow Vault. Vui lòng liên hệ Hotline tổng đài 24/7.'
+                      ? 'Nếu bạn gặp sự cố trên đường tour hoặc HDV không xuất hiện, tiền cọc $' + selectedBooking.totalPriceUSD + ' USD của bạn luôn được bảo vệ 100% trong Escrow Vault. Vui lòng liên hệ Hotline tổng đài 24/7.'
                       : `If your guide fails to show up or if you encounter issues, your $${selectedBooking.totalPriceUSD} USD payment is protected in platform escrow. Contact our 24/7 Hotline.`}
                   </p>
                   <div className="pt-1 flex items-center justify-between text-[11px] font-bold text-amber-900">
-                    <span>📞 24/7 Support Hotline: +84 1800 888 999</span>
-                    <span>🛡️ 100% Refund Guarantee</span>
+                    <span>📞 {language === 'vi' ? 'Tổng đài hỗ trợ 24/7: +84 1800 888 999' : '24/7 Support Hotline: +84 1800 888 999'}</span>
+                    <span>🛡️ {language === 'vi' ? 'Bảo đảm hoàn tiền 100%' : '100% Refund Guarantee'}</span>
                   </div>
                 </div>
 

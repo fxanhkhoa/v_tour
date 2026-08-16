@@ -243,8 +243,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                     <span className="material-symbols-outlined text-2xl">hourglass_top</span>
                   </div>
                   <div>
-                    <h4 className="font-extrabold text-sm text-slate-900">Application Currently Under Admin Review ⏳</h4>
-                    <p className="text-xs text-slate-600 mt-0.5">Your identity documents & Tour Guide License Card have been submitted successfully and are queued for back-office verification.</p>
+                    <h4 className="font-extrabold text-sm text-slate-900">
+                      {language === 'vi' ? 'Hồ Sơ Đang Chờ Admin Xét Duyệt ⏳' : 'Application Currently Under Admin Review ⏳'}
+                    </h4>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      {language === 'vi'
+                        ? 'Giấy tờ định danh & Thẻ Hướng Dẫn Viên của bạn đã được gửi thành công và đang chờ ban quản trị xác thực.'
+                        : 'Your identity documents & Tour Guide License Card have been submitted successfully and are queued for back-office verification.'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -252,47 +258,65 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
               {/* Submitted Details Card */}
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-3">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-600">Verification Status:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Trạng Thái Xét Duyệt:' : 'Verification Status:'}
+                  </span>
                   <span className="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-xs font-black border border-amber-300 flex items-center space-x-1 animate-pulse">
                     <span className="material-symbols-outlined text-xs">hourglass_top</span>
-                    <span>UNDER REVIEW</span>
+                    <span>{language === 'vi' ? 'ĐANG CHỜ DUYỆT' : 'UNDER REVIEW'}</span>
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-600">Tour Guide License Card Number:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Số Thẻ Hướng Dẫn Viên:' : 'Tour Guide License Card Number:'}
+                  </span>
                   <span className="font-mono font-extrabold text-teal-700">{cardNumber || guideProfile.kycCardNumber || '101180293'}</span>
                 </div>
 
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-600">CCCD Identity Number:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Số Căn Cước Công Dân (CCCD):' : 'CCCD Identity Number:'}
+                  </span>
                   <span className="font-mono font-extrabold text-slate-900">{cccdNumber}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-600">Verification Authority:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Cơ Quan Cấp Thẻ:' : 'Verification Authority:'}
+                  </span>
                   <span className="font-bold text-slate-800">{issuingAuthority}</span>
                 </div>
               </div>
 
               {/* Submitted Photos Grid */}
               <div>
-                <p className="font-extrabold text-slate-800 mb-2">Attached Verification Documents:</p>
+                <p className="font-extrabold text-slate-800 mb-2">
+                  {language === 'vi' ? 'Tài Liệu Xác Thực Đính Kèm:' : 'Attached Verification Documents:'}
+                </p>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-500">1. CCCD Front</p>
+                    <p className="text-[10px] font-bold text-slate-500">
+                      {language === 'vi' ? '1. CCCD Mặt Trước' : '1. CCCD Front'}
+                    </p>
                     <img src={cccdFrontUrl} alt="CCCD Front" className="h-20 w-full object-cover rounded-xl border border-slate-200" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-500">2. CCCD Back</p>
+                    <p className="text-[10px] font-bold text-slate-500">
+                      {language === 'vi' ? '2. CCCD Mặt Sau' : '2. CCCD Back'}
+                    </p>
                     <img src={cccdBackUrl} alt="CCCD Back" className="h-20 w-full object-cover rounded-xl border border-slate-200" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-500">3. Live Face Photo</p>
+                    <p className="text-[10px] font-bold text-slate-500">
+                      {language === 'vi' ? '3. Ảnh Chân Dung Trực Tiếp' : '3. Live Face Photo'}
+                    </p>
                     <img src={facePhotoUrl} alt="Face" className="h-20 w-full object-cover rounded-xl border border-slate-200" />
                   </div>
                   <div className="space-y-1">
-                    <p className="text-[10px] font-bold text-slate-500">4. Guide Card</p>
+                    <p className="text-[10px] font-bold text-slate-500">
+                      {language === 'vi' ? '4. Thẻ Hướng Dẫn Viên' : '4. Guide Card'}
+                    </p>
                     <img src={tourGuideCardUrl} alt="Guide Card" className="h-20 w-full object-cover rounded-xl border border-slate-200" />
                   </div>
                 </div>
@@ -300,7 +324,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
 
               <div className="p-3 bg-teal-50 border border-teal-200 rounded-2xl text-xs text-teal-900 flex items-center space-x-2">
                 <span className="material-symbols-outlined text-teal-600 text-lg shrink-0">info</span>
-                <span>Our Admin team cross-checks details with official records on <code>huongdanvien.vn</code>. Approval typically takes 15-30 minutes.</span>
+                <span>
+                  {language === 'vi'
+                    ? 'Đội ngũ Admin sẽ đối soát thẻ trên hệ thống chính thức huongdanvien.vn. Thời gian duyệt thường trong 15-30 phút.'
+                    : 'Our Admin team cross-checks details with official records on huongdanvien.vn. Approval typically takes 15-30 minutes.'}
+                </span>
               </div>
 
               <div className="flex items-center space-x-2 pt-2">
@@ -310,14 +338,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   className="w-1/2 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-extrabold text-xs cursor-pointer flex items-center justify-center space-x-1.5 transition-colors"
                 >
                   <span className="material-symbols-outlined text-base">edit</span>
-                  <span>Update / Re-submit Info</span>
+                  <span>{language === 'vi' ? 'Cập Nhật / Gửi Lại Thông Tin' : 'Update / Re-submit Info'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
                   className="w-1/2 py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs cursor-pointer shadow-md transition-colors"
                 >
-                  Close Window
+                  {language === 'vi' ? 'Đóng Cửa Sổ' : 'Close Window'}
                 </button>
               </div>
             </div>
@@ -331,8 +359,12 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                 <div className="flex items-center space-x-2">
                   <span className="material-symbols-outlined text-teal-600 text-xl">badge</span>
                   <div>
-                    <p className="font-extrabold text-xs">Step 1: Vietnamese Citizen Identity Card (CCCD)</p>
-                    <p className="text-[10px] text-teal-700 font-normal">Live camera capture required for BOTH Front and Back sides</p>
+                    <p className="font-extrabold text-xs">
+                      {language === 'vi' ? 'Bước 1: Căn Cước Công Dân (CCCD / Hộ Chiếu)' : 'Step 1: Vietnamese Citizen Identity Card (CCCD)'}
+                    </p>
+                    <p className="text-[10px] text-teal-700 font-normal">
+                      {language === 'vi' ? 'Yêu cầu chụp trực tiếp từ Camera cả Mặt Trước và Mặt Sau' : 'Live camera capture required for BOTH Front and Back sides'}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -341,7 +373,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                 <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1">
                   <p className="font-bold flex items-center space-x-1">
                     <span className="material-symbols-outlined text-sm text-amber-600">warning</span>
-                    <span>Camera Permission Notice:</span>
+                    <span>{language === 'vi' ? 'Thông báo quyền truy cập Camera:' : 'Camera Permission Notice:'}</span>
                   </p>
                   <p className="text-[11px]">{cameraError}</p>
                 </div>
@@ -350,7 +382,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
               {/* CCCD Number Input */}
               <div>
                 <label className="block font-extrabold text-slate-700 mb-1">
-                  CCCD / Passport ID Number <span className="text-rose-500">*</span>
+                  {language === 'vi' ? 'Số CCCD / Hộ Chiếu' : 'CCCD / Passport ID Number'} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -367,7 +399,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-slate-800 text-xs flex items-center space-x-1.5">
                     <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-black">1</span>
-                    <span>CCCD Front Side (Mặt Trước)</span>
+                    <span>{language === 'vi' ? 'CCCD Mặt Trước' : 'CCCD Front Side (Mặt Trước)'}</span>
                     <span className="text-rose-500">*</span>
                   </span>
 
@@ -376,7 +408,9 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                     onClick={() => setShowManualFrontUrl(!showManualFrontUrl)}
                     className="text-[11px] text-teal-700 font-bold hover:underline cursor-pointer"
                   >
-                    {showManualFrontUrl ? '📸 Use Camera' : '🔗 Manual URL'}
+                    {showManualFrontUrl 
+                      ? (language === 'vi' ? '📸 Dùng Camera' : '📸 Use Camera') 
+                      : (language === 'vi' ? '🔗 Nhập URL' : '🔗 Manual URL')}
                   </button>
                 </div>
 
@@ -396,11 +430,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
                         <div className="w-[260px] h-[160px] rounded-xl border-2 border-dashed border-teal-400 bg-teal-500/10 shadow-[0_0_0_9999px_rgba(15,23,42,0.7)] relative">
                           <span className="absolute top-2 left-2 text-[9px] font-black uppercase text-teal-300 bg-slate-950/80 px-2 py-0.5 rounded border border-teal-700">
-                            CCCD FRONT SIDE
+                            {language === 'vi' ? 'CCCD MẶT TRƯỚC' : 'CCCD FRONT SIDE'}
                           </span>
                         </div>
                         <p className="mt-2 text-[10px] text-teal-200 bg-slate-950/90 px-2.5 py-0.5 rounded-full border border-teal-800">
-                          Align front of identity card inside box
+                          {language === 'vi' ? 'Căn chỉnh mặt trước CCCD vào khung' : 'Align front of identity card inside box'}
                         </p>
                       </div>
                     </div>
@@ -412,14 +446,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-md cursor-pointer flex items-center space-x-1.5 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-base">photo_camera</span>
-                        <span>Capture Front Side</span>
+                        <span>{language === 'vi' ? 'Chụp Mặt Trước' : 'Capture Front Side'}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={toggleCameraFacingMode}
                         className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs cursor-pointer flex items-center space-x-1"
-                        title="Switch Camera"
+                        title={language === 'vi' ? 'Đổi Camera' : 'Switch Camera'}
                       >
                         <span className="material-symbols-outlined text-base">flip_camera_ios</span>
                       </button>
@@ -429,7 +463,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         onClick={stopCameraStream}
                         className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
                       >
-                        Cancel
+                        {language === 'vi' ? 'Hủy' : 'Cancel'}
                       </button>
                     </div>
                   </div>
@@ -441,7 +475,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         <img src={cccdFrontUrl} alt="CCCD Front" className="w-full h-full object-cover" />
                         <span className="absolute bottom-2 left-2 bg-slate-950/85 text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-700 flex items-center space-x-1">
                           <span className="material-symbols-outlined text-xs">verified</span>
-                          <span>CCCD Front Side Captured</span>
+                          <span>{language === 'vi' ? 'Đã chụp Mặt Trước CCCD' : 'CCCD Front Side Captured'}</span>
                         </span>
                       </div>
                     )}
@@ -461,7 +495,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-sm cursor-pointer flex items-center justify-center space-x-2 transition-all active:scale-95"
                       >
                         <span className="material-symbols-outlined text-base">photo_camera</span>
-                        <span>{cccdFrontUrl ? 'Retake Front Side via Camera' : 'Snap Front Side with Camera'}</span>
+                        <span>
+                          {cccdFrontUrl 
+                            ? (language === 'vi' ? 'Chụp lại Mặt Trước qua Camera' : 'Retake Front Side via Camera')
+                            : (language === 'vi' ? 'Chụp Mặt Trước bằng Camera' : 'Snap Front Side with Camera')}
+                        </span>
                       </button>
                     )}
                   </div>
@@ -473,7 +511,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-slate-800 text-xs flex items-center space-x-1.5">
                     <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-black">2</span>
-                    <span>CCCD Back Side (Mặt Sau)</span>
+                    <span>{language === 'vi' ? 'CCCD Mặt Sau' : 'CCCD Back Side (Mặt Sau)'}</span>
                     <span className="text-rose-500">*</span>
                   </span>
 
@@ -482,7 +520,9 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                     onClick={() => setShowManualBackUrl(!showManualBackUrl)}
                     className="text-[11px] text-teal-700 font-bold hover:underline cursor-pointer"
                   >
-                    {showManualBackUrl ? '📸 Use Camera' : '🔗 Manual URL'}
+                    {showManualBackUrl 
+                      ? (language === 'vi' ? '📸 Dùng Camera' : '📸 Use Camera') 
+                      : (language === 'vi' ? '🔗 Nhập URL' : '🔗 Manual URL')}
                   </button>
                 </div>
 
@@ -502,11 +542,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
                         <div className="w-[260px] h-[160px] rounded-xl border-2 border-dashed border-teal-400 bg-teal-500/10 shadow-[0_0_0_9999px_rgba(15,23,42,0.7)] relative">
                           <span className="absolute top-2 left-2 text-[9px] font-black uppercase text-teal-300 bg-slate-950/80 px-2 py-0.5 rounded border border-teal-700">
-                            CCCD BACK SIDE
+                            {language === 'vi' ? 'CCCD MẶT SAU' : 'CCCD BACK SIDE'}
                           </span>
                         </div>
                         <p className="mt-2 text-[10px] text-teal-200 bg-slate-950/90 px-2.5 py-0.5 rounded-full border border-teal-800">
-                          Align back of identity card inside box
+                          {language === 'vi' ? 'Căn chỉnh mặt sau CCCD vào khung' : 'Align back of identity card inside box'}
                         </p>
                       </div>
                     </div>
@@ -518,14 +558,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-md cursor-pointer flex items-center space-x-1.5 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-base">photo_camera</span>
-                        <span>Capture Back Side</span>
+                        <span>{language === 'vi' ? 'Chụp Mặt Sau' : 'Capture Back Side'}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={toggleCameraFacingMode}
                         className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs cursor-pointer flex items-center space-x-1"
-                        title="Switch Camera"
+                        title={language === 'vi' ? 'Đổi Camera' : 'Switch Camera'}
                       >
                         <span className="material-symbols-outlined text-base">flip_camera_ios</span>
                       </button>
@@ -535,7 +575,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         onClick={stopCameraStream}
                         className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
                       >
-                        Cancel
+                        {language === 'vi' ? 'Hủy' : 'Cancel'}
                       </button>
                     </div>
                   </div>
@@ -547,7 +587,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         <img src={cccdBackUrl} alt="CCCD Back" className="w-full h-full object-cover" />
                         <span className="absolute bottom-2 left-2 bg-slate-950/85 text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-700 flex items-center space-x-1">
                           <span className="material-symbols-outlined text-xs">verified</span>
-                          <span>CCCD Back Side Captured</span>
+                          <span>{language === 'vi' ? 'Đã chụp Mặt Sau CCCD' : 'CCCD Back Side Captured'}</span>
                         </span>
                       </div>
                     )}
@@ -567,7 +607,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-sm cursor-pointer flex items-center justify-center space-x-2 transition-all active:scale-95"
                       >
                         <span className="material-symbols-outlined text-base">photo_camera</span>
-                        <span>{cccdBackUrl ? 'Retake Back Side via Camera' : 'Snap Back Side with Camera'}</span>
+                        <span>
+                          {cccdBackUrl 
+                            ? (language === 'vi' ? 'Chụp lại Mặt Sau qua Camera' : 'Retake Back Side via Camera')
+                            : (language === 'vi' ? 'Chụp Mặt Sau bằng Camera' : 'Snap Back Side with Camera')}
+                        </span>
                       </button>
                     )}
                   </div>
@@ -587,7 +631,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                     : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                 }`}
               >
-                <span>Continue to Step 2: Live Face Photo</span>
+                <span>{language === 'vi' ? 'Tiếp tục Bước 2: Chụp Chân Dung Live Face' : 'Continue to Step 2: Live Face Photo'}</span>
                 <span className="material-symbols-outlined text-base">arrow_forward</span>
               </button>
             </div>
@@ -599,7 +643,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
               <div className="bg-teal-50 border border-teal-200 p-3 rounded-2xl flex items-center justify-between text-teal-900 font-bold">
                 <div className="flex items-center space-x-2">
                   <span className="material-symbols-outlined text-teal-600 text-lg">photo_camera</span>
-                  <span>Step 2: Live Camera Face Selfie Capture</span>
+                  <span>{language === 'vi' ? 'Bước 2: Chụp Ảnh Chân Dung Trực Tiếp (Selfie Live Face)' : 'Step 2: Live Camera Face Selfie Capture'}</span>
                 </div>
                 <button
                   type="button"
@@ -609,19 +653,23 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   }}
                   className="text-[11px] font-extrabold text-teal-700 hover:text-teal-800 underline cursor-pointer"
                 >
-                  {showManualFaceUrl ? '📸 Use Camera' : '🔗 Manual URL'}
+                  {showManualFaceUrl 
+                    ? (language === 'vi' ? '📸 Dùng Camera' : '📸 Use Camera') 
+                    : (language === 'vi' ? '🔗 Nhập URL' : '🔗 Manual URL')}
                 </button>
               </div>
 
               <p className="text-xs text-slate-600">
-                Please capture a live front-facing selfie portrait. Back-office admins match this facial photo against your CCCD identity document for verification.
+                {language === 'vi'
+                  ? 'Vui lòng chụp một bức ảnh chân dung trực tiếp. Admin sẽ đối chiếu khuôn mặt này với ảnh trên thẻ CCCD để định danh.'
+                  : 'Please capture a live front-facing selfie portrait. Back-office admins match this facial photo against your CCCD identity document for verification.'}
               </p>
 
               {cameraError && (
                 <div className="p-3 bg-amber-50 border border-amber-200 text-amber-900 rounded-2xl text-xs space-y-1">
                   <p className="font-bold flex items-center space-x-1">
                     <span className="material-symbols-outlined text-sm text-amber-600">warning</span>
-                    <span>Camera Permission Notice:</span>
+                    <span>{language === 'vi' ? 'Thông báo quyền truy cập Camera:' : 'Camera Permission Notice:'}</span>
                   </p>
                   <p className="text-[11px]">{cameraError}</p>
                 </div>
@@ -646,7 +694,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
                         <div className="w-36 h-48 rounded-[50%] border-2 border-dashed border-teal-400 bg-teal-500/10 shadow-[0_0_0_9999px_rgba(15,23,42,0.6)] animate-pulse" />
                         <span className="mt-2 text-[10px] font-extrabold text-teal-300 bg-slate-950/80 px-2.5 py-1 rounded-full border border-teal-800 shadow">
-                          Align Face Inside Oval Frame
+                          {language === 'vi' ? 'Căn chỉnh khuôn mặt vào khung oval' : 'Align Face Inside Oval Frame'}
                         </span>
                       </div>
                     </div>
@@ -673,7 +721,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       <div className="mt-3 text-center">
                         <span className="text-emerald-400 font-extrabold text-xs flex items-center justify-center space-x-1 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-800">
                           <span className="material-symbols-outlined text-sm">verified</span>
-                          <span>{facePhotoUrl ? 'Face Snapshot Ready' : 'No Photo Captured Yet'}</span>
+                          <span>
+                            {facePhotoUrl 
+                              ? (language === 'vi' ? 'Đã chụp ảnh chân dung' : 'Face Snapshot Ready') 
+                              : (language === 'vi' ? 'Chưa có ảnh chụp' : 'No Photo Captured Yet')}
+                          </span>
                         </span>
                       </div>
                     </div>
@@ -689,14 +741,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                           className="px-5 py-2.5 rounded-2xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-lg cursor-pointer flex items-center space-x-1.5 active:scale-95 transition-all"
                         >
                           <span className="material-symbols-outlined text-base">photo_camera</span>
-                          <span>Snap Face Photo</span>
+                          <span>{language === 'vi' ? 'Chụp Ảnh Khuôn Mặt' : 'Snap Face Photo'}</span>
                         </button>
 
                         <button
                           type="button"
                           onClick={toggleCameraFacingMode}
                           className="px-3 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs cursor-pointer flex items-center space-x-1"
-                          title="Switch Camera"
+                          title={language === 'vi' ? 'Đổi Camera' : 'Switch Camera'}
                         >
                           <span className="material-symbols-outlined text-base">flip_camera_ios</span>
                         </button>
@@ -706,7 +758,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                           onClick={stopCameraStream}
                           className="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
                         >
-                          Cancel
+                          {language === 'vi' ? 'Hủy' : 'Cancel'}
                         </button>
                       </>
                     ) : (
@@ -716,7 +768,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="px-5 py-2.5 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-lg shadow-teal-600/20 cursor-pointer flex items-center space-x-1.5 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-base">videocam</span>
-                        <span>{facePhotoUrl ? 'Retake Photo via Camera' : 'Open Camera'}</span>
+                        <span>
+                          {facePhotoUrl 
+                            ? (language === 'vi' ? 'Chụp lại ảnh chân dung' : 'Retake Photo via Camera') 
+                            : (language === 'vi' ? 'Mở Camera Chụp Ảnh' : 'Open Camera')}
+                        </span>
                       </button>
                     )}
                   </div>
@@ -726,7 +782,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                 /* Manual Image URL Input Fallback */
                 <div>
                   <label className="block font-extrabold text-slate-700 mb-1">
-                    Face Portrait Photo URL <span className="text-rose-500">*</span>
+                    {language === 'vi' ? 'URL Ảnh Chân Dung' : 'Face Portrait Photo URL'} <span className="text-rose-500">*</span>
                   </label>
                   <input
                     type="url"
@@ -753,7 +809,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   }}
                   className="w-1/3 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
                 >
-                  Back
+                  {language === 'vi' ? 'Quay Lại' : 'Back'}
                 </button>
                 <button
                   type="button"
@@ -768,7 +824,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  <span>Continue to Step 3: Guide Card</span>
+                  <span>{language === 'vi' ? 'Tiếp tục Bước 3: Thẻ Hướng Dẫn Viên' : 'Continue to Step 3: Guide Card'}</span>
                   <span className="material-symbols-outlined text-base">arrow_forward</span>
                 </button>
               </div>
@@ -780,16 +836,18 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
             <div className="space-y-4 animate-fadeIn">
               <div className="bg-teal-50 border border-teal-200 p-3 rounded-2xl flex items-center space-x-2 text-teal-900 font-bold">
                 <span className="material-symbols-outlined text-teal-600 text-lg">id_card</span>
-                <span>Step 3: Official Tourist Guide License Card</span>
+                <span>{language === 'vi' ? 'Bước 3: Thẻ Hướng Dẫn Viên Du Lịch Chính Thức' : 'Step 3: Official Tourist Guide License Card'}</span>
               </div>
 
               <p className="text-xs text-slate-600">
-                Enter your card number as printed on your official Tourist Guide Card issued by Vietnam Tourism Authority (huongdanvien.vn).
+                {language === 'vi'
+                  ? 'Nhập đúng số thẻ được cấp bởi Cục Du lịch Quốc gia Việt Nam (tra cứu trên huongdanvien.vn).'
+                  : 'Enter your card number as printed on your official Tourist Guide Card issued by Vietnam Tourism Authority (huongdanvien.vn).'}
               </p>
 
               <div>
                 <label className="block font-extrabold text-slate-700 mb-1">
-                  Card License Number (Sẻ Thẻ) <span className="text-rose-500">*</span>
+                  {language === 'vi' ? 'Số Thẻ Hướng Dẫn Viên (Số Thẻ)' : 'Card License Number (Số Thẻ)'} <span className="text-rose-500">*</span>
                 </label>
                 <input
                   type="text"
@@ -800,13 +858,15 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl font-mono text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs font-bold"
                 />
                 <p className="text-[10px] text-slate-400 mt-1">
-                  * Note: Admin will look up this card number on <strong>huongdanvien.vn/index.php/guide/cat/05</strong>
+                  * {language === 'vi' ? 'Lưu ý: Admin sẽ tra cứu số thẻ này trên' : 'Note: Admin will look up this card number on'} <strong>huongdanvien.vn/index.php/guide/cat/05</strong>
                 </p>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Issuing Authority</label>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {language === 'vi' ? 'Cơ Quan Cấp Thẻ' : 'Issuing Authority'}
+                  </label>
                   <input
                     type="text"
                     required
@@ -816,7 +876,9 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 mb-1">Card Expiry Date</label>
+                  <label className="block font-bold text-slate-700 mb-1">
+                    {language === 'vi' ? 'Ngày Hết Hạn Thẻ' : 'Card Expiry Date'}
+                  </label>
                   <input
                     type="date"
                     required
@@ -832,7 +894,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                 <div className="flex items-center justify-between">
                   <span className="font-extrabold text-slate-800 text-xs flex items-center space-x-1.5">
                     <span className="w-5 h-5 rounded-full bg-teal-600 text-white flex items-center justify-center text-[10px] font-black">3</span>
-                    <span>Tourist Guide Card Photo (Ảnh Thẻ Hướng Dẫn Viên)</span>
+                    <span>{language === 'vi' ? 'Ảnh Thẻ Hướng Dẫn Viên' : 'Tourist Guide Card Photo (Ảnh Thẻ Hướng Dẫn Viên)'}</span>
                     <span className="text-rose-500">*</span>
                   </span>
 
@@ -841,7 +903,9 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                     onClick={() => setShowManualGuideCardUrl(!showManualGuideCardUrl)}
                     className="text-[11px] text-teal-700 font-bold hover:underline cursor-pointer"
                   >
-                    {showManualGuideCardUrl ? '📸 Use Camera' : '🔗 Manual URL'}
+                    {showManualGuideCardUrl 
+                      ? (language === 'vi' ? '📸 Dùng Camera' : '📸 Use Camera') 
+                      : (language === 'vi' ? '🔗 Nhập URL' : '🔗 Manual URL')}
                   </button>
                 </div>
 
@@ -861,11 +925,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center">
                         <div className="w-[260px] h-[160px] rounded-xl border-2 border-dashed border-teal-400 bg-teal-500/10 shadow-[0_0_0_9999px_rgba(15,23,42,0.7)] relative">
                           <span className="absolute top-2 left-2 text-[9px] font-black uppercase text-teal-300 bg-slate-950/80 px-2 py-0.5 rounded border border-teal-700">
-                            TOURIST GUIDE LICENSE CARD
+                            {language === 'vi' ? 'THẺ HƯỚNG DẪN VIÊN' : 'TOURIST GUIDE LICENSE CARD'}
                           </span>
                         </div>
                         <p className="mt-2 text-[10px] text-teal-200 bg-slate-950/90 px-2.5 py-0.5 rounded-full border border-teal-800">
-                          Align Official Guide Card inside rectangular frame
+                          {language === 'vi' ? 'Căn chỉnh thẻ HDV vào khung chữ nhật' : 'Align Official Guide Card inside rectangular frame'}
                         </p>
                       </div>
                     </div>
@@ -877,14 +941,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-black text-xs shadow-md cursor-pointer flex items-center space-x-1.5 active:scale-95 transition-all"
                       >
                         <span className="material-symbols-outlined text-base">photo_camera</span>
-                        <span>Capture Guide Card</span>
+                        <span>{language === 'vi' ? 'Chụp Thẻ HDV' : 'Capture Guide Card'}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={toggleCameraFacingMode}
                         className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-teal-300 font-bold text-xs cursor-pointer flex items-center space-x-1"
-                        title="Switch Camera"
+                        title={language === 'vi' ? 'Đổi Camera' : 'Switch Camera'}
                       >
                         <span className="material-symbols-outlined text-base">flip_camera_ios</span>
                       </button>
@@ -894,7 +958,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         onClick={stopCameraStream}
                         className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs cursor-pointer"
                       >
-                        Cancel
+                        {language === 'vi' ? 'Hủy' : 'Cancel'}
                       </button>
                     </div>
                   </div>
@@ -906,7 +970,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         <img src={tourGuideCardUrl} alt="Tourist Guide Card" className="w-full h-full object-cover" />
                         <span className="absolute bottom-2 left-2 bg-slate-950/85 text-emerald-400 text-[10px] font-extrabold px-2 py-0.5 rounded-md border border-slate-700 flex items-center space-x-1">
                           <span className="material-symbols-outlined text-xs">verified</span>
-                          <span>Tourist Guide Card Captured</span>
+                          <span>{language === 'vi' ? 'Đã chụp Thẻ Hướng Dẫn Viên' : 'Tourist Guide Card Captured'}</span>
                         </span>
                       </div>
                     )}
@@ -926,7 +990,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                         className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-sm cursor-pointer flex items-center justify-center space-x-2 transition-all active:scale-95"
                       >
                         <span className="material-symbols-outlined text-base">photo_camera</span>
-                        <span>{tourGuideCardUrl ? 'Retake Guide Card via Camera' : 'Snap Guide Card with Camera'}</span>
+                        <span>
+                          {tourGuideCardUrl 
+                            ? (language === 'vi' ? 'Chụp lại Thẻ HDV qua Camera' : 'Retake Guide Card via Camera') 
+                            : (language === 'vi' ? 'Chụp Thẻ HDV bằng Camera' : 'Snap Guide Card with Camera')}
+                        </span>
                       </button>
                     )}
                   </div>
@@ -939,14 +1007,14 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   onClick={() => setCurrentStep(2)}
                   className="w-1/3 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
                 >
-                  Back
+                  {language === 'vi' ? 'Quay Lại' : 'Back'}
                 </button>
                 <button
                   type="button"
                   onClick={() => setCurrentStep(4)}
                   className="w-2/3 py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-md cursor-pointer flex items-center justify-center space-x-2"
                 >
-                  <span>Continue to Step 4: Policy Agreement</span>
+                  <span>{language === 'vi' ? 'Tiếp tục Bước 4: Điều Khoản & Cam Kết' : 'Continue to Step 4: Policy Agreement'}</span>
                   <span className="material-symbols-outlined text-base">arrow_forward</span>
                 </button>
               </div>
@@ -958,16 +1026,30 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
             <div className="space-y-4 animate-fadeIn">
               <div className="bg-teal-50 border border-teal-200 p-3 rounded-2xl flex items-center space-x-2 text-teal-900 font-bold">
                 <span className="material-symbols-outlined text-teal-600 text-lg">gavel</span>
-                <span>Step 4: Platform Terms & Code of Ethics Agreement</span>
+                <span>{language === 'vi' ? 'Bước 4: Điều Khoản Nền Tảng & Bộ Quy Tắc Đạo Đức' : 'Step 4: Platform Terms & Code of Ethics Agreement'}</span>
               </div>
 
               <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2 text-xs text-slate-600 max-h-48 overflow-y-auto">
-                <p className="font-extrabold text-slate-900">Tour Guide Hub - Terms of Conduct & Safety Policy:</p>
+                <p className="font-extrabold text-slate-900">
+                  {language === 'vi' ? 'Quy định ứng xử & An toàn Du khách trên Tour Guide Hub:' : 'Tour Guide Hub - Terms of Conduct & Safety Policy:'}
+                </p>
                 <ol className="list-decimal list-inside space-y-1.5 leading-relaxed">
-                  <li><strong>Authenticity Guarantee:</strong> You confirm that all uploaded documents (CCCD, Face Portrait, and Tourist Guide License Card) are 100% authentic and belong solely to you.</li>
-                  <li><strong>Zero Tolerance for Fraud:</strong> Providing fraudulent or borrowed card numbers will result in immediate lifetime account termination and reporting to the Vietnam National Authority of Tourism.</li>
-                  <li><strong>Tourist Safety & Professional Conduct:</strong> You agree to adhere to national tourism regulations, maintain punctual communication, and ensure traveler safety during all guided excursions.</li>
-                  <li><strong>Direct Verification Consent:</strong> You authorize platform Back-Office Admins to query public records on <code>huongdanvien.vn</code> to verify your license status.</li>
+                  <li>
+                    <strong>{language === 'vi' ? 'Cam kết tính xác thực:' : 'Authenticity Guarantee:'}</strong>{' '}
+                    {language === 'vi' ? 'Bạn xác nhận mọi giấy tờ (CCCD, Chân dung, Thẻ HDV) là thật 100% và thuộc quyền sở hữu của bạn.' : 'You confirm that all uploaded documents (CCCD, Face Portrait, and Tourist Guide License Card) are 100% authentic and belong solely to you.'}
+                  </li>
+                  <li>
+                    <strong>{language === 'vi' ? 'Không khoan nhượng hành vi gian lận:' : 'Zero Tolerance for Fraud:'}</strong>{' '}
+                    {language === 'vi' ? 'Cung cấp số thẻ giả mạo hoặc mượn thẻ người khác sẽ bị khóa tài khoản vĩnh viễn và báo cáo Cục Du lịch Quốc gia.' : 'Providing fraudulent or borrowed card numbers will result in immediate lifetime account termination and reporting to the Vietnam National Authority of Tourism.'}
+                  </li>
+                  <li>
+                    <strong>{language === 'vi' ? 'An toàn du khách & Tác phong chuyên nghiệp:' : 'Tourist Safety & Professional Conduct:'}</strong>{' '}
+                    {language === 'vi' ? 'Tuân thủ nghiêm ngặt quy định du lịch, đúng giờ, hỗ trợ tận tâm và đảm bảo an toàn tuyệt đối cho du khách.' : 'You agree to adhere to national tourism regulations, maintain punctual communication, and ensure traveler safety during all guided excursions.'}
+                  </li>
+                  <li>
+                    <strong>{language === 'vi' ? 'Đồng thuận đối soát dữ liệu:' : 'Direct Verification Consent:'}</strong>{' '}
+                    {language === 'vi' ? 'Bạn ủy quyền cho Admin tra cứu dữ liệu công khai trên huongdanvien.vn để xác thực tính hợp lệ của thẻ.' : 'You authorize platform Back-Office Admins to query public records on huongdanvien.vn to verify your license status.'}
+                  </li>
                 </ol>
               </div>
 
@@ -980,7 +1062,10 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   className="mt-0.5 w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-slate-800 leading-snug">
-                  I hereby declare that all uploaded identity documents (CCCD, Face, Tour Guide Card) are genuine, and I agree to the platform Terms, Safety Policy & Ethics Code. <span className="text-rose-500">*</span>
+                  {language === 'vi'
+                    ? 'Tôi cam kết tất cả thông tin và giấy tờ đính kèm là chính xác và hoàn toàn đồng ý với Điều Khoản Dịch Vụ, An Toàn & Đạo Đức của nền tảng.'
+                    : 'I hereby declare that all uploaded identity documents (CCCD, Face, Tour Guide Card) are genuine, and I agree to the platform Terms, Safety Policy & Ethics Code.'}{' '}
+                  <span className="text-rose-500">*</span>
                 </span>
               </label>
 
@@ -990,7 +1075,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   onClick={() => setCurrentStep(3)}
                   className="w-1/3 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
                 >
-                  Back
+                  {language === 'vi' ? 'Quay Lại' : 'Back'}
                 </button>
                 <button
                   type="button"
@@ -1002,7 +1087,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                       : 'bg-slate-200 text-slate-400 cursor-not-allowed'
                   }`}
                 >
-                  <span>Review & Submit</span>
+                  <span>{language === 'vi' ? 'Xem Lại & Hoàn Tất' : 'Review & Submit'}</span>
                   <span className="material-symbols-outlined text-base">arrow_forward</span>
                 </button>
               </div>
@@ -1014,27 +1099,35 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
             <div className="space-y-4 animate-fadeIn">
               <div className="bg-emerald-50 border border-emerald-200 p-3 rounded-2xl flex items-center space-x-2 text-emerald-900 font-bold">
                 <span className="material-symbols-outlined text-emerald-600 text-lg">assignment_turned_in</span>
-                <span>Step 5: Final Review & Submit</span>
+                <span>{language === 'vi' ? 'Bước 5: Kiểm Tra Lại & Gửi Duyệt' : 'Step 5: Final Review & Submit'}</span>
               </div>
 
               <div className="space-y-3 bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs">
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-600">CCCD Number:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Số CCCD:' : 'CCCD Number:'}
+                  </span>
                   <span className="font-mono font-extrabold text-slate-900">{cccdNumber}</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-600">Tour Guide Card Number:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Số Thẻ Hướng Dẫn Viên:' : 'Tour Guide Card Number:'}
+                  </span>
                   <span className="font-mono font-extrabold text-teal-700">{cardNumber}</span>
                 </div>
                 <div className="flex items-center justify-between border-b border-slate-200 pb-2">
-                  <span className="font-bold text-slate-600">Issuing Authority:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Cơ Quan Cấp Thẻ:' : 'Issuing Authority:'}
+                  </span>
                   <span className="font-bold text-slate-800">{issuingAuthority}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="font-bold text-slate-600">Documents Attached:</span>
+                  <span className="font-bold text-slate-600">
+                    {language === 'vi' ? 'Tài Liệu Đã Đính Kèm:' : 'Documents Attached:'}
+                  </span>
                   <span className="font-extrabold text-emerald-600 flex items-center space-x-1">
                     <span className="material-symbols-outlined text-sm">check_circle</span>
-                    <span>CCCD + Face + Guide Card</span>
+                    <span>{language === 'vi' ? 'CCCD + Chân Dung + Thẻ HDV' : 'CCCD + Face + Guide Card'}</span>
                   </span>
                 </div>
               </div>
@@ -1051,7 +1144,7 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   onClick={() => setCurrentStep(4)}
                   className="w-1/3 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold cursor-pointer"
                 >
-                  Back
+                  {language === 'vi' ? 'Quay Lại' : 'Back'}
                 </button>
                 <button
                   type="submit"
@@ -1059,7 +1152,11 @@ export const KYCSubmissionModal: React.FC<KYCSubmissionModalProps> = ({
                   className="w-2/3 py-3.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs shadow-lg shadow-emerald-600/20 active:scale-95 transition-all cursor-pointer flex items-center justify-center space-x-2"
                 >
                   <span className="material-symbols-outlined text-lg">verified</span>
-                  <span>{submitting ? 'Submitting Application...' : 'Submit KYC to Admin Back-Office'}</span>
+                  <span>
+                    {submitting
+                      ? (language === 'vi' ? 'Đang Gửi Hồ Sơ...' : 'Submitting Application...')
+                      : (language === 'vi' ? 'Gửi Hồ Sơ Tới Ban Quản Trị' : 'Submit KYC to Admin Back-Office')}
+                  </span>
                 </button>
               </div>
             </div>

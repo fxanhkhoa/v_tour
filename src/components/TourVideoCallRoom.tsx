@@ -270,14 +270,14 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             <button
               onClick={onToggleFloating}
               className="p-1 rounded-lg hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
-              title="Expand Call"
+              title={language === 'vi' ? "Mở rộng cuộc gọi" : "Expand Call"}
             >
               <span className="material-symbols-outlined text-base">open_in_full</span>
             </button>
             <button
               onClick={onEndCall}
               className="p-1 rounded-lg bg-rose-600 hover:bg-rose-500 text-white transition-colors"
-              title="End Call"
+              title={language === 'vi' ? "Kết thúc cuộc gọi" : "End Call"}
             >
               <span className="material-symbols-outlined text-base">call_end</span>
             </button>
@@ -324,7 +324,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             onClick={onToggleFloating}
             className="px-3 py-1 bg-teal-600 hover:bg-teal-500 text-white rounded-full text-[11px] font-bold"
           >
-            Maximize
+            {language === 'vi' ? 'Phóng to' : 'Maximize'}
           </button>
         </div>
       </div>
@@ -365,10 +365,14 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             type="button"
             onClick={copyMeetingLink}
             className="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-bold transition-all cursor-pointer border border-white/10"
-            title="Copy Google Meet Link"
+            title={language === 'vi' ? "Sao chép liên kết Google Meet" : "Copy Google Meet Link"}
           >
             <span className="material-symbols-outlined text-sm">{showInviteCopied ? 'check' : 'content_copy'}</span>
-            <span>{showInviteCopied ? 'Link Copied!' : 'Copy Meet Link'}</span>
+            <span>
+              {showInviteCopied 
+                ? (language === 'vi' ? 'Đã sao chép!' : 'Link Copied!') 
+                : (language === 'vi' ? 'Sao chép link' : 'Copy Meet Link')}
+            </span>
           </button>
 
           {/* Layout Switcher */}
@@ -376,7 +380,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             type="button"
             onClick={() => setActiveLayout(prev => prev === 'split' ? 'spotlight' : 'split')}
             className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition-colors cursor-pointer"
-            title={activeLayout === 'split' ? 'Switch to Spotlight' : 'Switch to Grid'}
+            title={activeLayout === 'split' ? (language === 'vi' ? 'Chuyển sang tiêu điểm' : 'Switch to Spotlight') : (language === 'vi' ? 'Chuyển sang chia đôi lưới' : 'Switch to Grid')}
           >
             <span className="material-symbols-outlined text-base">
               {activeLayout === 'split' ? 'grid_view' : 'crop_landscape'}
@@ -389,7 +393,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
               type="button"
               onClick={onToggleFloating}
               className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 transition-colors cursor-pointer"
-              title="Minimize to Picture-in-Picture"
+              title={language === 'vi' ? "Thu nhỏ cửa sổ thu nhỏ" : "Minimize to Picture-in-Picture"}
             >
               <span className="material-symbols-outlined text-base">close_fullscreen</span>
             </button>
@@ -402,7 +406,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`p-2 rounded-xl transition-colors cursor-pointer ${
               showSettings ? 'bg-teal-600 text-white' : 'bg-white/10 hover:bg-white/20 text-slate-200'
             }`}
-            title="Audio & Video Settings"
+            title={language === 'vi' ? "Cài đặt âm thanh & hình ảnh" : "Audio & Video Settings"}
           >
             <span className="material-symbols-outlined text-base">settings</span>
           </button>
@@ -440,7 +444,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                 <div className="absolute top-3 left-3 flex items-center space-x-2">
                   <span className="px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center space-x-1.5 border border-white/10">
                     <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    <span>{currentUserRole === 'traveler' ? 'Tour Guide' : 'Traveler'}</span>
+                    <span>{currentUserRole === 'traveler' ? (language === 'vi' ? 'Hướng Dẫn Viên' : 'Tour Guide') : (language === 'vi' ? 'Du Khách' : 'Traveler')}</span>
                   </span>
                   <span className="px-2 py-1 rounded-xl bg-teal-900/70 text-teal-200 text-[10px] font-mono font-extrabold border border-teal-500/30">
                     1080p 60fps
@@ -451,7 +455,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                 {isHandRaised && (
                   <div className="absolute top-3 right-3 bg-amber-500 text-white px-2.5 py-1 rounded-2xl text-xs font-bold flex items-center space-x-1 shadow-lg animate-bounce">
                     <span className="text-sm">✋</span>
-                    <span>Hand Raised</span>
+                    <span>{language === 'vi' ? 'Giơ tay phát biểu' : 'Hand Raised'}</span>
                   </div>
                 )}
 
@@ -503,7 +507,9 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                       />
                       <div className="absolute inset-0 bg-teal-500/5 blur-3xl rounded-full"></div>
                       <p className="text-xs text-slate-300 font-semibold mt-3 z-10">
-                        {isScreenSharing ? '🖥️ Presenting your screen' : 'Virtual HD Video Active'}
+                        {isScreenSharing 
+                          ? (language === 'vi' ? '🖥️ Đang chia sẻ màn hình' : '🖥️ Presenting your screen') 
+                          : (language === 'vi' ? 'Video HD Ảo Đang Hoạt Động' : 'Virtual HD Video Active')}
                       </p>
                     </div>
                   )}
@@ -514,19 +520,23 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                   <div className="w-20 h-20 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center text-slate-400">
                     <span className="material-symbols-outlined text-3xl">videocam_off</span>
                   </div>
-                  <p className="text-xs text-slate-400 font-bold">{myName} (Camera Off)</p>
+                  <p className="text-xs text-slate-400 font-bold">{myName} ({language === 'vi' ? 'Tắt Camera' : 'Camera Off'})</p>
                 </div>
               )}
 
               {/* Top status badges */}
               <div className="absolute top-3 left-3 flex items-center space-x-2">
                 <span className="px-2.5 py-1 rounded-xl bg-black/60 backdrop-blur-md text-white text-[11px] font-bold flex items-center space-x-1 border border-white/10">
-                  <span>You ({currentUserRole === 'guide' ? 'Guide' : 'Traveler'})</span>
+                  <span>
+                    {language === 'vi' 
+                      ? `Bạn (${currentUserRole === 'guide' ? 'HDV' : 'Du Khách'})` 
+                      : `You (${currentUserRole === 'guide' ? 'Guide' : 'Traveler'})`}
+                  </span>
                 </span>
                 {isScreenSharing && (
                   <span className="px-2 py-1 rounded-xl bg-teal-600 text-white text-[10px] font-extrabold flex items-center space-x-1 shadow">
                     <span className="material-symbols-outlined text-xs">present_to_all</span>
-                    <span>Screen Share</span>
+                    <span>{language === 'vi' ? 'Chia sẻ màn hình' : 'Screen Share'}</span>
                   </span>
                 )}
               </div>
@@ -566,7 +576,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             <div className="w-full max-w-2xl bg-black/80 backdrop-blur-md p-3 rounded-2xl border border-white/10 text-center shadow-xl space-y-1 animate-fade-in">
               <div className="flex items-center justify-center space-x-2">
                 <span className="px-2 py-0.5 rounded-md bg-teal-500/20 text-teal-300 text-[10px] font-black uppercase tracking-wider">
-                  AI CC Translation • {currentCaption.speaker}
+                  {language === 'vi' ? 'Dịch Phụ Đề AI Trực Tiếp' : 'AI CC Translation'} • {currentCaption.speaker}
                 </span>
               </div>
               <p className="text-sm font-semibold text-white leading-snug">
@@ -588,7 +598,9 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             <div className="flex items-center justify-between pb-3 border-b border-white/10">
               <div className="flex items-center space-x-2">
                 <span className="material-symbols-outlined text-teal-400 text-lg">chat</span>
-                <h5 className="font-extrabold text-xs text-white uppercase tracking-wider">In-Call Messages</h5>
+                <h5 className="font-extrabold text-xs text-white uppercase tracking-wider">
+                  {language === 'vi' ? 'Tin Nhắn Trong Cuộc Gọi' : 'In-Call Messages'}
+                </h5>
               </div>
               <button
                 onClick={() => setIsChatOpen(false)}
@@ -603,8 +615,8 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
               {messages.length === 0 ? (
                 <div className="text-center py-10 text-slate-400 space-y-1">
                   <span className="material-symbols-outlined text-2xl text-slate-500">forum</span>
-                  <p className="font-bold">No in-call chats yet</p>
-                  <p className="text-[11px]">Send a note, address, or ETA</p>
+                  <p className="font-bold">{language === 'vi' ? 'Chưa có tin nhắn trong cuộc gọi' : 'No in-call chats yet'}</p>
+                  <p className="text-[11px]">{language === 'vi' ? 'Gửi ghi chú, địa chỉ đón hoặc thời gian đến' : 'Send a note, address, or ETA'}</p>
                 </div>
               ) : (
                 messages.map((m) => {
@@ -630,17 +642,17 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             <div className="flex flex-wrap gap-1 pb-2 text-[10px]">
               <button
                 type="button"
-                onClick={() => onSendMessage("Can you hear me clearly? 🎧")}
+                onClick={() => onSendMessage(language === 'vi' ? "Bạn nghe rõ mình không? 🎧" : "Can you hear me clearly? 🎧")}
                 className="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300"
               >
-                "Can you hear me?"
+                {language === 'vi' ? '"Bạn nghe rõ không?"' : '"Can you hear me?"'}
               </button>
               <button
                 type="button"
-                onClick={() => onSendMessage("I am on my way to meeting point! 🛵")}
+                onClick={() => onSendMessage(language === 'vi' ? "Mình đang trên đường đến điểm hẹn! 🛵" : "I am on my way to meeting point! 🛵")}
                 className="px-2 py-0.5 rounded-lg bg-white/10 hover:bg-white/20 text-slate-300"
               >
-                "On my way!"
+                {language === 'vi' ? '"Đang trên đường đến!"' : '"On my way!"'}
               </button>
             </div>
 
@@ -650,7 +662,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                 type="text"
                 value={inCallChatInput}
                 onChange={(e) => setInCallChatInput(e.target.value)}
-                placeholder="Send a message to everyone..."
+                placeholder={language === 'vi' ? 'Nhắn tin cho mọi người...' : 'Send a message to everyone...'}
                 className="flex-1 bg-white/10 border border-white/15 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-400"
               />
               <button
@@ -670,7 +682,9 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
               <div className="flex items-center justify-between pb-2 border-b border-white/10">
                 <div className="flex items-center space-x-2">
                   <span className="material-symbols-outlined text-teal-400">tune</span>
-                  <h4 className="font-extrabold text-sm text-white">Call & Device Settings</h4>
+                  <h4 className="font-extrabold text-sm text-white">
+                    {language === 'vi' ? 'Cài Đặt Cuộc Gọi & Thiết Bị' : 'Call & Device Settings'}
+                  </h4>
                 </div>
                 <button
                   onClick={() => setShowSettings(false)}
@@ -684,7 +698,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
               <div className="space-y-1.5 text-xs">
                 <label className="font-bold text-slate-300 flex items-center space-x-1.5">
                   <span className="material-symbols-outlined text-sm text-teal-400">videocam</span>
-                  <span>Camera Device:</span>
+                  <span>{language === 'vi' ? 'Camera Thiết Bị:' : 'Camera Device:'}</span>
                 </label>
                 <select
                   value={selectedCameraId}
@@ -692,9 +706,9 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                   className="w-full bg-[#1e1f20] border border-white/15 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:ring-1 focus:ring-teal-400"
                 >
                   {cameras.length > 0 ? (
-                    cameras.map(c => <option key={c.deviceId} value={c.deviceId}>{c.label || 'Default Front Camera'}</option>)
+                    cameras.map(c => <option key={c.deviceId} value={c.deviceId}>{c.label || (language === 'vi' ? 'Camera trước mặc định' : 'Default Front Camera')}</option>)
                   ) : (
-                    <option value="">Default High-Definition WebCam</option>
+                    <option value="">{language === 'vi' ? 'WebCam HD Mặc Định' : 'Default High-Definition WebCam'}</option>
                   )}
                 </select>
               </div>
@@ -703,7 +717,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
               <div className="space-y-1.5 text-xs">
                 <label className="font-bold text-slate-300 flex items-center space-x-1.5">
                   <span className="material-symbols-outlined text-sm text-teal-400">mic</span>
-                  <span>Microphone:</span>
+                  <span>{language === 'vi' ? 'Microphone Thu Âm:' : 'Microphone:'}</span>
                 </label>
                 <select
                   value={selectedMicId}
@@ -711,9 +725,9 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                   className="w-full bg-[#1e1f20] border border-white/15 rounded-xl p-2.5 text-white font-medium text-xs focus:outline-none focus:ring-1 focus:ring-teal-400"
                 >
                   {microphones.length > 0 ? (
-                    microphones.map(m => <option key={m.deviceId} value={m.deviceId}>{m.label || 'Default Microphone'}</option>)
+                    microphones.map(m => <option key={m.deviceId} value={m.deviceId}>{m.label || (language === 'vi' ? 'Micro mặc định' : 'Default Microphone')}</option>)
                   ) : (
-                    <option value="">Default Built-in Stereo Audio</option>
+                    <option value="">{language === 'vi' ? 'Âm thanh Stereo Tích Hợp' : 'Default Built-in Stereo Audio'}</option>
                   )}
                 </select>
               </div>
@@ -721,11 +735,11 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
               {/* Video Resolution & AI features */}
               <div className="p-3 bg-white/5 rounded-2xl space-y-2 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-semibold">AI Noise Cancellation</span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">Active</span>
+                  <span className="text-slate-300 font-semibold">{language === 'vi' ? 'Khử Ồn AI Thông Minh' : 'AI Noise Cancellation'}</span>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold text-[10px]">{language === 'vi' ? 'Đang bật' : 'Active'}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-semibold">Live Subtitles & Translation</span>
+                  <span className="text-slate-300 font-semibold">{language === 'vi' ? 'Phụ Đề & Dịch Tự Động' : 'Live Subtitles & Translation'}</span>
                   <span className="px-2 py-0.5 rounded-full bg-teal-500/20 text-teal-300 font-bold text-[10px]">EN ⇄ VI</span>
                 </div>
               </div>
@@ -736,7 +750,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
                   onClick={() => setShowSettings(false)}
                   className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs cursor-pointer shadow"
                 >
-                  Done
+                  {language === 'vi' ? 'Hoàn tất' : 'Done'}
                 </button>
               </div>
             </div>
@@ -754,7 +768,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
           <span className="text-slate-500">•</span>
           <span className="text-emerald-400 font-bold flex items-center space-x-1">
             <span className="material-symbols-outlined text-xs">lock</span>
-            <span>Escrow Protected</span>
+            <span>{language === 'vi' ? 'Bảo Vệ Ký Quỹ Escrow' : 'Escrow Protected'}</span>
           </span>
         </div>
 
@@ -768,7 +782,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition-all transform active:scale-90 cursor-pointer shadow-md ${
               isMicMuted ? 'bg-rose-600 hover:bg-rose-500 ring-2 ring-rose-400/40' : 'bg-[#3c4043] hover:bg-[#4f5357]'
             }`}
-            title={isMicMuted ? 'Turn on microphone' : 'Turn off microphone'}
+            title={isMicMuted ? (language === 'vi' ? 'Bật micro' : 'Turn on microphone') : (language === 'vi' ? 'Tắt micro' : 'Turn off microphone')}
           >
             <span className="material-symbols-outlined text-xl">{isMicMuted ? 'mic_off' : 'mic'}</span>
           </button>
@@ -780,7 +794,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition-all transform active:scale-90 cursor-pointer shadow-md ${
               isVideoOff ? 'bg-rose-600 hover:bg-rose-500 ring-2 ring-rose-400/40' : 'bg-[#3c4043] hover:bg-[#4f5357]'
             }`}
-            title={isVideoOff ? 'Turn on camera' : 'Turn off camera'}
+            title={isVideoOff ? (language === 'vi' ? 'Bật camera' : 'Turn on camera') : (language === 'vi' ? 'Tắt camera' : 'Turn off camera')}
           >
             <span className="material-symbols-outlined text-xl">{isVideoOff ? 'videocam_off' : 'videocam'}</span>
           </button>
@@ -792,7 +806,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition-all transform active:scale-90 cursor-pointer ${
               showCaptions ? 'bg-teal-600 hover:bg-teal-500 ring-2 ring-teal-400/40' : 'bg-[#3c4043] hover:bg-[#4f5357]'
             }`}
-            title="Toggle Live Subtitles (CC)"
+            title={language === 'vi' ? "Bật/tắt phụ đề trực tiếp (CC)" : "Toggle Live Subtitles (CC)"}
           >
             <span className="material-symbols-outlined text-xl">closed_caption</span>
           </button>
@@ -804,7 +818,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition-all transform active:scale-90 cursor-pointer ${
               isHandRaised ? 'bg-amber-500 hover:bg-amber-400 ring-2 ring-amber-300' : 'bg-[#3c4043] hover:bg-[#4f5357]'
             }`}
-            title={isHandRaised ? 'Lower hand' : 'Raise hand'}
+            title={isHandRaised ? (language === 'vi' ? 'Hạ tay' : 'Lower hand') : (language === 'vi' ? 'Giơ tay' : 'Raise hand')}
           >
             <span className="material-symbols-outlined text-xl">front_hand</span>
           </button>
@@ -816,7 +830,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`w-11 h-11 rounded-full flex items-center justify-center text-white transition-all transform active:scale-90 cursor-pointer ${
               isScreenSharing ? 'bg-teal-600 hover:bg-teal-500 ring-2 ring-teal-400/40' : 'bg-[#3c4043] hover:bg-[#4f5357]'
             }`}
-            title={isScreenSharing ? 'Stop presenting' : 'Present now / Screen share'}
+            title={isScreenSharing ? (language === 'vi' ? 'Dừng chia sẻ màn hình' : 'Stop presenting') : (language === 'vi' ? 'Bắt đầu chia sẻ màn hình' : 'Present now / Screen share')}
           >
             <span className="material-symbols-outlined text-xl">present_to_all</span>
           </button>
@@ -826,10 +840,10 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             type="button"
             onClick={onEndCall}
             className="px-5 h-11 rounded-full bg-rose-600 hover:bg-rose-500 text-white font-extrabold text-xs transition-all transform active:scale-95 cursor-pointer shadow-lg flex items-center space-x-1.5 ring-2 ring-rose-500/40"
-            title="Leave Call"
+            title={language === 'vi' ? "Rời khỏi cuộc gọi" : "Leave Call"}
           >
             <span className="material-symbols-outlined text-xl">call_end</span>
-            <span className="hidden sm:inline">End Call</span>
+            <span className="hidden sm:inline">{language === 'vi' ? 'Kết Thúc Cuộc Gọi' : 'End Call'}</span>
           </button>
 
         </div>
@@ -842,7 +856,7 @@ export const TourVideoCallRoom: React.FC<TourVideoCallRoomProps> = ({
             className={`w-10 h-10 rounded-full flex items-center justify-center text-white transition-all cursor-pointer relative ${
               isChatOpen ? 'bg-teal-600' : 'bg-[#3c4043] hover:bg-[#4f5357]'
             }`}
-            title="In-call messages"
+            title={language === 'vi' ? "Tin nhắn trong cuộc gọi" : "In-call messages"}
           >
             <span className="material-symbols-outlined text-lg">chat</span>
             {messages.length > 0 && !isChatOpen && (

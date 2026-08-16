@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { TourPackage, GuideProfile, ScheduleSlot, NegotiationOffer, TourBooking } from '../../types';
 import { Language } from '../../lib/translations';
 import { CalendarDragDropPicker, mergeScheduleSlots } from '../../components/CalendarDragDropPicker';
+import { TourImageUploader } from '../../components/TourImageUploader';
+import { LanguageDropdown } from '../../lib/languages';
 
 interface EditTourModalProps {
   isOpen: boolean;
@@ -55,6 +57,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
   // Local Form State
   const [title, setTitle] = useState<string>(tour.title || '');
   const [category, setCategory] = useState<string>(tour.category || 'History & Culture');
+  const [tourLanguage, setTourLanguage] = useState<string>(tour.language || (tour.languages && tour.languages[0]) || guideProfile.languages?.[0] || 'English');
   const [city, setCity] = useState<string>(tour.city || guideProfile.city);
   const [durationHours, setDurationHours] = useState<number>(tour.durationHours || 3);
   const [priceUSDPerPerson, setPriceUSDPerPerson] = useState<number>(tour.priceUSDPerPerson || 30);
@@ -75,6 +78,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
     if (tour) {
       setTitle(tour.title || '');
       setCategory(tour.category || 'History & Culture');
+      setTourLanguage(tour.language || (tour.languages && tour.languages[0]) || guideProfile.languages?.[0] || 'English');
       setCity(tour.city || guideProfile.city);
       setDurationHours(tour.durationHours || 3);
       setPriceUSDPerPerson(tour.priceUSDPerPerson || 30);
@@ -119,6 +123,8 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
         title,
         city,
         category,
+        language: tourLanguage,
+        languages: [tourLanguage],
         durationHours: Number(durationHours),
         priceUSDPerPerson: Number(priceUSDPerPerson),
         imageUrl,
@@ -203,7 +209,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
               />
             </div>
 
-            {/* Category & City */}
+            {/* Category & Spoken Language */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block font-bold text-slate-700 mb-1">
@@ -212,7 +218,7 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold"
+                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold text-xs"
                 >
                   {CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>{cat}</option>
@@ -221,17 +227,29 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 mb-1">
-                  {language === 'vi' ? 'Thành Phố' : 'City'}
-                </label>
-                <input
-                  type="text"
+                <LanguageDropdown
+                  value={tourLanguage}
+                  onChange={setTourLanguage}
+                  label={language === 'vi' ? 'Ngôn Ngữ Hướng Dẫn' : 'Spoken Tour Language'}
                   required
-                  value={city}
-                  onChange={(e) => setCity(e.target.value)}
-                  className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold"
+                  isVietnamese={language === 'vi'}
+                  helperText={language === 'vi' ? 'Tour sẽ được thuyết minh bằng ngôn ngữ này' : 'Tour will be guided & spoken in this language'}
                 />
               </div>
+            </div>
+
+            {/* City */}
+            <div>
+              <label className="block font-bold text-slate-700 mb-1">
+                {language === 'vi' ? 'Thành Phố' : 'City'}
+              </label>
+              <input
+                type="text"
+                required
+                value={city}
+                onChange={(e) => setCity(e.target.value)}
+                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 font-bold"
+              />
             </div>
 
             {/* Duration & Price */}
@@ -266,18 +284,14 @@ export const EditTourModal: React.FC<EditTourModalProps> = ({
               </div>
             </div>
 
-            {/* Cover Image URL */}
+            {/* Cover Image Uploader - Machine Upload */}
             <div>
-              <label className="block font-bold text-slate-700 mb-1">
-                {language === 'vi' ? 'Đường Dẫn Ảnh Đại Diện Tour (Image URL)' : 'Cover Image URL'}
-              </label>
-              <input
-                type="text"
+              <TourImageUploader
+                imageUrl={imageUrl}
+                onChange={setImageUrl}
+                language={language}
+                label={language === 'vi' ? 'Ảnh Đại Diện Tour (Tải Từ Máy Tính / Thiết Bị)' : 'Tour Cover Image (Upload From Machine)'}
                 required
-                value={imageUrl}
-                onChange={(e) => setImageUrl(e.target.value)}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
 

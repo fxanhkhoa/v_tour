@@ -675,7 +675,7 @@ app.post('/api/guide/:id/bank-account', async (req, res) => {
 
 app.post('/api/tours/create', async (req, res) => {
   try {
-    const { guideId, title, city, category, durationHours, priceUSDPerPerson, imageUrl, description, inclusions, itinerarySummary } = req.body;
+    const { guideId, title, city, category, language, languages, durationHours, priceUSDPerPerson, imageUrl, description, inclusions, itinerarySummary } = req.body;
 
     let guide = await dbFindGuideById(guideId);
     if (!guide) {
@@ -693,11 +693,16 @@ app.post('/api/tours/create', async (req, res) => {
       });
     }
 
+    const spokenLang = language || (Array.isArray(languages) && languages[0]) || 'English';
+    const spokenLangs = Array.isArray(languages) && languages.length > 0 ? languages : [spokenLang];
+
     const newTour = {
       id: 'tp_' + Date.now(),
       title,
       city: city || guide.city,
       category: category || 'Custom Tour',
+      language: spokenLang,
+      languages: spokenLangs,
       durationHours: Number(durationHours) || 3,
       priceUSDPerPerson: Number(priceUSDPerPerson) || 30,
       imageUrl: imageUrl || 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?auto=format&fit=crop&w=800&q=80',
@@ -722,7 +727,7 @@ app.post('/api/tours/create', async (req, res) => {
 
 app.post('/api/tours/update', async (req, res) => {
   try {
-    const { tourId, guideId, title, city, category, durationHours, priceUSDPerPerson, imageUrl, description, inclusions, itinerarySummary, scheduleSlots } = req.body;
+    const { tourId, guideId, title, city, category, language, languages, durationHours, priceUSDPerPerson, imageUrl, description, inclusions, itinerarySummary, scheduleSlots } = req.body;
 
     const existingTour = await dbFindTourById(tourId);
     if (!existingTour) {
@@ -748,11 +753,16 @@ app.post('/api/tours/update', async (req, res) => {
       });
     }
 
+    const spokenLang = language !== undefined ? language : (existingTour.language || 'English');
+    const spokenLangs = languages || (language ? [language] : existingTour.languages || [spokenLang]);
+
     const updatedTour = {
       ...existingTour,
       title: title || existingTour.title,
       city: city || existingTour.city,
       category: category || existingTour.category,
+      language: spokenLang,
+      languages: spokenLangs,
       durationHours: Number(durationHours) || existingTour.durationHours,
       priceUSDPerPerson: Number(priceUSDPerPerson) || existingTour.priceUSDPerPerson,
       imageUrl: imageUrl || existingTour.imageUrl,
@@ -805,6 +815,7 @@ app.post('/api/traveler/posts', async (req, res) => {
       minBudgetUSD,
       maxBudgetUSD,
       description,
+      preferredLanguage,
       preferredLanguages,
       depositAmountUSD,
       depositStatus,
@@ -917,7 +928,8 @@ app.post('/api/traveler/posts', async (req, res) => {
       minBudgetUSD: Number(minBudgetUSD) || 30,
       maxBudgetUSD: Number(maxBudgetUSD) || 60,
       description: description || 'Looking for an experienced local guide to explore hidden gems!',
-      preferredLanguages: preferredLanguages || ['English'],
+      preferredLanguage: preferredLanguage || (preferredLanguages && preferredLanguages[0]) || 'English',
+      preferredLanguages: preferredLanguages || (preferredLanguage ? [preferredLanguage] : ['English']),
       status: 'open',
       createdAt: new Date().toISOString(),
       bidsCount: 0,

@@ -4,6 +4,7 @@ import { Language, translations } from '../../lib/translations';
 import { CalendarDragDropPicker, mergeScheduleSlots } from '../../components/CalendarDragDropPicker';
 import { validateSlotsAgainstBookings } from '../../lib/conflictCheck';
 import { MockPaymentGateway, PaymentSuccessResult } from '../../components/MockPaymentGateway';
+import { LanguageDropdown } from '../../lib/languages';
 
 interface CreateTravelerPostModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ export const CreateTravelerPostModal: React.FC<CreateTravelerPostModalProps> = (
   const [minBudgetUSD, setMinBudgetUSD] = useState<number>(30);
   const [maxBudgetUSD, setMaxBudgetUSD] = useState<number>(60);
   const [description, setDescription] = useState<string>('');
-  const [languagesInput, setLanguagesInput] = useState<string>('English');
+  const [preferredLanguage, setPreferredLanguage] = useState<string>('English');
 
   // Filter traveler's active confirmed bookings
   const myActiveBookings = (bookings || []).filter(
@@ -99,7 +100,7 @@ export const CreateTravelerPostModal: React.FC<CreateTravelerPostModalProps> = (
   };
 
   const handlePaymentSuccess = (result: PaymentSuccessResult) => {
-    const preferredLanguages = languagesInput.split(',').map(s => s.trim()).filter(Boolean);
+    const preferredLanguages = [preferredLanguage];
     const mergedSlots = mergeScheduleSlots(scheduleSlots);
     const aggregatedPreferredDate = mergedSlots.map(s => s.displayLabel || `${s.startTime} - ${s.endTime} on ${s.dateStr}`).join('; ');
     const totalDurationHours = mergedSlots.reduce((sum, s) => sum + calculateSlotDuration(s), 0);
@@ -118,6 +119,7 @@ export const CreateTravelerPostModal: React.FC<CreateTravelerPostModalProps> = (
       minBudgetUSD,
       maxBudgetUSD,
       description,
+      preferredLanguage,
       preferredLanguages,
       depositAmountUSD: result.amountUSD,
       depositStatus: 'paid_in_escrow',
@@ -252,13 +254,13 @@ export const CreateTravelerPostModal: React.FC<CreateTravelerPostModalProps> = (
                   </div>
 
                   <div>
-                    <label className="block font-bold text-slate-700 mb-1.5">{t.preferredLanguagesLabel}</label>
-                    <input
-                      type="text"
-                      value={languagesInput}
-                      onChange={(e) => setLanguagesInput(e.target.value)}
-                      placeholder="English, French, Japanese..."
-                      className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 text-xs sm:text-sm font-medium transition-all"
+                    <LanguageDropdown
+                      value={preferredLanguage}
+                      onChange={setPreferredLanguage}
+                      label={t.preferredLanguagesLabel || (language === 'vi' ? 'Ngôn Ngữ Hướng Dẫn Ưu Tiên' : 'Preferred Spoken Language')}
+                      required
+                      isVietnamese={language === 'vi'}
+                      helperText={language === 'vi' ? 'HDV sẽ hướng dẫn tour bằng ngôn ngữ này' : 'Tour will be conducted in this language'}
                     />
                   </div>
                 </div>

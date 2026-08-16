@@ -3,6 +3,7 @@ import { TravelerPostRequest, NegotiationOffer, TourBooking } from '../../types'
 import { Language, translations } from '../../lib/translations';
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
 import { TourBookingHubModal } from '../../components/TourBookingHubModal';
+import { formatLanguageWithFlag } from '../../lib/languages';
 
 interface TravelerPostsAndBidsProps {
   posts: TravelerPostRequest[];
@@ -364,6 +365,11 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                         <span className="material-symbols-outlined text-xs text-teal-600">location_on</span>
                         <span>{post.city}</span>
                       </span>
+                      {(post.preferredLanguage || (post.preferredLanguages && post.preferredLanguages[0])) && (
+                        <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded bg-amber-50 text-amber-800 border border-amber-200 text-[10.5px] font-bold">
+                          <span>{formatLanguageWithFlag(post.preferredLanguage || post.preferredLanguages![0], language === 'vi')}</span>
+                        </span>
+                      )}
                       <span>👥 {post.groupSize} {language === 'vi' ? 'Khách' : 'Travelers'}</span>
                       <span className="text-teal-700 font-bold">
                         💰 Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD} USD
@@ -607,7 +613,11 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                       b.paymentStatus === 'released' ? 'bg-emerald-100 text-emerald-800' :
                       b.paymentStatus === 'refunded' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-900 border border-amber-300'
                     }`}>
-                      {b.paymentStatus === 'released' ? '✅ Escrow Released' : b.paymentStatus === 'refunded' ? '↩️ Refunded' : '🛡️ Paid into Escrow'}
+                      {b.paymentStatus === 'released' 
+                        ? (language === 'vi' ? '✅ Đã Giải Ngân Escrow' : '✅ Escrow Released')
+                        : b.paymentStatus === 'refunded' 
+                        ? (language === 'vi' ? '↩️ Đã Hoàn Tiền' : '↩️ Refunded')
+                        : (language === 'vi' ? '🛡️ Đã Ký Quỹ Đảm Bảo' : '🛡️ Paid into Escrow')}
                     </span>
                   </div>
 
@@ -619,14 +629,19 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                       {t.safetyPinLabel}: {b.pinCode}
                     </span>
                     <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                      Dual Acceptance: Traveler {b.travelerConfirmedCompletion ? '✓' : '⏳'} | Guide {b.guideConfirmedCompletion ? '✓' : '⏳'}
+                      {language === 'vi' ? 'Xác nhận kép' : 'Dual Acceptance'}: {language === 'vi' ? 'Khách' : 'Traveler'} {b.travelerConfirmedCompletion ? '✓' : '⏳'} | {language === 'vi' ? 'HDV' : 'Guide'} {b.guideConfirmedCompletion ? '✓' : '⏳'}
                     </span>
                   </div>
                 </div>
 
                 <div className="flex flex-col items-end gap-2">
                   <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold uppercase">
-                    {b.status.replace('_', ' ')}
+                    {language === 'vi' 
+                      ? (b.status === 'matched' ? 'Đã Ghép Nối' :
+                         b.status === 'en_route' ? 'HDV Đang Đến' :
+                         b.status === 'in_progress' ? 'Đang Đi Tour' :
+                         b.status === 'completed' ? 'Hoàn Thành' : b.status)
+                      : b.status.replace('_', ' ')}
                   </span>
 
                   <div className="flex items-center space-x-2">
@@ -636,7 +651,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                       className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs cursor-pointer shadow-xs transition-all flex items-center space-x-1"
                     >
                       <span className="material-symbols-outlined text-sm">confirmation_number</span>
-                      <span>Tour Pass & Details</span>
+                      <span>{language === 'vi' ? 'Vé Tour & Chi Tiết' : 'Tour Pass & Details'}</span>
                     </button>
 
                     {onConfirmCompletion && (
@@ -644,12 +659,12 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                         b.guideConfirmedCompletion && b.travelerConfirmedCompletion ? (
                           <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center space-x-1">
                             <span className="material-symbols-outlined text-sm text-emerald-700">task_alt</span>
-                            <span>✓ Completed & Escrow Released</span>
+                            <span>{language === 'vi' ? '✓ Đã Hoàn Tất & Giải Ngân' : '✓ Completed & Escrow Released'}</span>
                           </span>
                         ) : b.travelerConfirmedCompletion ? (
                           <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center space-x-1">
                             <span className="material-symbols-outlined text-sm text-amber-700">hourglass_top</span>
-                            <span>✓ You Accepted (Awaiting Guide)</span>
+                            <span>{language === 'vi' ? '✓ Bạn Đã Xác Nhận (Chờ HDV)' : '✓ You Accepted (Awaiting Guide)'}</span>
                           </span>
                         ) : (
                           <button
@@ -658,7 +673,7 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                             className="px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 bg-teal-600 hover:bg-teal-500 text-white shadow-sm"
                           >
                             <span className="material-symbols-outlined text-sm">verified</span>
-                            <span>Accept Tour Completed</span>
+                            <span>{language === 'vi' ? 'Xác Nhận Tour Hoàn Thành' : 'Accept Tour Completed'}</span>
                           </button>
                         )
                       ) : (
@@ -674,7 +689,11 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                           <span className="material-symbols-outlined text-sm">
                             {b.travelerConfirmedCompletion ? 'check_circle' : 'verified'}
                           </span>
-                          <span>{b.travelerConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                          <span>
+                            {b.travelerConfirmedCompletion
+                              ? (language === 'vi' ? '✓ Bạn Đã Xác Nhận Hoàn Thành' : '✓ You Accepted Completion')
+                              : (language === 'vi' ? 'Xác Nhận Tour Hoàn Thành' : 'Accept Tour Completed')}
+                          </span>
                         </button>
                       )
                     )}

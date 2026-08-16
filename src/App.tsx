@@ -810,6 +810,7 @@ export default function App() {
         currentUser={currentUser}
         onUpdateStatus={handleUpdateBookingStatus}
         onConfirmCompletion={handleConfirmCompletion}
+        language={language}
       />
 
     </div>

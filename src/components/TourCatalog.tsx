@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { TourPackage, User, TourBooking } from '../types';
+import { formatLanguageWithFlag } from '../lib/languages';
 
 interface TourCatalogProps {
   tours: TourPackage[];
@@ -96,8 +97,13 @@ export const TourCatalog: React.FC<TourCatalogProps> = ({
 
               {/* Card Body */}
               <div className="p-5">
-                <div className="flex items-center space-x-2 text-xs text-teal-600 font-bold uppercase tracking-wider mb-1">
-                  <span>{tour.category}</span>
+                <div className="flex items-center justify-between space-x-2 text-xs font-bold uppercase tracking-wider mb-1">
+                  <span className="text-teal-600 truncate">{tour.category}</span>
+                  {(tour.language || (tour.languages && tour.languages[0])) && (
+                    <span className="px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200 text-[10px] font-bold shrink-0">
+                      {formatLanguageWithFlag(tour.language || tour.languages![0])}
+                    </span>
+                  )}
                 </div>
 
                 <h3 className="font-bold text-lg text-slate-900 mb-2 leading-snug">

@@ -4,6 +4,7 @@ import { Language } from '../lib/translations';
 import { TourBookingHubModal } from './TourBookingHubModal';
 import { AddToGoogleCalendarButton } from './AddToGoogleCalendarButton';
 import { CalendarEventPayload, buildGoogleCalendarUrl, downloadIcsFile } from '../lib/googleCalendar';
+import { formatLanguageWithFlag } from '../lib/languages';
 
 export interface CalendarEvent {
   id: string;
@@ -961,10 +962,12 @@ export const PortalEventsCalendar: React.FC<PortalEventsCalendarProps> = ({
                       </span>
                     </div>
 
-                    {post.preferredLanguages && post.preferredLanguages.length > 0 && (
+                    {(post.preferredLanguage || (post.preferredLanguages && post.preferredLanguages.length > 0)) && (
                       <div className="flex items-center justify-between">
-                        <span className="font-bold text-slate-500">{language === 'vi' ? 'Ngôn ngữ HDV:' : 'Guide Languages:'}</span>
-                        <span className="font-bold text-slate-800">{post.preferredLanguages.join(', ')}</span>
+                        <span className="font-bold text-slate-500">{language === 'vi' ? 'Ngôn ngữ thuyết minh:' : 'Spoken Tour Language:'}</span>
+                        <span className="font-extrabold text-amber-900 bg-amber-50 px-2 py-0.5 rounded border border-amber-200 text-xs">
+                          {formatLanguageWithFlag(post.preferredLanguage || post.preferredLanguages[0], language === 'vi')}
+                        </span>
                       </div>
                     )}
                   </div>

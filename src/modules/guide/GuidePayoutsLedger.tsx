@@ -353,16 +353,18 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         b.travelerConfirmedCompletion ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
                       }`}>
-                        Traveler Confirmed: {b.travelerConfirmedCompletion ? '✓' : '⏳ Pending'}
+                        {language === 'vi' ? 'Du khách xác nhận: ' : 'Traveler Confirmed: '}
+                        {b.travelerConfirmedCompletion ? '✓' : (language === 'vi' ? '⏳ Chờ' : '⏳ Pending')}
                       </span>
                       <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
                         b.guideConfirmedCompletion ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-slate-100 text-slate-500'
                       }`}>
-                        Guide Confirmed: {b.guideConfirmedCompletion ? '✓' : '⏳ Pending'}
+                        {language === 'vi' ? 'HDV xác nhận: ' : 'Guide Confirmed: '}
+                        {b.guideConfirmedCompletion ? '✓' : (language === 'vi' ? '⏳ Chờ' : '⏳ Pending')}
                       </span>
                       {b.escrowReleasedAt && (
                         <span className="text-[10px] text-slate-400">
-                          Released on: {releaseDate} {releaseTime}
+                          {language === 'vi' ? 'Giải ngân lúc: ' : 'Released on: '}{releaseDate} {releaseTime}
                         </span>
                       )}
                     </div>
@@ -397,7 +399,7 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                         type="button"
                         onClick={() => setSelectedReceiptBooking(b)}
                         className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-extrabold text-xs cursor-pointer transition-colors flex items-center space-x-1"
-                        title="View Payout Receipt"
+                        title={language === 'vi' ? 'Xem Biên Nhận Giải Ngân' : 'View Payout Receipt'}
                       >
                         <span className="material-symbols-outlined text-sm">receipt</span>
                         <span>{language === 'vi' ? 'Xem Biên Nhận' : 'Receipt'}</span>
@@ -409,7 +411,7 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                         className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs cursor-pointer transition-colors flex items-center space-x-1 shadow-xs"
                       >
                         <span className="material-symbols-outlined text-sm">confirmation_number</span>
-                        <span>Tour Pass Hub</span>
+                        <span>{language === 'vi' ? 'Trung Tâm Đơn Tour' : 'Tour Pass Hub'}</span>
                       </button>
                     </div>
 
@@ -439,7 +441,7 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                 <span className="material-symbols-outlined text-3xl">verified</span>
               </div>
               <span className="text-[10px] font-black tracking-widest text-emerald-700 uppercase bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
-                PLATFORM ESCROW DISBURSEMENT
+                {language === 'vi' ? 'GIẢI NGÂN KÝ QUỸ ESCROW NỀN TẢNG' : 'PLATFORM ESCROW DISBURSEMENT'}
               </span>
               <h3 className="text-2xl font-black text-slate-900 mt-2">
                 ${selectedReceiptBooking.totalPriceUSD} USD
@@ -452,33 +454,33 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
             {/* Receipt Metadata */}
             <div className="py-4 space-y-2.5 text-xs text-slate-600 font-medium">
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Transaction Ref:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Mã Giao Dịch:' : 'Transaction Ref:'}</span>
                 <span className="font-mono font-bold text-slate-900">
                   {selectedReceiptBooking.escrowHoldTxId || `TX-${selectedReceiptBooking.id.toUpperCase()}`}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Tour Booking ID:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Mã Đơn Đặt Tour:' : 'Tour Booking ID:'}</span>
                 <span className="font-mono font-bold text-slate-900">{selectedReceiptBooking.id.toUpperCase()}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Tour Title:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Tên Tour:' : 'Tour Title:'}</span>
                 <span className="font-bold text-slate-900 text-right max-w-[200px] truncate">
                   {selectedReceiptBooking.tourTitle}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Traveler:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Du Khách:' : 'Traveler:'}</span>
                 <span className="font-bold text-slate-900">{selectedReceiptBooking.travelerName}</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Payout Destination:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Ngân Hàng Nhận Tiền:' : 'Payout Destination:'}</span>
                 <span className="font-bold text-teal-700">
                   {guideProfile.bankAccount?.bankName || 'NAPAS 24/7 Direct'}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Account Number:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Số Tài Khoản:' : 'Account Number:'}</span>
                 <span className="font-mono font-bold text-slate-900">
                   {guideProfile.bankAccount?.accountNumber 
                     ? `•••• •••• •••• ${guideProfile.bankAccount.accountNumber.slice(-4)}`
@@ -486,19 +488,21 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Account Holder:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Chủ Tài Khoản:' : 'Account Holder:'}</span>
                 <span className="font-mono font-bold text-slate-900 uppercase">
                   {guideProfile.bankAccount?.accountHolder || guideProfile.fullName}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Status:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Trạng Thái:' : 'Status:'}</span>
                 <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                  {selectedReceiptBooking.paymentStatus === 'released' ? '✓ SETTLED & TRANSFERRED' : 'HELD IN ESCROW'}
+                  {selectedReceiptBooking.paymentStatus === 'released' 
+                    ? (language === 'vi' ? '✓ ĐÃ GIẢI NGÂN & CHUYỂN KHOẢN' : '✓ SETTLED & TRANSFERRED') 
+                    : (language === 'vi' ? 'ĐANG GIỮ TRONG ESCROW' : 'HELD IN ESCROW')}
                 </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-slate-400">Settlement Date:</span>
+                <span className="text-slate-400">{language === 'vi' ? 'Thời Gian Giải Ngân:' : 'Settlement Date:'}</span>
                 <span className="font-mono text-slate-900">
                   {selectedReceiptBooking.escrowReleasedAt 
                     ? new Date(selectedReceiptBooking.escrowReleasedAt).toLocaleString() 
@@ -510,7 +514,9 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
             {/* Stamp & Footer */}
             <div className="pt-4 border-t border-dashed border-slate-200 text-center space-y-3">
               <div className="p-2.5 bg-slate-50 rounded-xl text-[11px] text-slate-500">
-                🛡️ Platform escrow disbursement verified with dual confirmation cryptographic safety PIN ({selectedReceiptBooking.pinCode}).
+                {language === 'vi' 
+                  ? `🛡️ Giải ngân Escrow được chứng thực bằng mã PIN bảo mật kép (${selectedReceiptBooking.pinCode}).`
+                  : `🛡️ Platform escrow disbursement verified with dual confirmation cryptographic safety PIN (${selectedReceiptBooking.pinCode}).`}
               </div>
 
               <div className="flex items-center justify-center space-x-2 pt-2">
@@ -590,7 +596,7 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                   className="px-4 py-2 bg-teal-600 hover:bg-teal-500 disabled:opacity-50 text-white rounded-xl font-bold text-xs cursor-pointer flex items-center space-x-1 shadow-sm"
                 >
                   <span className="material-symbols-outlined text-sm">download</span>
-                  <span>{isExportingPdf ? 'Exporting...' : 'Save PDF'}</span>
+                  <span>{isExportingPdf ? (language === 'vi' ? 'Đang xuất...' : 'Exporting...') : (language === 'vi' ? 'Tải PDF' : 'Save PDF')}</span>
                 </button>
                 <button
                   type="button"
@@ -659,17 +665,17 @@ export const GuidePayoutsLedger: React.FC<GuidePayoutsLedgerProps> = ({
                     downloadHtmlDocument(html, `Guide_Disbursement_${selectedReceiptBooking.id}.html`, 'Guide Remittance Receipt');
                   }}
                   className="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs cursor-pointer flex items-center space-x-1"
-                  title="Print Document or Save HTML"
+                  title={language === 'vi' ? 'In hoặc tải tệp HTML' : 'Print Document or Save HTML'}
                 >
                   <span className="material-symbols-outlined text-sm">print</span>
-                  <span>Print / HTML</span>
+                  <span>{language === 'vi' ? 'In / HTML' : 'Print / HTML'}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedReceiptBooking(null)}
                   className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-extrabold text-xs cursor-pointer"
                 >
-                  Close
+                  {language === 'vi' ? 'Đóng' : 'Close'}
                 </button>
               </div>
 

@@ -127,17 +127,17 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
         <div className="flex items-center space-x-2 sm:space-x-3">
           
           {/* In-App Notification Bell */}
-          <NotificationBell currentUser={currentUser} onOpenTracker={onOpenTracker} />
+          <NotificationBell currentUser={currentUser} onOpenTracker={onOpenTracker} language={language} />
 
           {/* Active Escrow & Tour Tracker Button */}
           {currentUser && onOpenTracker && (
             <button
               onClick={onOpenTracker}
               className="px-3 py-1.5 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-500/40 text-xs font-bold flex items-center space-x-1.5 transition-all cursor-pointer shadow-sm"
-              title="Open Escrow Vault & Live Tour Tracker"
+              title={language === 'vi' ? "Mở Ký Quỹ Escrow & Theo Dõi Tour Trực Tiếp" : "Open Escrow Vault & Live Tour Tracker"}
             >
               <span className="material-symbols-outlined text-sm text-amber-400">account_balance_wallet</span>
-              <span className="hidden sm:inline">Escrow & Tracker</span>
+              <span className="hidden sm:inline">{language === 'vi' ? 'Escrow & Theo Dõi' : 'Escrow & Tracker'}</span>
             </button>
           )}
 

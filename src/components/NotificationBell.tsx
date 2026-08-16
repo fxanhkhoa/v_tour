@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppNotification, User } from '../types';
+import { Language } from '../lib/translations';
 
 interface NotificationBellProps {
   currentUser: User | null;
   onOpenTracker?: () => void;
+  language?: Language;
 }
 
-export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser, onOpenTracker }) => {
+export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser, onOpenTracker, language = 'en' }) => {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [filter, setFilter] = useState<'all' | 'unread' | 'bids' | 'escrow'>('all');
@@ -184,13 +186,13 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
       const now = new Date();
       const diffMs = now.getTime() - d.getTime();
       const diffMin = Math.floor(diffMs / 60000);
-      if (diffMin < 1) return 'Just now';
-      if (diffMin < 60) return `${diffMin}m ago`;
+      if (diffMin < 1) return language === 'vi' ? 'Vừa xong' : 'Just now';
+      if (diffMin < 60) return language === 'vi' ? `${diffMin} phút trước` : `${diffMin}m ago`;
       const diffHrs = Math.floor(diffMin / 60);
-      if (diffHrs < 24) return `${diffHrs}h ago`;
+      if (diffHrs < 24) return language === 'vi' ? `${diffHrs} giờ trước` : `${diffHrs}h ago`;
       return d.toLocaleDateString([], { month: 'short', day: 'numeric' });
     } catch {
-      return 'Recent';
+      return language === 'vi' ? 'Gần đây' : 'Recent';
     }
   };
 
@@ -202,7 +204,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="relative p-2 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/80 text-slate-200 hover:text-white transition-all cursor-pointer shadow-sm flex items-center justify-center"
-        title="In-App Notifications"
+        title={language === 'vi' ? "Thông Báo Ứng Dụng" : "In-App Notifications"}
       >
         <span className="material-symbols-outlined text-lg">notifications</span>
         {unreadCount > 0 && (
@@ -225,7 +227,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-black text-teal-300 truncate">{newToast.title}</p>
-                <span className="text-[10px] text-slate-400 shrink-0">Just now</span>
+                <span className="text-[10px] text-slate-400 shrink-0">{language === 'vi' ? 'Vừa xong' : 'Just now'}</span>
               </div>
               <p className="text-xs text-slate-200 mt-0.5 line-clamp-2">{newToast.message}</p>
             </div>
@@ -252,10 +254,10 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
               <div className="w-6 h-6 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
                 <span className="material-symbols-outlined text-sm">notifications_active</span>
               </div>
-              <span className="text-sm font-black text-white">Notifications</span>
+              <span className="text-sm font-black text-white">{language === 'vi' ? 'Thông Báo' : 'Notifications'}</span>
               {unreadCount > 0 && (
                 <span className="px-2 py-0.5 rounded-full bg-teal-500 text-slate-950 font-black text-[10px]">
-                  {unreadCount} unread
+                  {unreadCount} {language === 'vi' ? 'chưa đọc' : 'unread'}
                 </span>
               )}
             </div>
@@ -267,7 +269,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                   disabled={loading}
                   className="text-[11px] font-bold text-teal-400 hover:text-teal-300 px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
                 >
-                  Mark all read
+                  {language === 'vi' ? 'Đã đọc tất cả' : 'Mark all read'}
                 </button>
               )}
               {notifications.length > 0 && (
@@ -275,9 +277,9 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                   onClick={handleClearAll}
                   disabled={loading}
                   className="text-[11px] font-bold text-slate-400 hover:text-rose-400 px-2 py-1 rounded-lg hover:bg-slate-800 transition-colors cursor-pointer"
-                  title="Clear all notifications"
+                  title={language === 'vi' ? "Xóa tất cả thông báo" : "Clear all notifications"}
                 >
-                  Clear
+                  {language === 'vi' ? 'Xóa hết' : 'Clear'}
                 </button>
               )}
             </div>
@@ -291,7 +293,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                 filter === 'all' ? 'bg-teal-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              All ({notifications.length})
+              {language === 'vi' ? 'Tất cả' : 'All'} ({notifications.length})
             </button>
             <button
               onClick={() => setFilter('unread')}
@@ -299,7 +301,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                 filter === 'unread' ? 'bg-teal-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              Unread ({unreadCount})
+              {language === 'vi' ? 'Chưa đọc' : 'Unread'} ({unreadCount})
             </button>
             <button
               onClick={() => setFilter('bids')}
@@ -307,7 +309,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                 filter === 'bids' ? 'bg-teal-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              Bids & Offers
+              {language === 'vi' ? 'Báo Giá & Chào Tour' : 'Bids & Offers'}
             </button>
             <button
               onClick={() => setFilter('escrow')}
@@ -315,7 +317,7 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                 filter === 'escrow' ? 'bg-teal-500 text-slate-950 font-black' : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
             >
-              Escrow & Payouts
+              {language === 'vi' ? 'Ký Quỹ & Giải Ngân' : 'Escrow & Payouts'}
             </button>
           </div>
 
@@ -326,9 +328,13 @@ export const NotificationBell: React.FC<NotificationBellProps> = ({ currentUser,
                 <div className="w-12 h-12 rounded-2xl bg-slate-800 text-slate-500 flex items-center justify-center mx-auto mb-2 border border-slate-700">
                   <span className="material-symbols-outlined text-2xl">notifications_off</span>
                 </div>
-                <p className="text-xs font-bold text-slate-300">No notifications yet</p>
+                <p className="text-xs font-bold text-slate-300">
+                  {language === 'vi' ? 'Chưa có thông báo nào' : 'No notifications yet'}
+                </p>
                 <p className="text-[11px] text-slate-500 mt-0.5">
-                  You'll be notified of new bids, tour bookings, chat messages, and escrow payouts.
+                  {language === 'vi'
+                    ? 'Bạn sẽ nhận được thông báo về báo giá mới, đặt tour, tin nhắn và thanh toán ký quỹ Escrow.'
+                    : "You'll be notified of new bids, tour bookings, chat messages, and escrow payouts."}
                 </p>
               </div>
             ) : (

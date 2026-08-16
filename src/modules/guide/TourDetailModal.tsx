@@ -1,6 +1,7 @@
 import React from 'react';
 import { TourPackage, NegotiationOffer, TourBooking } from '../../types';
 import { Language } from '../../lib/translations';
+import { formatLanguageWithFlag } from '../../lib/languages';
 
 interface TourDetailModalProps {
   isOpen: boolean;
@@ -62,18 +63,23 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
               <span className="px-3 py-0.5 rounded-full bg-teal-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
                 {tour.category}
               </span>
+              {(tour.language || (tour.languages && tour.languages[0])) && (
+                <span className="px-3 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[10px] font-black uppercase tracking-wider shadow">
+                  {formatLanguageWithFlag(tour.language || tour.languages![0], language === 'vi')}
+                </span>
+              )}
               <span className="px-3 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-extrabold border border-white/20">
                 📍 {tour.city}
               </span>
               <span className="px-3 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-white text-[10px] font-extrabold border border-white/20">
-                ⏱️ {tour.durationHours} Hours
+                ⏱️ {tour.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
               </span>
             </div>
             <h3 className="text-xl sm:text-2xl font-black leading-tight text-white">
               {tour.title}
             </h3>
             <p className="text-xs text-teal-300 font-bold">
-              ${tour.priceUSDPerPerson} USD / traveler • Created by {tour.guideName}
+              ${tour.priceUSDPerPerson} USD / {language === 'vi' ? 'khách' : 'traveler'} • {language === 'vi' ? 'Tạo bởi' : 'Created by'} {tour.guideName}
             </p>
           </div>
         </div>
@@ -99,12 +105,12 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
             {tourNegotiations.length > 0 && (
               <div className="pt-2 border-t border-amber-200/80 space-y-1.5">
                 <p className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wide">
-                  💬 Active Negotiations ({tourNegotiations.length}):
+                  💬 {language === 'vi' ? `Thương lượng đang diễn ra (${tourNegotiations.length}):` : `Active Negotiations (${tourNegotiations.length}):`}
                 </p>
                 <div className="space-y-1">
                   {tourNegotiations.map((n) => (
                     <div key={n.id} className="text-xs text-amber-950 font-bold bg-white/80 p-2 rounded-xl border border-amber-200 flex items-center justify-between">
-                      <span>Traveler: {n.travelerName} (${n.offeredPriceUSD} USD offer)</span>
+                      <span>{language === 'vi' ? 'Du khách:' : 'Traveler:'} {n.travelerName} (${n.offeredPriceUSD} USD {language === 'vi' ? 'đề xuất' : 'offer'})</span>
                       <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-amber-200 text-amber-900">{n.status}</span>
                     </div>
                   ))}
@@ -116,12 +122,12 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
             {tourBookings.length > 0 && (
               <div className="pt-2 border-t border-amber-200/80 space-y-1.5">
                 <p className="text-[11px] font-extrabold text-amber-900 uppercase tracking-wide">
-                  🎟️ Traveler Bookings ({tourBookings.length}):
+                  🎟️ {language === 'vi' ? `Đơn đặt tour từ du khách (${tourBookings.length}):` : `Traveler Bookings (${tourBookings.length}):`}
                 </p>
                 <div className="space-y-1">
                   {tourBookings.map((b) => (
                     <div key={b.id} className="text-xs text-amber-950 font-bold bg-white/80 p-2 rounded-xl border border-amber-200 flex items-center justify-between">
-                      <span>Traveler: {b.travelerName} ({b.scheduledTime})</span>
+                      <span>{language === 'vi' ? 'Du khách:' : 'Traveler:'} {b.travelerName} ({b.scheduledTime})</span>
                       <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">{b.status}</span>
                     </div>
                   ))}
@@ -195,7 +201,7 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
         <div className="space-y-2">
           <h4 className="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center justify-between">
             <span>{language === 'vi' ? 'Khung Giờ Đã Mở' : 'Available Schedule Slots'}</span>
-            <span className="text-[10px] text-teal-700 font-bold">{tour.scheduleSlots?.length || 0} Slots</span>
+            <span className="text-[10px] text-teal-700 font-bold">{tour.scheduleSlots?.length || 0} {language === 'vi' ? 'Khung giờ' : 'Slots'}</span>
           </h4>
 
           {tour.scheduleSlots && tour.scheduleSlots.length > 0 ? (
@@ -209,7 +215,9 @@ export const TourDetailModal: React.FC<TourDetailModalProps> = ({
             </div>
           ) : (
             <p className="text-xs text-slate-400 italic bg-slate-50 p-3 rounded-2xl border border-slate-200">
-              No set slots defined. Travelers propose custom dates upon booking.
+              {language === 'vi'
+                ? 'Chưa thiết lập khung giờ cố định. Du khách sẽ đề xuất ngày giờ khi đặt tour.'
+                : 'No set slots defined. Travelers propose custom dates upon booking.'}
             </p>
           )}
         </div>

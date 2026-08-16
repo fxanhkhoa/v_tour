@@ -6,6 +6,7 @@ import { TourBookingHubModal } from '../../components/TourBookingHubModal';
 import { GuidePayoutsLedger } from './GuidePayoutsLedger';
 import { Language } from '../../lib/translations';
 import { AddToGoogleCalendarButton } from '../../components/AddToGoogleCalendarButton';
+import { formatLanguageWithFlag } from '../../lib/languages';
 
 interface GuideBookingsAndNegotiationsProps {
   guideProfile: GuideProfile;
@@ -221,7 +222,11 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
           posts={posts}
           onOpenNegotiationModal={(neg) => setHistoryModalNegotiation(neg)}
           onOpenBookingDetail={(b) => setSelectedHubBooking(b)}
-          onOpenPostDetail={(p) => setSelectedPost(p)}
+          onOpenPostDetail={(p) => {
+            setSelectedPost(p);
+            setBidPrice(p.maxBudgetUSD || p.minBudgetUSD || 50);
+            setBidMessage(`Hello ${p.travelerName || 'Traveler'}! I am a verified local guide in ${p.city || 'the area'}. I would love to guide your group of ${p.groupSize} for this ${p.durationHours || 3}-hour tour conducted in ${p.preferredLanguage || p.preferredLanguages?.[0] || 'English'}.`);
+          }}
           onRespondNegotiation={handleRespondNegotiationWithSync}
           onUpdateStatus={onUpdateStatus}
           onConfirmCompletion={onConfirmCompletion}
@@ -249,19 +254,23 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
           <div>
             <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold mb-1">
               <span className="material-symbols-outlined text-sm">campaign</span>
-              <span>Live Traveler Requests Board</span>
+              <span>{language === 'vi' ? 'Bảng Yêu Cầu Chuyến Đi Trực Tiếp' : 'Live Traveler Requests Board'}</span>
             </div>
             <h3 className="text-xl font-extrabold text-slate-900">
-              Answer Travelers & Tour Company Custom Requests
+              {language === 'vi' ? 'Phản Hồi & Báo Giá Yêu Cầu Tour Của Du Khách' : 'Answer Travelers & Tour Company Custom Requests'}
             </h3>
             <p className="text-xs text-slate-500">
-              Travelers post custom trip requirements. Search by city, budget, or keywords and send direct price offers.
+              {language === 'vi'
+                ? 'Du khách đăng yêu cầu chuyến đi tùy chỉnh. Tìm kiếm theo thành phố, ngân sách hoặc từ khóa và gửi báo giá trực tiếp.'
+                : 'Travelers post custom trip requirements. Search by city, budget, or keywords and send direct price offers.'}
             </p>
           </div>
 
           <div className="flex items-center space-x-2">
             <span className="px-3 py-1 rounded-full bg-slate-100 text-slate-800 text-xs font-bold border">
-              Showing {filteredPosts.length} of {posts.length} Custom Requests
+              {language === 'vi' 
+                ? `Hiển thị ${filteredPosts.length} / ${posts.length} yêu cầu` 
+                : `Showing ${filteredPosts.length} of ${posts.length} Custom Requests`}
             </span>
           </div>
         </div>
@@ -276,7 +285,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
               </span>
               <input
                 type="text"
-                placeholder="Search request title, details, traveler name, languages..."
+                placeholder={language === 'vi' ? 'Tìm tiêu đề yêu cầu, thông tin chi tiết, tên du khách, ngôn ngữ...' : 'Search request title, details, traveler name, languages...'}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-xs font-medium text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500"
@@ -299,10 +308,10 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                 onChange={(e) => setSelectedCity(e.target.value)}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer"
               >
-                <option value="all">📍 All Cities ({posts.length})</option>
+                <option value="all">{language === 'vi' ? `📍 Tất Cả Điểm Đến (${posts.length})` : `📍 All Cities (${posts.length})`}</option>
                 {guideProfile.city && (
                   <option value={guideProfile.city.toLowerCase()}>
-                    ⭐ My City ({guideProfile.city})
+                    ⭐ {language === 'vi' ? `Thành Phố Của Tôi (${guideProfile.city})` : `My City (${guideProfile.city})`}
                   </option>
                 )}
                 {availableCities
@@ -322,9 +331,9 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                 onChange={(e) => setSortBy(e.target.value as any)}
                 className="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 cursor-pointer"
               >
-                <option value="newest">🕒 Sort: Newest First</option>
-                <option value="budget_high">💰 Sort: Highest Budget First</option>
-                <option value="budget_low">🏷️ Sort: Lowest Budget First</option>
+                <option value="newest">{language === 'vi' ? '🕒 Sắp xếp: Mới Nhất' : '🕒 Sort: Newest First'}</option>
+                <option value="budget_high">{language === 'vi' ? '💰 Sắp xếp: Ngân Sách Cao Nhất' : '💰 Sort: Highest Budget First'}</option>
+                <option value="budget_low">{language === 'vi' ? '🏷️ Sắp xếp: Ngân Sách Thấp Nhất' : '🏷️ Sort: Lowest Budget First'}</option>
               </select>
             </div>
           </div>
@@ -334,7 +343,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
             <div className="flex flex-wrap items-center gap-3">
               {/* Quick City Buttons */}
               <div className="flex items-center space-x-1.5">
-                <span className="font-bold text-slate-500 text-[11px]">Quick Location:</span>
+                <span className="font-bold text-slate-500 text-[11px]">{language === 'vi' ? 'Địa điểm nhanh:' : 'Quick Location:'}</span>
                 <button
                   type="button"
                   onClick={() => setSelectedCity('all')}
@@ -344,7 +353,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                       : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
                   }`}
                 >
-                  All Cities
+                  {language === 'vi' ? 'Tất Cả' : 'All Cities'}
                 </button>
                 {guideProfile.city && (
                   <button
@@ -363,7 +372,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
               {/* Max Budget Filter */}
               <div className="flex items-center space-x-1.5 pl-3 border-l border-slate-200">
-                <span className="text-[11px] font-bold text-slate-500">Max Budget:</span>
+                <span className="text-[11px] font-bold text-slate-500">{language === 'vi' ? 'Ngân sách tối đa:' : 'Max Budget:'}</span>
                 <input
                   type="number"
                   placeholder="e.g. 150"
@@ -376,17 +385,17 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
 
               {/* Group Size Filter */}
               <div className="flex items-center space-x-1.5 pl-3 border-l border-slate-200">
-                <span className="text-[11px] font-bold text-slate-500">Group Size:</span>
+                <span className="text-[11px] font-bold text-slate-500">{language === 'vi' ? 'Số lượng khách:' : 'Group Size:'}</span>
                 <select
                   value={minGroupSize}
                   onChange={(e) => setMinGroupSize(e.target.value)}
                   className="px-2 py-0.5 bg-white border border-slate-200 rounded-lg text-[11px] font-bold text-slate-800 focus:outline-none cursor-pointer"
                 >
-                  <option value="">Any</option>
-                  <option value="1">1+ Traveler</option>
-                  <option value="2">2+ Travelers</option>
-                  <option value="4">4+ Travelers</option>
-                  <option value="6">6+ Travelers</option>
+                  <option value="">{language === 'vi' ? 'Bất kỳ' : 'Any'}</option>
+                  <option value="1">{language === 'vi' ? 'Từ 1 khách' : '1+ Traveler'}</option>
+                  <option value="2">{language === 'vi' ? 'Từ 2 khách' : '2+ Travelers'}</option>
+                  <option value="4">{language === 'vi' ? 'Từ 4 khách' : '4+ Travelers'}</option>
+                  <option value="6">{language === 'vi' ? 'Từ 6 khách' : '6+ Travelers'}</option>
                 </select>
               </div>
             </div>
@@ -398,7 +407,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                 className="text-[11px] text-rose-600 hover:text-rose-700 font-extrabold flex items-center space-x-1 cursor-pointer bg-rose-50 px-2.5 py-1 rounded-lg border border-rose-200"
               >
                 <span className="material-symbols-outlined text-xs">restart_alt</span>
-                <span>Reset Filters</span>
+                <span>{language === 'vi' ? 'Đặt Lại Bộ Lọc' : 'Reset Filters'}</span>
               </button>
             )}
           </div>
@@ -413,11 +422,17 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
               <span>
                 {guideProfile.kycStatus === 'pending' ? (
                   <>
-                    <strong>Verification Under Admin Review ⏳:</strong> Your Tour Guide License Card & CCCD submission is currently being reviewed. Bidding will be enabled upon approval.
+                    <strong>{language === 'vi' ? 'Hồ Sơ Đang Chờ Admin Duyệt ⏳:' : 'Verification Under Admin Review ⏳:'}</strong>{' '}
+                    {language === 'vi'
+                      ? 'Thẻ HDV & CCCD của bạn đang được kiểm tra. Tính năng báo giá sẽ tự động mở sau khi duyệt.'
+                      : 'Your Tour Guide License Card & CCCD submission is currently being reviewed. Bidding will be enabled upon approval.'}
                   </>
                 ) : (
                   <>
-                    <strong>Verification Required to Bid:</strong> You must submit your Tour Guide License Card & CCCD to place bids on traveler posts.
+                    <strong>{language === 'vi' ? 'Yêu Cầu Xác Thực Để Đấu Giá:' : 'Verification Required to Bid:'}</strong>{' '}
+                    {language === 'vi'
+                      ? 'Bạn cần nộp Thẻ Hướng Dẫn Viên & CCCD để có thể gửi báo giá cho du khách.'
+                      : 'You must submit your Tour Guide License Card & CCCD to place bids on traveler posts.'}
                   </>
                 )}
               </span>
@@ -427,7 +442,9 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                 onClick={onOpenKYCModal}
                 className="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs shrink-0 cursor-pointer transition-all shadow-sm"
               >
-                {guideProfile.kycStatus === 'pending' ? 'View Application ⏳' : 'Submit Verification 📜'}
+                {guideProfile.kycStatus === 'pending'
+                  ? (language === 'vi' ? 'Xem Hồ Sơ ⏳' : 'View Application ⏳')
+                  : (language === 'vi' ? 'Nộp Hồ Sơ Xác Thực 📜' : 'Submit Verification 📜')}
               </button>
             )}
           </div>
@@ -436,14 +453,18 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
         {filteredPosts.length === 0 ? (
           <div className="p-10 text-center bg-slate-50 border border-dashed border-slate-200 rounded-2xl">
             <span className="material-symbols-outlined text-slate-400 text-4xl mb-2">find_in_page</span>
-            <p className="text-slate-600 font-bold text-sm">No custom requests found matching your filter criteria.</p>
-            <p className="text-xs text-slate-400 mt-1 mb-4">Try clearing your keyword search or adjusting location and budget constraints.</p>
+            <p className="text-slate-600 font-bold text-sm">
+              {language === 'vi' ? 'Không tìm thấy yêu cầu nào phù hợp với bộ lọc.' : 'No custom requests found matching your filter criteria.'}
+            </p>
+            <p className="text-xs text-slate-400 mt-1 mb-4">
+              {language === 'vi' ? 'Thử xóa từ khóa tìm kiếm hoặc điều chỉnh địa điểm và ngân sách.' : 'Try clearing your keyword search or adjusting location and budget constraints.'}
+            </p>
             {hasActiveFilters && (
               <button
                 onClick={handleResetFilters}
                 className="px-4 py-2 bg-slate-900 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-slate-800 transition-all cursor-pointer"
               >
-                Reset Search Filters
+                {language === 'vi' ? 'Đặt Lại Bộ Lọc' : 'Reset Search Filters'}
               </button>
             )}
           </div>
@@ -486,7 +507,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         {post.status === 'closed' && (
                           <span className="px-2.5 py-0.5 rounded-full bg-slate-200 text-slate-700 text-[10px] font-black uppercase tracking-wide flex items-center space-x-1 border border-slate-300">
                             <span className="material-symbols-outlined text-[11px]">lock</span>
-                            <span>Closed</span>
+                            <span>{language === 'vi' ? 'Đã Đóng' : 'Closed'}</span>
                           </span>
                         )}
                         <span className="px-2.5 py-0.5 rounded-full bg-slate-200/70 text-slate-800 text-[10px] font-black uppercase flex items-center space-x-1">
@@ -494,7 +515,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                           <span>{post.city}</span>
                         </span>
                         <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-black uppercase">
-                          Budget: ${post.minBudgetUSD}-${post.maxBudgetUSD}
+                          {language === 'vi' ? 'Ngân sách:' : 'Budget:'} ${post.minBudgetUSD}-${post.maxBudgetUSD}
                         </span>
                         {post.depositAmountUSD && (
                           <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase flex items-center space-x-1 ${
@@ -531,7 +552,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                             <span>{slotText}</span>
                             {post.durationHours > 0 && (
                               <span className="text-teal-800 font-extrabold">
-                                • ⏱️ {post.durationHours} Hours
+                                • ⏱️ {post.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
                               </span>
                             )}
                           </span>
@@ -543,7 +564,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         <span>{post.preferredDate}</span>
                         {post.durationHours > 0 && (
                           <span className="text-teal-800 font-extrabold">
-                            • ⏱️ {post.durationHours} Hours
+                            • ⏱️ {post.durationHours} {language === 'vi' ? 'Giờ' : 'Hours'}
                           </span>
                         )}
                       </span>
@@ -551,7 +572,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                   </div>
 
                   <div className="flex flex-wrap gap-2 text-[11px] text-slate-500 font-medium">
-                    <span>👥 {post.groupSize} Travelers</span>
+                    <span>👥 {post.groupSize} {language === 'vi' ? 'Du khách' : 'Travelers'}</span>
                     {post.preferredLanguages && post.preferredLanguages.length > 0 && (
                       <span>🗣️ {post.preferredLanguages.join(', ')}</span>
                     )}
@@ -567,7 +588,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                     }`}>
                       <div className="flex items-center justify-between">
                         <span className="font-extrabold flex items-center space-x-1">
-                          <span>{existingNegotiation.lastSenderRole === 'traveler' ? '📩 Traveler Negotiated:' : '🤝 Active Bid:'}</span>
+                          <span>{existingNegotiation.lastSenderRole === 'traveler' ? (language === 'vi' ? '📩 Du khách đề xuất:' : '📩 Traveler Negotiated:') : (language === 'vi' ? '🤝 Báo giá đang gửi:' : '🤝 Active Bid:')}</span>
                           <span className="text-emerald-700 font-black">${existingNegotiation.offeredPriceUSD} USD</span>
                         </span>
                         <span className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide ${
@@ -576,10 +597,10 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                           'bg-teal-100 text-teal-900 border border-teal-300'
                         }`}>
                           {existingNegotiation.status === 'accepted'
-                            ? 'Accepted'
+                            ? (language === 'vi' ? 'Đã Chấp Nhận' : 'Accepted')
                             : existingNegotiation.lastSenderRole === 'traveler'
-                            ? 'Awaiting Your Response ⏳'
-                            : 'Offer Sent ⏳'}
+                            ? (language === 'vi' ? 'Chờ Bạn Phản Hồi ⏳' : 'Awaiting Your Response ⏳')
+                            : (language === 'vi' ? 'Đã Gửi Báo Giá ⏳' : 'Offer Sent ⏳')}
                         </span>
                       </div>
                       {existingNegotiation.messages && existingNegotiation.messages.length > 0 && (
@@ -592,7 +613,11 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                 </div>
 
                 <div className="pt-3 border-t border-slate-200/80 flex items-center justify-between flex-wrap gap-2">
-                  <span className="text-xs font-bold text-teal-700">{post.bidsCount || (existingNegotiation ? 1 : 0)} Bids Received</span>
+                  <span className="text-xs font-bold text-teal-700">
+                    {language === 'vi' 
+                      ? `${post.bidsCount || (existingNegotiation ? 1 : 0)} Lượt báo giá đã nhận` 
+                      : `${post.bidsCount || (existingNegotiation ? 1 : 0)} Bids Received`}
+                  </span>
                   
                   <div className="flex items-center space-x-2">
                     {existingNegotiation ? (
@@ -603,7 +628,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                           className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-xs transition-all cursor-pointer flex items-center space-x-1"
                         >
                           <span className="material-symbols-outlined text-sm">history_edu</span>
-                          <span>History & Chat</span>
+                          <span>{language === 'vi' ? 'Lịch Sử & Nhắn Tin' : 'History & Chat'}</span>
                         </button>
 
                         <button
@@ -626,14 +651,16 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                             {existingNegotiation.lastSenderRole === 'traveler' ? 'question_answer' : 'edit_note'}
                           </span>
                           <span>
-                            {existingNegotiation.lastSenderRole === 'traveler' ? 'Respond / Counter' : 'Update Bid'}
+                            {existingNegotiation.lastSenderRole === 'traveler' 
+                              ? (language === 'vi' ? 'Phản Hồi / Đề Xuất Giá' : 'Respond / Counter') 
+                              : (language === 'vi' ? 'Cập Nhật Giá' : 'Update Bid')}
                           </span>
                         </button>
                       </>
                     ) : post.status === 'closed' ? (
                       <span className="px-3.5 py-2 rounded-xl bg-slate-100 border border-slate-200 text-slate-400 font-bold text-xs flex items-center space-x-1 cursor-not-allowed">
                         <span className="material-symbols-outlined text-sm">lock</span>
-                        <span>Post Closed</span>
+                        <span>{language === 'vi' ? 'Yêu Cầu Đã Đóng' : 'Post Closed'}</span>
                       </span>
                     ) : (
                       <button
@@ -659,10 +686,10 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         </span>
                         <span>
                           {isVerified
-                            ? 'Send Price Bid'
+                            ? (language === 'vi' ? 'Gửi Báo Giá' : 'Send Price Bid')
                             : guideProfile.kycStatus === 'pending'
-                            ? 'Under Review ⏳'
-                            : 'Verification Required'}
+                            ? (language === 'vi' ? 'Đang Chờ Duyệt ⏳' : 'Under Review ⏳')
+                            : (language === 'vi' ? 'Cần Xác Thực Thẻ' : 'Verification Required')}
                         </span>
                       </button>
                     )}
@@ -679,10 +706,12 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <h3 className="text-xl font-extrabold text-slate-900 mb-1 flex items-center space-x-2">
           <span className="material-symbols-outlined text-amber-500">handshake</span>
-          <span>Active Price Negotiation Hub ({myNegotiations.length})</span>
+          <span>{language === 'vi' ? `Khu Vực Đang Thương Lượng Giá (${myNegotiations.length})` : `Active Price Negotiation Hub (${myNegotiations.length})`}</span>
         </h3>
         <p className="text-xs text-slate-500 mb-5">
-          Negotiate prices directly with travelers before confirming tour bookings.
+          {language === 'vi'
+            ? 'Thương lượng giá trực tiếp với du khách trước khi xác nhận đơn đặt tour.'
+            : 'Negotiate prices directly with travelers before confirming tour bookings.'}
         </p>
 
         {!isVerified && myNegotiations.length > 0 && (
@@ -692,30 +721,35 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
             </span>
             <span>
               {guideProfile.kycStatus === 'pending'
-                ? 'Your License Verification is currently under admin review. Accepting offers will be enabled once approved.'
-                : 'License verification is required to accept or send counter offers in negotiations.'}
+                ? (language === 'vi' ? 'Hồ sơ xác thực thẻ của bạn đang được Admin duyệt. Bạn sẽ có thể đồng ý báo giá sau khi được duyệt.' : 'Your License Verification is currently under admin review. Accepting offers will be enabled once approved.')
+                : (language === 'vi' ? 'Cần xác thực thẻ hướng dẫn viên để chấp nhận hoặc phản hồi đề xuất giá trong thương lượng.' : 'License verification is required to accept or send counter offers in negotiations.')}
             </span>
           </div>
         )}
 
         {myNegotiations.length === 0 ? (
-          <p className="text-xs text-slate-400 italic">No active price negotiations right now.</p>
+          <p className="text-xs text-slate-400 italic">
+            {language === 'vi' ? 'Hiện không có cuộc thương lượng giá nào đang diễn ra.' : 'No active price negotiations right now.'}
+          </p>
         ) : (
           <div className="space-y-4">
             {myNegotiations.map((neg) => (
               <div key={neg.id} className="p-4 rounded-2xl border border-slate-200 bg-slate-50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div className="space-y-1">
                   <div className="flex items-center space-x-2">
-                    <span className="font-bold text-slate-900 text-sm">Traveler: {neg.travelerName}</span>
+                    <span className="font-bold text-slate-900 text-sm">
+                      {language === 'vi' ? 'Du khách:' : 'Traveler:'} {neg.travelerName}
+                    </span>
                     <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
                       neg.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
                       neg.status === 'countered' ? 'bg-amber-100 text-amber-800' : 'bg-slate-200 text-slate-800'
                     }`}>
-                      {neg.status}
+                      {neg.status === 'accepted' ? (language === 'vi' ? 'Đã Chấp Nhận' : 'Accepted') :
+                       neg.status === 'countered' ? (language === 'vi' ? 'Đã Đề Xuất Lại' : 'Countered') : neg.status}
                     </span>
                   </div>
                   <p className="text-xs text-slate-700">
-                    Current Offer Price: <strong className="text-emerald-700 text-sm">${neg.offeredPriceUSD} USD</strong>
+                    {language === 'vi' ? 'Giá Đề Xuất Hiện Tại:' : 'Current Offer Price:'} <strong className="text-emerald-700 text-sm">${neg.offeredPriceUSD} USD</strong>
                   </p>
                   {neg.messages && neg.messages.length > 0 && (
                     <p className="text-xs text-slate-500 italic bg-white p-2 rounded-xl border border-slate-200">
@@ -731,7 +765,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                     className="px-3.5 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs cursor-pointer shadow-xs flex items-center space-x-1"
                   >
                     <span className="material-symbols-outlined text-sm">history_edu</span>
-                    <span>History & Chat</span>
+                    <span>{language === 'vi' ? 'Lịch Sử & Nhắn Tin' : 'History & Chat'}</span>
                   </button>
 
                   {neg.status !== 'accepted' && (
@@ -739,7 +773,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                       {neg.lastSenderRole === 'guide' ? (
                         <div className="text-xs text-amber-700 font-bold bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl flex items-center space-x-1">
                           <span className="material-symbols-outlined text-sm font-bold animate-pulse">hourglass_empty</span>
-                          <span>Awaiting traveler response...</span>
+                          <span>{language === 'vi' ? 'Đang chờ du khách phản hồi...' : 'Awaiting traveler response...'}</span>
                         </div>
                       ) : (
                         <>
@@ -760,10 +794,10 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                             }`}
                           >
                             {isVerified
-                              ? `Accept $${neg.offeredPriceUSD}`
+                              ? `${language === 'vi' ? 'Đồng ý' : 'Accept'} $${neg.offeredPriceUSD}`
                               : guideProfile.kycStatus === 'pending'
-                              ? '⏳ Under Review'
-                              : '🔒 Verify First'}
+                              ? (language === 'vi' ? '⏳ Đang Chờ Duyệt' : '⏳ Under Review')
+                              : (language === 'vi' ? '🔒 Cần Xác Thực' : '🔒 Verify First')}
                           </button>
                           <button
                             onClick={() => {
@@ -778,7 +812,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                               isVerified ? 'bg-amber-500 hover:bg-amber-400 text-slate-950' : 'bg-slate-200 text-slate-600'
                             }`}
                           >
-                            Counter Offer
+                            {language === 'vi' ? 'Đề Xuất Giá Khác' : 'Counter Offer'}
                           </button>
                         </>
                       )}
@@ -795,10 +829,10 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
         <h3 className="text-xl font-extrabold text-slate-900 mb-1 flex items-center space-x-2">
           <span className="material-symbols-outlined text-emerald-600">confirmation_number</span>
-          <span>Confirmed Tour Bookings ({myBookings.length})</span>
+          <span>{language === 'vi' ? `Danh Sách Đơn Đặt Tour Đã Xác Nhận (${myBookings.length})` : `Confirmed Tour Bookings (${myBookings.length})`}</span>
         </h3>
         <p className="text-xs text-slate-500 mb-5">
-          Tour bookings assigned to you from travelers or tour companies.
+          {language === 'vi' ? 'Các chuyến đi tour được giao cho bạn từ du khách hoặc công ty du lịch.' : 'Tour bookings assigned to you from travelers or tour companies.'}
         </p>
 
         <div className="space-y-3">
@@ -811,26 +845,38 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                     b.paymentStatus === 'released' ? 'bg-emerald-100 text-emerald-800' :
                     b.paymentStatus === 'refunded' ? 'bg-rose-100 text-rose-800' : 'bg-amber-100 text-amber-900 border border-amber-300'
                   }`}>
-                    {b.paymentStatus === 'released' ? '✅ Released to Wallet' : b.paymentStatus === 'refunded' ? '↩️ Refunded' : '🛡️ Held in Escrow'}
+                    {b.paymentStatus === 'released' 
+                      ? (language === 'vi' ? '✅ Đã Giải Ngân Vào Ví' : '✅ Released to Wallet') 
+                      : b.paymentStatus === 'refunded' 
+                      ? (language === 'vi' ? '↩️ Đã Hoàn Tiền' : '↩️ Refunded') 
+                      : (language === 'vi' ? '🛡️ Đang Khóa Ký Quỹ Escrow' : '🛡️ Held in Escrow')}
                   </span>
                 </div>
 
-                <p className="text-xs text-slate-500">Traveler: {b.travelerName} • Pickup: {b.pickupLocation}</p>
+                <p className="text-xs text-slate-500">
+                  {language === 'vi' ? 'Du khách:' : 'Traveler:'} {b.travelerName} • {language === 'vi' ? 'Điểm đón:' : 'Pickup:'} {b.pickupLocation}
+                </p>
 
                 <div className="flex flex-wrap items-center gap-2 pt-1">
                   <span className="text-xs font-bold text-emerald-700">${b.totalPriceUSD} USD</span>
                   <span className="px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 text-[10px] font-mono font-extrabold">
-                    Safety PIN: {b.pinCode}
+                    {language === 'vi' ? 'Mã PIN Khởi Hành:' : 'Safety PIN:'} {b.pinCode}
                   </span>
                   <span className="text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200">
-                    Dual Acceptance: Traveler {b.travelerConfirmedCompletion ? '✓' : '⏳'} | Guide {b.guideConfirmedCompletion ? '✓' : '⏳'}
+                    {language === 'vi'
+                      ? `Xác Nhận 2 Bên: Du khách ${b.travelerConfirmedCompletion ? '✓' : '⏳'} | HDV ${b.guideConfirmedCompletion ? '✓' : '⏳'}`
+                      : `Dual Acceptance: Traveler ${b.travelerConfirmedCompletion ? '✓' : '⏳'} | Guide ${b.guideConfirmedCompletion ? '✓' : '⏳'}`}
                   </span>
                 </div>
               </div>
 
               <div className="flex flex-col items-end gap-2">
                 <span className="px-3 py-1 rounded-full bg-teal-100 text-teal-800 text-xs font-bold uppercase">
-                  {(b.status || 'matched').replace('_', ' ')}
+                  {b.status === 'matched' ? (language === 'vi' ? 'ĐÃ GHÉP ĐƠN' : 'MATCHED') :
+                   b.status === 'en_route' ? (language === 'vi' ? 'ĐANG DI CHUYỂN' : 'EN ROUTE') :
+                   b.status === 'in_progress' ? (language === 'vi' ? 'ĐANG DIỄN RA' : 'IN PROGRESS') :
+                   b.status === 'completed' ? (language === 'vi' ? 'ĐÃ HOÀN THÀNH' : 'COMPLETED') :
+                   (b.status || 'matched').replace('_', ' ')}
                 </span>
 
                 <div className="flex items-center space-x-2 flex-wrap gap-y-1.5">
@@ -868,7 +914,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         className="px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-extrabold text-xs cursor-pointer shadow-xs transition-all flex items-center space-x-1"
                       >
                         <span>🛵</span>
-                        <span>Guide En Route</span>
+                        <span>{language === 'vi' ? 'HDV Đang Đến' : 'Guide En Route'}</span>
                       </button>
 
                       <button
@@ -877,7 +923,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         className="px-3 py-1.5 rounded-xl bg-teal-700 hover:bg-teal-600 text-white font-bold text-xs cursor-pointer flex items-center space-x-1"
                       >
                         <span>🎒</span>
-                        <span>Start Tour</span>
+                        <span>{language === 'vi' ? 'Bắt Đầu Tour' : 'Start Tour'}</span>
                       </button>
                     </>
                   )}
@@ -889,7 +935,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                       className="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs cursor-pointer flex items-center space-x-1"
                     >
                       <span>🎒</span>
-                      <span>Arrived & Start Tour</span>
+                      <span>{language === 'vi' ? 'Đã Đến & Bắt Đầu Tour' : 'Arrived & Start Tour'}</span>
                     </button>
                   )}
 
@@ -898,12 +944,12 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                       b.guideConfirmedCompletion && b.travelerConfirmedCompletion ? (
                         <span className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center space-x-1">
                           <span className="material-symbols-outlined text-sm text-emerald-700">task_alt</span>
-                          <span>✓ Completed & Escrow Released</span>
+                          <span>{language === 'vi' ? '✓ Đã Hoàn Tất & Giải Ngân' : '✓ Completed & Escrow Released'}</span>
                         </span>
                       ) : b.guideConfirmedCompletion ? (
                         <span className="px-3 py-1.5 rounded-xl bg-amber-100 text-amber-900 border border-amber-300 text-xs font-bold flex items-center space-x-1">
                           <span className="material-symbols-outlined text-sm text-amber-700">hourglass_top</span>
-                          <span>✓ You Accepted (Awaiting Traveler)</span>
+                          <span>{language === 'vi' ? '✓ Bạn Đã Xác Nhận (Chờ Du Khách)' : '✓ You Accepted (Awaiting Traveler)'}</span>
                         </span>
                       ) : (
                         <button
@@ -912,7 +958,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                           className="px-3 py-1.5 rounded-xl text-xs font-extrabold transition-all cursor-pointer flex items-center space-x-1 bg-teal-600 hover:bg-teal-500 text-white shadow-sm"
                         >
                           <span className="material-symbols-outlined text-sm">verified</span>
-                          <span>Accept Tour Completed</span>
+                          <span>{language === 'vi' ? 'Xác Nhận Tour Hoàn Thành' : 'Accept Tour Completed'}</span>
                         </button>
                       )
                     ) : (
@@ -928,7 +974,11 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
                         <span className="material-symbols-outlined text-sm">
                           {b.guideConfirmedCompletion ? 'check_circle' : 'verified'}
                         </span>
-                        <span>{b.guideConfirmedCompletion ? '✓ You Accepted Completion' : 'Accept Tour Completed'}</span>
+                        <span>
+                          {b.guideConfirmedCompletion
+                            ? (language === 'vi' ? '✓ Bạn Đã Xác Nhận' : '✓ You Accepted Completion')
+                            : (language === 'vi' ? 'Xác Nhận Tour Hoàn Thành' : 'Accept Tour Completed')}
+                        </span>
                       </button>
                     )
                   )}
@@ -941,61 +991,233 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
       </>
       )}
 
-      {/* Bid Modal */}
+      {/* Bid Modal with Comprehensive Traveler Details */}
       {selectedPost && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-md w-full max-h-[88vh] sm:max-h-[90vh] overflow-y-auto p-5 sm:p-6 shadow-2xl relative border border-slate-100 space-y-4 my-auto">
+          <div className="bg-white rounded-3xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-5 sm:p-7 shadow-2xl relative border border-slate-100 space-y-5 my-auto">
+            {/* Close Button */}
             <button
               onClick={() => setSelectedPost(null)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-800 flex items-center justify-center cursor-pointer transition-colors"
             >
-              <span className="material-symbols-outlined">close</span>
+              <span className="material-symbols-outlined text-base">close</span>
             </button>
 
-            <h4 className="font-extrabold text-slate-900 text-lg">{language === 'vi' ? 'Gửi Báo Giá / Đấu Giá Tour' : 'Send Price Quote / Bid'}</h4>
-            <div className="p-3 rounded-2xl bg-teal-50/80 border border-teal-100 text-xs space-y-1">
-              <p className="font-extrabold text-teal-950 flex items-center space-x-1.5">
-                <span>👤 {selectedPost.travelerName}</span>
-                <span>•</span>
-                <span className="text-teal-700 font-bold">{selectedPost.title}</span>
-              </p>
-              <div className="flex flex-wrap gap-2 text-[11px] text-teal-800 pt-0.5">
-                <span className="font-bold">
-                  📅 {selectedPost.scheduleSlots?.[0] ? `${selectedPost.scheduleSlots[0].dateStr} (${selectedPost.scheduleSlots[0].startTime} - ${selectedPost.scheduleSlots[0].endTime})` : selectedPost.preferredDate || 'Flexible date'}
+            {/* Modal Title */}
+            <div>
+              <div className="flex items-center space-x-2">
+                <span className="p-1.5 rounded-lg bg-teal-100 text-teal-800 material-symbols-outlined text-base">
+                  local_offer
                 </span>
-                <span>•</span>
-                <span className="font-bold">👥 {selectedPost.groupSize} {language === 'vi' ? 'khách' : 'guests'}</span>
-                <span>•</span>
-                <span className="font-bold">💰 {language === 'vi' ? 'Ngân sách' : 'Budget'}: ${selectedPost.minBudgetUSD} - ${selectedPost.maxBudgetUSD}</span>
+                <h4 className="font-extrabold text-slate-900 text-lg sm:text-xl">
+                  {language === 'vi' ? 'Gửi Báo Giá / Đấu Giá Tour' : 'Send Price Quote / Bid'}
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                {language === 'vi' 
+                  ? 'Xem chi tiết yêu cầu chuyến đi của khách và gửi báo giá cạnh tranh' 
+                  : 'Review complete traveler request details & submit your competitive quote'}
+              </p>
+            </div>
+
+            {/* Traveler Profile Card */}
+            <div className="p-3.5 sm:p-4 rounded-2xl bg-gradient-to-r from-slate-50 to-teal-50/40 border border-slate-200/80 flex items-center justify-between">
+              <div className="flex items-center space-x-3 min-w-0">
+                <img
+                  src={selectedPost.travelerAvatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=120&q=80'}
+                  alt={selectedPost.travelerName}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-2xs shrink-0"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="min-w-0">
+                  <h5 className="font-extrabold text-slate-900 text-sm truncate">
+                    {selectedPost.travelerName || 'Traveler'}
+                  </h5>
+                  <p className="text-xs text-slate-500 font-medium flex items-center space-x-1 mt-0.5">
+                    <span className="material-symbols-outlined text-xs text-teal-600">location_on</span>
+                    <span>{selectedPost.city || 'Vietnam'}</span>
+                    <span>•</span>
+                    <span className="text-[11px] text-slate-400">
+                      {new Date(selectedPost.createdAt).toLocaleDateString()}
+                    </span>
+                  </p>
+                </div>
+              </div>
+
+              {selectedPost.depositStatus === 'paid_in_escrow' && (
+                <div className="text-right shrink-0">
+                  <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-[10.5px] font-black">
+                    <span className="material-symbols-outlined text-xs text-emerald-700">verified_user</span>
+                    <span>${selectedPost.depositAmountUSD || 10} Escrow</span>
+                  </span>
+                  <p className="text-[10px] text-emerald-700 font-semibold mt-0.5">
+                    {language === 'vi' ? 'Đã Ký Quỹ Đảm Bảo' : 'Verified Traveler'}
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Comprehensive Traveler Request Details */}
+            <div className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-3">
+              <div className="border-b border-slate-200/80 pb-2.5">
+                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-0.5">
+                  {language === 'vi' ? 'Chuyến Đi Yêu Cầu' : 'Requested Tour'}
+                </span>
+                <h4 className="font-black text-slate-900 text-base leading-snug">
+                  {selectedPost.title}
+                </h4>
+              </div>
+
+              {/* Badges Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 text-xs">
+                {/* Spoken Language */}
+                <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[10px] font-bold text-slate-400 block mb-0.5">
+                    {language === 'vi' ? 'Ngôn Ngữ Yêu Cầu' : 'Preferred Language'}
+                  </span>
+                  <span className="font-extrabold text-amber-900 flex items-center space-x-1 text-xs">
+                    <span>
+                      {formatLanguageWithFlag(selectedPost.preferredLanguage || (selectedPost.preferredLanguages && selectedPost.preferredLanguages[0]) || 'English', language === 'vi')}
+                    </span>
+                  </span>
+                </div>
+
+                {/* Budget Range */}
+                <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[10px] font-bold text-slate-400 block mb-0.5">
+                    {language === 'vi' ? 'Ngân Sách Dự Kiến' : 'Target Budget'}
+                  </span>
+                  <span className="font-black text-teal-700 text-xs sm:text-sm">
+                    ${selectedPost.minBudgetUSD} - ${selectedPost.maxBudgetUSD} USD
+                  </span>
+                </div>
+
+                {/* Duration & Group */}
+                <div className="p-2.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
+                  <span className="text-[10px] font-bold text-slate-400 block mb-0.5">
+                    {language === 'vi' ? 'Thời Lượng & Số Khách' : 'Duration & Group'}
+                  </span>
+                  <span className="font-extrabold text-slate-800 text-xs">
+                    ⏱️ {selectedPost.durationHours || 3}h • 👥 {selectedPost.groupSize} {language === 'vi' ? 'khách' : 'travelers'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Requested Dates / Schedule Slots */}
+              {selectedPost.scheduleSlots && selectedPost.scheduleSlots.length > 0 ? (
+                <div className="p-3 rounded-xl bg-white border border-teal-200">
+                  <span className="text-[10.5px] font-bold text-teal-800 flex items-center space-x-1 mb-1.5">
+                    <span className="material-symbols-outlined text-xs">calendar_month</span>
+                    <span>{language === 'vi' ? 'Khung Giờ Đã Chọn:' : 'Requested Schedule Slots:'}</span>
+                  </span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedPost.scheduleSlots.map((slot, sIdx) => (
+                      <span key={sIdx} className="px-2.5 py-1 rounded-lg bg-teal-50 border border-teal-300 text-teal-950 font-bold text-[11px]">
+                        📅 {slot.dateStr} ({slot.startTime} - {slot.endTime})
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ) : selectedPost.preferredDate && (
+                <div className="p-2.5 rounded-xl bg-white border border-teal-200 text-xs text-teal-900 font-bold flex items-center space-x-1.5">
+                  <span className="material-symbols-outlined text-sm text-teal-700">event</span>
+                  <span>{selectedPost.preferredDate}</span>
+                </div>
+              )}
+
+              {/* Full Traveler Description & Requirements */}
+              {selectedPost.description && (
+                <div className="p-3 rounded-xl bg-amber-50/60 border border-amber-200/80 space-y-1">
+                  <span className="text-[10.5px] font-bold text-amber-900 flex items-center space-x-1">
+                    <span className="material-symbols-outlined text-xs">notes</span>
+                    <span>{language === 'vi' ? 'Yêu Cầu & Ghi Chú Chi Tiết Từ Khách:' : 'Traveler Notes & Special Requirements:'}</span>
+                  </span>
+                  <p className="text-slate-800 text-xs font-medium leading-relaxed whitespace-pre-wrap">
+                    "{selectedPost.description}"
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* Bidding & Price Proposal Form */}
+            <div className="p-4 rounded-2xl bg-teal-50/50 border border-teal-200 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <label className="block text-xs font-bold text-slate-800">
+                  {language === 'vi' ? 'Giá Báo Của Bạn ($ USD Toàn Chuyến)' : 'Your Price Quote ($ USD Total)'}
+                </label>
+                <div className="flex items-center space-x-1.5 text-[11px]">
+                  <span className="text-slate-400">{language === 'vi' ? 'Chọn nhanh:' : 'Quick:'}</span>
+                  <button
+                    type="button"
+                    onClick={() => setBidPrice(selectedPost.minBudgetUSD)}
+                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 font-bold text-slate-700 cursor-pointer text-[10px]"
+                  >
+                    ${selectedPost.minBudgetUSD} (Min)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBidPrice(Math.round((selectedPost.minBudgetUSD + selectedPost.maxBudgetUSD) / 2))}
+                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 font-bold text-slate-700 cursor-pointer text-[10px]"
+                  >
+                    ${Math.round((selectedPost.minBudgetUSD + selectedPost.maxBudgetUSD) / 2)} (Avg)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBidPrice(selectedPost.maxBudgetUSD)}
+                    className="px-2 py-0.5 rounded bg-white hover:bg-slate-100 border border-slate-300 font-bold text-slate-700 cursor-pointer text-[10px]"
+                  >
+                    ${selectedPost.maxBudgetUSD} (Max)
+                  </button>
+                </div>
+              </div>
+
+              <div className="relative">
+                <span className="absolute left-3.5 top-2.5 font-black text-slate-400 text-base">$</span>
+                <input
+                  type="number"
+                  min="10"
+                  value={bidPrice}
+                  onChange={(e) => setBidPrice(Number(e.target.value))}
+                  className="w-full pl-8 pr-16 py-2.5 bg-white border border-teal-300 rounded-xl text-base font-black text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-2xs"
+                  placeholder="e.g. 50"
+                />
+                <span className="absolute right-3.5 top-3 text-xs font-bold text-slate-400">USD</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1 flex items-center justify-between">
+                  <span>{language === 'vi' ? 'Lời Nhắn / Kế Hoạch Đề Xuất Cho Khách' : 'Proposal Note / Message to Traveler'}</span>
+                  <span className="text-[10px] text-slate-400 font-normal">
+                    {language === 'vi' ? 'Nêu rõ lịch trình, phương tiện, hỗ trợ ngôn ngữ' : 'Highlight itinerary, transport, language support'}
+                  </span>
+                </label>
+                <textarea
+                  value={bidMessage}
+                  onChange={(e) => setBidMessage(e.target.value)}
+                  placeholder={language === 'vi' ? 'Chào bạn! Tôi là hướng dẫn viên địa phương đã được xác thực...' : 'Hello! I am an official licensed guide in this city. I will provide full commentary in your preferred language...'}
+                  className="w-full p-3 bg-white border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 h-24 font-medium transition-all shadow-2xs"
+                />
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Your Offered Price ($ USD)</label>
-              <input
-                type="number"
-                min="10"
-                value={bidPrice}
-                onChange={(e) => setBidPrice(Number(e.target.value))}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-extrabold text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
+            {/* Action Buttons */}
+            <div className="flex items-center justify-end space-x-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setSelectedPost(null)}
+                className="px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs cursor-pointer transition-colors"
+              >
+                {language === 'vi' ? 'Hủy' : 'Cancel'}
+              </button>
+              <button
+                type="button"
+                onClick={handleConfirmBid}
+                className="px-6 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 active:scale-98 text-white font-black text-xs shadow-lg shadow-teal-600/20 cursor-pointer transition-all flex items-center space-x-1.5"
+              >
+                <span className="material-symbols-outlined text-sm">send</span>
+                <span>{language === 'vi' ? 'Gửi Báo Giá Cho Khách Ngay' : 'Submit Price Quote to Traveler'}</span>
+              </button>
             </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Negotiation Note / Offer Message</label>
-              <textarea
-                value={bidMessage}
-                onChange={(e) => setBidMessage(e.target.value)}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 h-20"
-              />
-            </div>
-
-            <button
-              onClick={handleConfirmBid}
-              className="w-full py-3 rounded-2xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold text-xs shadow-lg cursor-pointer"
-            >
-              Submit Price Quote to Traveler
-            </button>
           </div>
         </div>
       )}
@@ -1011,9 +1233,13 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
               <span className="material-symbols-outlined">close</span>
             </button>
 
-            <h4 className="font-extrabold text-slate-900 text-lg">Send Counter Offer</h4>
+            <h4 className="font-extrabold text-slate-900 text-lg">
+              {language === 'vi' ? 'Gửi Giá Đề Xuất Lại' : 'Send Counter Offer'}
+            </h4>
             <div>
-              <label className="block text-xs font-bold text-slate-700 mb-1">Counter Price ($ USD)</label>
+              <label className="block text-xs font-bold text-slate-700 mb-1">
+                {language === 'vi' ? 'Giá Đề Xuất Lại ($ USD)' : 'Counter Price ($ USD)'}
+              </label>
               <input
                 type="number"
                 value={counterPrice}
@@ -1029,7 +1255,7 @@ export const GuideBookingsAndNegotiations: React.FC<GuideBookingsAndNegotiations
               }}
               className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs rounded-2xl cursor-pointer"
             >
-              Send Counter Offer
+              {language === 'vi' ? 'Gửi Giá Đề Xuất' : 'Send Counter Offer'}
             </button>
           </div>
         </div>
