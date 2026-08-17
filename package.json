@@ -13,7 +13,8 @@
     "test:e2e": "playwright test e2e/traveler-flow.spec.ts",
     "test:e2e-api": "tsx e2e/e2e-api-runner.ts",
     "test:e2e-flow": "tsx e2e/e2e-full-flow.ts",
-    "test:e2e-full": "tsx e2e/e2e-full-flow.ts && playwright test e2e/e2e-full-flow.spec.ts"
+    "test:e2e-guide": "playwright test e2e/full-flow-e2e-guide.spec.ts",
+    "test:e2e-full": "tsx e2e/e2e-full-flow.ts && playwright test e2e/full-flow-e2e-guide.spec.ts"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
