@@ -1,0 +1,1164 @@
+steps {
+  type: CORTEX_STEP_TYPE_USER_INPUT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954342
+      nanos: 939775000
+    }
+    source: CORTEX_STEP_SOURCE_SYSTEM
+    completed_at {
+      seconds: 1786954342
+      nanos: 939775000
+    }
+  }
+  user_input {
+    user_response: "Here is the full initial file tree for the application:\n/.env.example\n/.gitignore\n/README.md\n/assets/.aistudio/.gitignore\n/backend-go/Dockerfile\n/backend-go/README.md\n/backend-go/config/db.go\n/backend-go/go.mod\n/backend-go/main.go\n/backend-go/models/models.go\n/bun.lock\n/e2e/E2E_FULL_FLOW_TESTING.md\n/e2e/FULL_FLOW_E2E_GUIDE.md\n/e2e/TRAVELER_E2E_TESTING.md\n/e2e/e2e-api-runner.ts\n/e2e/e2e-full-flow.spec.ts\n/e2e/e2e-full-flow.ts\n/e2e/full-flow-e2e-guide.spec.ts\n/e2e/full-flow-traveler-guide.spec.ts\n/e2e/traveler-flow.spec.ts\n/firebase-applet-config.json\n/frontend-angular/package.json\n/frontend-angular/src/app/app.component.ts\n/index.html\n/metadata.json\n/package.json\n/playwright.config.ts\n/server.ts\n/src/App.tsx\n/src/components/AITourPlannerModal.tsx\n/src/components/AddToGoogleCalendarButton.tsx\n/src/components/AddToGoogleContactsButton.tsx\n/src/components/AuthModal.tsx\n/src/components/CalendarDragDropPicker.tsx\n/src/components/ExportRepoModal.tsx\n/src/components/GrabInstantGuideBooking.tsx\n/src/components/GuideDashboard.tsx\n/src/components/GuideList.tsx\n/src/components/HeaderNavbar.tsx\n/src/components/Homepage.tsx\n/src/components/LandmarkDiscovery.tsx\n/src/components/LiveBookingTrackerModal.tsx\n/src/components/MockPaymentGateway.tsx\n/src/components/NegotiationHistoryModal.tsx\n/src/components/NotificationBell.tsx\n/src/components/PortalEventsCalendar.tsx\n/src/components/TourBookingHubModal.tsx\n/src/components/TourCatalog.tsx\n/src/components/TourImageUploader.tsx\n/src/components/TourVideoCallRoom.tsx\n/src/db/firebase.ts\n/src/db/seeds.ts\n/src/index.css\n/src/lib/conflictCheck.ts\n/src/lib/firebaseClient.ts\n/src/lib/googleCalendar.ts\n/src/lib/googleContacts.ts\n/src/lib/languages.tsx\n/src/lib/printUtils.ts\n/src/lib/translations.ts\n/src/main.tsx\n/src/modules/admin/AdminDashboard.tsx\n/src/modules/admin/KYCApprovalTable.tsx\n/src/modules/admin/TourModeration.tsx\n/src/modules/admin/UserManagement.tsx\n/src/modules/guide/CreateTourModal.tsx\n/src/modules/guide/EditTourModal.tsx\n/src/modules/guide/GuideBookingsAndNegotiations.tsx\n/src/modules/guide/GuideDashboard.tsx\n/src/modules/guide/GuidePayoutAccountModal.tsx\n/src/modules/guide/GuidePayoutsLedger.tsx\n/src/modules/guide/KYCSubmissionModal.tsx\n/src/modules/guide/TourDetailModal.tsx\n/src/modules/traveler/CreateTravelerPostModal.tsx\n/src/modules/traveler/GuideDirectoryAndNegotiate.tsx\n/src/modules/traveler/TravelerDashboard.tsx\n/src/modules/traveler/TravelerPostsAndBids.tsx\n/src/modules/traveler/TravelerSpendingDashboard.tsx\n/src/types.ts\n/src/vite-env.d.ts\n/tsconfig.json\n/vite.config.ts"
+    items {
+      text: "Here is the full initial file tree for the application:\n/.env.example\n/.gitignore\n/README.md\n/assets/.aistudio/.gitignore\n/backend-go/Dockerfile\n/backend-go/README.md\n/backend-go/config/db.go\n/backend-go/go.mod\n/backend-go/main.go\n/backend-go/models/models.go\n/bun.lock\n/e2e/E2E_FULL_FLOW_TESTING.md\n/e2e/FULL_FLOW_E2E_GUIDE.md\n/e2e/TRAVELER_E2E_TESTING.md\n/e2e/e2e-api-runner.ts\n/e2e/e2e-full-flow.spec.ts\n/e2e/e2e-full-flow.ts\n/e2e/full-flow-e2e-guide.spec.ts\n/e2e/full-flow-traveler-guide.spec.ts\n/e2e/traveler-flow.spec.ts\n/firebase-applet-config.json\n/frontend-angular/package.json\n/frontend-angular/src/app/app.component.ts\n/index.html\n/metadata.json\n/package.json\n/playwright.config.ts\n/server.ts\n/src/App.tsx\n/src/components/AITourPlannerModal.tsx\n/src/components/AddToGoogleCalendarButton.tsx\n/src/components/AddToGoogleContactsButton.tsx\n/src/components/AuthModal.tsx\n/src/components/CalendarDragDropPicker.tsx\n/src/components/ExportRepoModal.tsx\n/src/components/GrabInstantGuideBooking.tsx\n/src/components/GuideDashboard.tsx\n/src/components/GuideList.tsx\n/src/components/HeaderNavbar.tsx\n/src/components/Homepage.tsx\n/src/components/LandmarkDiscovery.tsx\n/src/components/LiveBookingTrackerModal.tsx\n/src/components/MockPaymentGateway.tsx\n/src/components/NegotiationHistoryModal.tsx\n/src/components/NotificationBell.tsx\n/src/components/PortalEventsCalendar.tsx\n/src/components/TourBookingHubModal.tsx\n/src/components/TourCatalog.tsx\n/src/components/TourImageUploader.tsx\n/src/components/TourVideoCallRoom.tsx\n/src/db/firebase.ts\n/src/db/seeds.ts\n/src/index.css\n/src/lib/conflictCheck.ts\n/src/lib/firebaseClient.ts\n/src/lib/googleCalendar.ts\n/src/lib/googleContacts.ts\n/src/lib/languages.tsx\n/src/lib/printUtils.ts\n/src/lib/translations.ts\n/src/main.tsx\n/src/modules/admin/AdminDashboard.tsx\n/src/modules/admin/KYCApprovalTable.tsx\n/src/modules/admin/TourModeration.tsx\n/src/modules/admin/UserManagement.tsx\n/src/modules/guide/CreateTourModal.tsx\n/src/modules/guide/EditTourModal.tsx\n/src/modules/guide/GuideBookingsAndNegotiations.tsx\n/src/modules/guide/GuideDashboard.tsx\n/src/modules/guide/GuidePayoutAccountModal.tsx\n/src/modules/guide/GuidePayoutsLedger.tsx\n/src/modules/guide/KYCSubmissionModal.tsx\n/src/modules/guide/TourDetailModal.tsx\n/src/modules/traveler/CreateTravelerPostModal.tsx\n/src/modules/traveler/GuideDirectoryAndNegotiate.tsx\n/src/modules/traveler/TravelerDashboard.tsx\n/src/modules/traveler/TravelerPostsAndBids.tsx\n/src/modules/traveler/TravelerSpendingDashboard.tsx\n/src/types.ts\n/src/vite-env.d.ts\n/tsconfig.json\n/vite.config.ts"
+    }
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_USER_INPUT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954344
+      nanos: 40523073
+    }
+    source: CORTEX_STEP_SOURCE_USER_EXPLICIT
+  }
+  user_input {
+    user_response: "read everything related to this application, give me idea, step by step to create an introduction video"
+    items {
+      text: "read everything related to this application, give me idea, step by step to create an introduction video"
+    }
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954344
+      nanos: 40908297
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786954347
+      nanos: 932024976
+    }
+    finished_generating_at {
+      seconds: 1786954348
+      nanos: 191909813
+    }
+    completed_at {
+      seconds: 1786954348
+      nanos: 191909813
+    }
+    model_usage {
+      input_tokens: 17280
+      output_tokens: 387
+      message_id: "aMKCauXPCdWiqtsPnJSv8AQ"
+      thinking_output_tokens: 279
+      response_output_tokens: 108
+      response_id: "aMKCauXPCdWiqtsPnJSv8AQ"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 2
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786954348
+      nanos: 191909813
+    }
+  }
+  planner_response {
+    thinking: "**Initiating Exploration of Codebase**\n\nI\'m starting by diving into the `README.md` file. It seems like the best starting point to get an overview of this application. Next, I\'ll go beyond the README to understand the program more in depth, with the goal of creating an introduction video.\n\n\n"
+    thinking_duration {
+      nanos: 259676234
+    }
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954347
+      nanos: 983860722
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954348
+      nanos: 83085477
+    }
+    finished_generating_at {
+      seconds: 1786954348
+      nanos: 83084740
+    }
+    completed_at {
+      seconds: 1786954349
+      nanos: 108573905
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 3
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954348
+      nanos: 83076084
+    }
+    tool_call_output_tokens: 21
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "Read README"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954348
+      nanos: 83369017
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///README.md"
+    end_line: 56
+    num_lines: 57
+    num_bytes: 3629
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954348
+      nanos: 83261131
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954348
+      nanos: 156228865
+    }
+    finished_generating_at {
+      seconds: 1786954348
+      nanos: 156228218
+    }
+    completed_at {
+      seconds: 1786954349
+      nanos: 440333320
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 4
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954348
+      nanos: 156221313
+    }
+    tool_call_output_tokens: 23
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "Read metadata"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954349
+      nanos: 108818421
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///metadata.json"
+    end_line: 6
+    num_lines: 7
+    num_bytes: 292
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954348
+      nanos: 156460738
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954348
+      nanos: 191769660
+    }
+    finished_generating_at {
+      seconds: 1786954348
+      nanos: 191769150
+    }
+    completed_at {
+      seconds: 1786954350
+      nanos: 563711166
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 5
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954348
+      nanos: 191760591
+    }
+    tool_call_output_tokens: 24
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "Read App component"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954349
+      nanos: 440501897
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///src/App.tsx"
+    end_line: 818
+    num_lines: 819
+    num_bytes: 28163
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_CHECKPOINT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954350
+      nanos: 563822796
+    }
+    source: CORTEX_STEP_SOURCE_SYSTEM
+    completed_at {
+      seconds: 1786954352
+      nanos: 823831179
+    }
+    model_usage {
+      input_tokens: 1029
+      output_tokens: 294
+      message_id: "bsKCat7JKMSvqtsPxP_t0Q4"
+      thinking_output_tokens: 290
+      response_output_tokens: 4
+      response_id: "bsKCat7JKMSvqtsPxP_t0Q4"
+    }
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 6
+      metadata_index: 1
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    retry_infos {
+      usage {
+        input_tokens: 1029
+        output_tokens: 294
+        message_id: "bsKCat7JKMSvqtsPxP_t0Q4"
+        thinking_output_tokens: 290
+        response_output_tokens: 4
+        response_id: "bsKCat7JKMSvqtsPxP_t0Q4"
+      }
+    }
+    started_at {
+      seconds: 1786954350
+      nanos: 564043877
+    }
+  }
+  checkpoint {
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954350
+      nanos: 566488701
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786954351
+      nanos: 647899018
+    }
+    finished_generating_at {
+      seconds: 1786954351
+      nanos: 735351694
+    }
+    completed_at {
+      seconds: 1786954351
+      nanos: 735351694
+    }
+    model_usage {
+      input_tokens: 14316
+      output_tokens: 218
+      cache_read_tokens: 16336
+      message_id: "bsKCarj7KMKtqtsPo8iV4Ag"
+      thinking_output_tokens: 142
+      response_output_tokens: 76
+      response_id: "bsKCarj7KMKtqtsPo8iV4Ag"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 7
+      metadata_index: 1
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786954351
+      nanos: 735351694
+    }
+  }
+  planner_response {
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954351
+      nanos: 647956857
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954351
+      nanos: 713609587
+    }
+    finished_generating_at {
+      seconds: 1786954351
+      nanos: 713608932
+    }
+    completed_at {
+      seconds: 1786954354
+      nanos: 10754751
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 8
+      metadata_index: 1
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954351
+      nanos: 713600812
+    }
+    tool_call_output_tokens: 22
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "View types"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954352
+      nanos: 824017070
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///src/types.ts"
+    end_line: 280
+    num_lines: 281
+    num_bytes: 7033
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954351
+      nanos: 713776628
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954351
+      nanos: 735212784
+    }
+    finished_generating_at {
+      seconds: 1786954351
+      nanos: 735212061
+    }
+    completed_at {
+      seconds: 1786954354
+      nanos: 387916960
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 9
+      metadata_index: 1
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954351
+      nanos: 735205865
+    }
+    tool_call_output_tokens: 26
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "View Homepage"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954354
+      nanos: 10960661
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///src/components/Homepage.tsx"
+    end_line: 462
+    num_lines: 463
+    num_bytes: 22716
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954354
+      nanos: 391115779
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786954364
+      nanos: 758919643
+    }
+    finished_generating_at {
+      seconds: 1786954364
+      nanos: 848136591
+    }
+    completed_at {
+      seconds: 1786954364
+      nanos: 848136591
+    }
+    model_usage {
+      input_tokens: 14159
+      output_tokens: 159
+      cache_read_tokens: 28599
+      message_id: "csKCatyKHoWlqtsP6N7I-Qg"
+      thinking_output_tokens: 63
+      response_output_tokens: 96
+      response_id: "csKCatyKHoWlqtsP6N7I-Qg"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 10
+      metadata_index: 2
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786954364
+      nanos: 848136591
+    }
+  }
+  planner_response {
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954364
+      nanos: 758993814
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954364
+      nanos: 830569368
+    }
+    finished_generating_at {
+      seconds: 1786954364
+      nanos: 830568118
+    }
+    completed_at {
+      seconds: 1786954365
+      nanos: 252110727
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 11
+      metadata_index: 2
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954364
+      nanos: 830559497
+    }
+    tool_call_output_tokens: 26
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "View E2E Guide"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954364
+      nanos: 830907082
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///e2e/FULL_FLOW_E2E_GUIDE.md"
+    end_line: 473
+    num_lines: 474
+    num_bytes: 31061
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954364
+      nanos: 830828518
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954364
+      nanos: 847972295
+    }
+    finished_generating_at {
+      seconds: 1786954364
+      nanos: 847971010
+    }
+    completed_at {
+      seconds: 1786954365
+      nanos: 585388968
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 12
+      metadata_index: 2
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954364
+      nanos: 847962710
+    }
+    tool_call_output_tokens: 33
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "View Traveler Dashboard"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954365
+      nanos: 252347278
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///src/modules/traveler/TravelerDashboard.tsx"
+    end_line: 411
+    num_lines: 412
+    num_bytes: 18916
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954365
+      nanos: 589875998
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786954367
+      nanos: 806170648
+    }
+    finished_generating_at {
+      seconds: 1786954367
+      nanos: 894411880
+    }
+    completed_at {
+      seconds: 1786954367
+      nanos: 894411880
+    }
+    model_usage {
+      input_tokens: 17771
+      output_tokens: 221
+      cache_read_tokens: 40872
+      message_id: "fcKCarnmKsCGqtsPtbGeqAw"
+      thinking_output_tokens: 136
+      response_output_tokens: 85
+      response_id: "fcKCarnmKsCGqtsPtbGeqAw"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 13
+      metadata_index: 3
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786954367
+      nanos: 894411880
+    }
+  }
+  planner_response {
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954367
+      nanos: 806253416
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954367
+      nanos: 871400477
+    }
+    finished_generating_at {
+      seconds: 1786954367
+      nanos: 871399919
+    }
+    completed_at {
+      seconds: 1786954368
+      nanos: 179286685
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 14
+      metadata_index: 3
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954367
+      nanos: 871392078
+    }
+    tool_call_output_tokens: 32
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "View Instant Booking"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954367
+      nanos: 871657620
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///src/components/GrabInstantGuideBooking.tsx"
+    end_line: 261
+    num_lines: 262
+    num_bytes: 11883
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_VIEW_FILE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954367
+      nanos: 871545704
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    arguments_order: "AbsolutePath"
+    arguments_order: "toolAction"
+    arguments_order: "toolSummary"
+    viewable_at {
+      seconds: 1786954367
+      nanos: 894200779
+    }
+    finished_generating_at {
+      seconds: 1786954367
+      nanos: 894199774
+    }
+    completed_at {
+      seconds: 1786954368
+      nanos: 497148909
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 15
+      metadata_index: 3
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    last_completed_chunk_at {
+      seconds: 1786954367
+      nanos: 894188247
+    }
+    tool_call_output_tokens: 31
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    tool_summary: "View Landmark Discovery"
+    tool_action: "Viewing file"
+    started_at {
+      seconds: 1786954368
+      nanos: 179467376
+    }
+  }
+  view_file {
+    absolute_path_uri: "file:///src/components/LandmarkDiscovery.tsx"
+    end_line: 318
+    num_lines: 319
+    num_bytes: 15982
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_CHECKPOINT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954368
+      nanos: 500752475
+    }
+    source: CORTEX_STEP_SOURCE_SYSTEM
+    completed_at {
+      seconds: 1786954376
+      nanos: 958999911
+    }
+    model_usage {
+      input_tokens: 53694
+      output_tokens: 2441
+      message_id: "gMKCavfOJLGKqtsP-rDpsAw"
+      thinking_output_tokens: 1335
+      response_output_tokens: 1106
+      response_id: "gMKCavfOJLGKqtsP-rDpsAw"
+    }
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 16
+      metadata_index: 4
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    retry_infos {
+      usage {
+        input_tokens: 53694
+        output_tokens: 2441
+        message_id: "gMKCavfOJLGKqtsP-rDpsAw"
+        thinking_output_tokens: 1335
+        response_output_tokens: 1106
+        response_id: "gMKCavfOJLGKqtsP-rDpsAw"
+      }
+    }
+    started_at {
+      seconds: 1786954368
+      nanos: 501166032
+    }
+  }
+  checkpoint {
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786954368
+      nanos: 507276548
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786954373
+      nanos: 262209991
+    }
+    finished_generating_at {
+      seconds: 1786954383
+      nanos: 75153091
+    }
+    completed_at {
+      seconds: 1786954383
+      nanos: 75153091
+    }
+    model_usage {
+      input_tokens: 11807
+      output_tokens: 3219
+      cache_read_tokens: 57224
+      message_id: "gMKCatmiJYWnmtkPvrDtiQs"
+      thinking_output_tokens: 865
+      response_output_tokens: 2354
+      response_id: "gMKCatmiJYWnmtkPvrDtiQs"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 17
+      metadata_index: 4
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786954383
+      nanos: 75153091
+    }
+  }
+  planner_response {
+    response: "Here is a comprehensive overview of the **Tour Guide Hub** platform and a step-by-step blueprint to create an introduction video.\n\n---\n\n# \360\237\214\237 Part 1: Application Overview & Key Selling Points\n\n**Tour Guide Hub** is a multi-role marketplace (Traveler \342\200\242 Tour Guide \342\200\242 Admin) connecting travelers directly with verified, licensed local guides across Vietnam and Southeast Asia.\n\n### \360\237\224\221 Core Innovations to Highlight in the Video\n1. **100% Verified National Licensing (KYC)**: Guides submit official VNAT (*Vietnam National Administration of Tourism*) licenses & National IDs, reviewed by platform admins to eliminate tourist scams.\n2. **AI Tour Planner (Google Gemini)**: Travelers generate tailored multi-day itineraries in seconds and convert them directly into public trip requests.\n3. **Interactive Bidding & Price Negotiation**: Travelers post budgets; local guides place bids with multi-round counter-offers and transparent audit logs.\n4. **Grab-Style Instant Guide Dispatch**: Request a licensed guide on a scooter or walking tour within 3\342\200\2235 minutes at nearby landmarks.\n5. **Zero-Risk Escrow Shield**: Payments are locked in a platform escrow vault and only released when **both** traveler and guide confirm tour completion with a **6-digit Safety PIN**.\n6. **Google Workspace Sync**: 1-click **Add to Google Calendar** and **Save Guide to Google Contacts (People API)**.\n7. **Live Tour Operations Hub**: Real-time GPS radar tracking, WebRTC Video Call room, live messaging, and emergency SOS hotline.\n8. **Automated Guide Payouts**: VietQR, Bank Transfer, and PayPal ledger with earnings withdrawal.\n\n---\n\n# \360\237\216\254 Part 2: Video Concept Options\n\n| Format | Duration | Best For |\n| :--- | :--- | :--- |\n| **Option A: High-Impact Product Teaser** | **60\342\200\22390 seconds** | Social media (LinkedIn, YouTube Shorts, X/Twitter), investors, landing page hero. |\n| **Option B: Story-Driven User Journey (Recommended)** | **2 to 2.5 minutes** | Full product demo showing Sarah (Traveler) & Minh (Guide) interacting in real-time. |\n| **Option C: Comprehensive Walkthrough & Admin Back-Office** | **3 to 4 minutes** | Technical presentations, partner onboarding, and hackathon/grant demos. |\n\n---\n\n# \360\237\223\235 Part 3: Scene-by-Scene Script & Recording Guide (Option B: 2-Minute Story-Driven Journey)\n\n### \360\237\216\265 Audio & Vibe:\n* **Background Music**: Upbeat, modern lo-fi / indie tech acoustic with positive momentum.\n* **Tone of Voiceover**: Confident, welcoming, energetic, and professional.\n\n---\n\n### **Scene 1: The Hook & The Problem (0:00 \342\200\223 0:15)**\n* **Visual on Screen**: \n  - Montage of Homepage hero banner, popular cities (Hanoi, Saigon, Da Nang, Hoi An), and the national license badge.\n* **On-Screen Text**: *Say Goodbye to Tourist Scams & Cookie-Cutter Tours*\n* **Voiceover (VO)**: \n  > *\"Traveling to Southeast Asia is unforgettable, but finding trusted, licensed local guides without paying huge middleman fees has always been a hassle. Meet Tour Guide Hub \342\200\224 the next-generation marketplace connecting travelers directly with verified local experts.\"*\n\n---\n\n### **Scene 2: AI Tour Planner & Custom Request Posting (0:15 \342\200\223 0:35)**\n* **Screen Action**:\n  1. Log in as **Sarah Jenkins** (`sarah@example.com`).\n  2. Click **AI Tour Planner \342\234\250**, choose destination `Ho Chi Minh City`, style `Street Food & Photography`, and click **Generate Smart Itinerary**.\n  3. Show Gemini generating the day-by-day plan. Click **Convert into Custom Trip Request**.\n  4. Post request with target budget (`$85 USD`).\n* **On-Screen Text**: *\342\234\250 AI-Powered Smart Itineraries $\\rightarrow$ Instant Request Board*\n* **VO**: \n  > *\"Start by designing your dream trip in seconds with our Gemini AI Tour Planner. Convert it instantly into an open trip request with your custom schedule and budget.\"*\n\n---\n\n### **Scene 3: Guide Bidding & Multi-Round Price Negotiation (0:35 \342\200\223 0:55)**\n* **Screen Action**:\n  1. Switch browser / split screen to **Nguyen Van Minh** (`minh.tourguide@gmail.com`).\n  2. Show Guide Requests board: Minh spots Sarah\'s post and submits a bid of `$80 USD`.\n  3. Switch back to Sarah: In-app notification pop-up. Sarah opens **Negotiation History**, sends counter `$75 USD`, and Minh accepts.\n* **On-Screen Text**: *\360\237\222\254 Transparent Multi-Round Negotiation & Live Bidding*\n* **VO**: \n  > *\"Certified local guides in your city bid on your request. Use our interactive negotiation hub to discuss customized routes, propose counter-offers, and agree on fair pricing with zero hidden fees.\"*\n\n---\n\n### **Scene 4: Zero-Risk Escrow Payment & Google Workspace Sync (0:55 \342\200\223 1:15)**\n* **Screen Action**:\n  1. Sarah clicks **Accept & Authorize Escrow Hold**. Show Mock Payment Gateway (Cards, MoMo, VietQR).\n  2. Show the generated **6-Digit Safety PIN** (`784920`).\n  3. Click **Save to Google Contacts** (Google People API modal opens) and **Add to Google Calendar**.\n* **On-Screen Text**: *\360\237\233\241\357\270\217 100% Escrow Protection \342\200\242 Google Calendar & Contacts Sync*\n* **VO**: \n  > *\"Travel with total peace of mind. Your funds are secured in platform escrow and never released until you complete the tour. Plus, sync your guide\'s direct phone number to Google Contacts and schedule reminders directly into Google Calendar with a single click.\"*\n\n---\n\n### **Scene 5: Grab-Style Instant Dispatch & Live Tour Radar (1:15 \342\200\223 1:35)**\n* **Screen Action**:\n  1. Open **Landmark Discovery** or **Instant Guide Booking**.\n  2. Show the radar pulsing animation matching a guide on a scooter in 3 minutes.\n  3. Open **Live Tour Operations Hub**: show live GPS tracking, in-tour messaging, and the built-in **WebRTC Video Call Room**.\n  4. Guide arrives, inputs traveler\'s 6-digit Safety PIN to verify arrival.\n* **On-Screen Text**: *\342\232\241 Grab-Style Instant Dispatch \342\200\242 Live GPS Radar & Video Room*\n* **VO**: \n  > *\"Need a guide right now? Use our Grab-style on-demand dispatch to summon a licensed guide to your landmark in minutes. Track their arrival on live GPS radar, communicate via video call, and verify identity with a secure safety PIN.\"*\n\n---\n\n### **Scene 6: Dual Tour Completion, Guide Payout & Admin KYC (1:35 \342\200\223 1:55)**\n* **Screen Action**:\n  1. Sarah and Minh both click **Confirm Tour Completed**.\n  2. Escrow status transitions to `Released`. Show Minh\342\200\231s **Payout Ledger & VietQR balance withdrawal**.\n  3. Quick cut to **Alexander Wright** (`admin@tourguidehub.com`) inside the **Admin Dashboard**: show KYC license queue approval and real-time revenue analytics.\n* **On-Screen Text**: *\360\237\222\260 Dual Escrow Settlement \342\200\242 Automated VietQR Payouts \342\200\242 VNAT KYC Verified*\n* **VO**: \n  > *\"Once both parties confirm completion, escrow funds are automatically disbursed to the guide\'s digital ledger for instant VietQR withdrawal. Backed by full admin KYC oversight and national licensing validation.\"*\n\n---\n\n### **Scene 7: Call to Action & Outro (1:55 \342\200\223 2:10)**\n* **Screen Action**:\n  - Zoom out to the Homepage featuring popular cities and bilingual toggle (English / Vietnamese).\n  - Show platform logo and URL.\n* **On-Screen Text**: *Explore Like a Local. Verified. Safe. Unforgettable.*\n* **VO**: \n  > *\"Tour Guide Hub \342\200\224 Experience Southeast Asia like a true local. Sign up today and start your journey!\"*\n\n---\n\n# \360\237\233\240\357\270\217 Part 4: Step-by-Step Production Roadmap\n\n### Step 1: Preparation & Demo Data Setup\n* Make sure your local or hosted instance is running with test seeds.\n* Quick Demo Accounts:\n  - **Traveler**: `sarah@example.com` / `password123`\n  - **Verified Guide**: `minh.tourguide@gmail.com` / `password123`\n  - **Admin**: `admin@tourguidehub.com` / `password123`\n\n### Step 2: Screen Recording Setup\n* **Resolution**: 1920x1080 (1080p) or 2560x1440 (2K) at 60 FPS.\n* **Browser**: Clean Chrome profile with bookmarks bar hidden, zoom set to 100% or 110% for crisp UI readability.\n* **Tools**: OBS Studio, Screen Studio, Loom, or Camtasia.\n* **Tip**: Use **Screen Studio** if you want automatic smooth cursor zooming and camera tracking on button clicks.\n\n### Step 3: Recording the Clips\n* Record each scene separately according to the script above (take 2\342\200\2233 takes per scene).\n* Record a split-screen or dual-window test for the real-time interaction between Sarah and Guide Minh.\n\n### Step 4: Voiceover (VO) Generation\n* **Option 1 (AI Voice)**: Use ElevenLabs (voices: *Adam*, *Rachel*, or *Antony* - friendly tech startup style).\n* **Option 2 (Human Voice)**: Record using a USB microphone with noise suppression and normalization.\n\n### Step 5: Video Editing & Motion Graphics\n* Use **CapCut**, **DaVinci Resolve**, or **Premiere Pro**:\n  - Add zoom-ins when showing the **AI Tour Planner**, **Safety PIN**, and **VietQR payout code**.\n  - Add subtle sound effects (click sounds, whooshes, chime when escrow is released).\n  - Add lower-third captions with teal/emerald accents matching the app\'s theme.\n\n### Step 6: Export & Publishing\n* **Settings**: MP4 (H.264), 1080p/4K, 30/60fps, 15\342\200\22320 Mbps bitrate.\n* **Thumbnails**: Screenshot of the AI Planner alongside the Live GPS Radar and \"Verified Guide\" badge."
+    thinking: "**Defining Core Value**\n\nI\'m currently focused on defining the core value proposition of \"Tour Guide Hub\" for an introductory video. The key is connecting travelers with verified guides. I want to convey that this direct connection is key. I\'m prioritizing how to showcase the verification process and guarantee travelers\' safety through the use of this hub. The goal is to highlight the advantages of booking through this platform.\n\n\n**Highlighting Tour Guide Expertise**\n\nI\'m now zeroing in on the distinct value for travelers\342\200\224specifically the licensed, vetted guides. The integration of VNAT license lookups and KYC validation is a crucial point that demonstrates the safety of our solution. This emphasizes the solution\'s power to solve real-world tourism issues like tourist scams, language barriers and lack of payment security.\n\n\n**Developing Payment System**\n\nI\'ve been working on the payment system\'s architecture. It\'ll be an escrow system with dual-confirmation, supporting various payment methods. I\'m also integrating Google Workspace for contact saving and calendar integration, complete with safety features. On top of that, I\'m building a live tour hub with real-time tracking, chat, and an emergency hotline.\n\n\n\n"
+    modified_response: "Here is a comprehensive overview of the **Tour Guide Hub** platform and a step-by-step blueprint to create an introduction video.\n\n---\n\n# \360\237\214\237 Part 1: Application Overview & Key Selling Points\n\n**Tour Guide Hub** is a multi-role marketplace (Traveler \342\200\242 Tour Guide \342\200\242 Admin) connecting travelers directly with verified, licensed local guides across Vietnam and Southeast Asia.\n\n### \360\237\224\221 Core Innovations to Highlight in the Video\n1. **100% Verified National Licensing (KYC)**: Guides submit official VNAT (*Vietnam National Administration of Tourism*) licenses & National IDs, reviewed by platform admins to eliminate tourist scams.\n2. **AI Tour Planner (Google Gemini)**: Travelers generate tailored multi-day itineraries in seconds and convert them directly into public trip requests.\n3. **Interactive Bidding & Price Negotiation**: Travelers post budgets; local guides place bids with multi-round counter-offers and transparent audit logs.\n4. **Grab-Style Instant Guide Dispatch**: Request a licensed guide on a scooter or walking tour within 3\342\200\2235 minutes at nearby landmarks.\n5. **Zero-Risk Escrow Shield**: Payments are locked in a platform escrow vault and only released when **both** traveler and guide confirm tour completion with a **6-digit Safety PIN**.\n6. **Google Workspace Sync**: 1-click **Add to Google Calendar** and **Save Guide to Google Contacts (People API)**.\n7. **Live Tour Operations Hub**: Real-time GPS radar tracking, WebRTC Video Call room, live messaging, and emergency SOS hotline.\n8. **Automated Guide Payouts**: VietQR, Bank Transfer, and PayPal ledger with earnings withdrawal.\n\n---\n\n# \360\237\216\254 Part 2: Video Concept Options\n\n| Format | Duration | Best For |\n| :--- | :--- | :--- |\n| **Option A: High-Impact Product Teaser** | **60\342\200\22390 seconds** | Social media (LinkedIn, YouTube Shorts, X/Twitter), investors, landing page hero. |\n| **Option B: Story-Driven User Journey (Recommended)** | **2 to 2.5 minutes** | Full product demo showing Sarah (Traveler) & Minh (Guide) interacting in real-time. |\n| **Option C: Comprehensive Walkthrough & Admin Back-Office** | **3 to 4 minutes** | Technical presentations, partner onboarding, and hackathon/grant demos. |\n\n---\n\n# \360\237\223\235 Part 3: Scene-by-Scene Script & Recording Guide (Option B: 2-Minute Story-Driven Journey)\n\n### \360\237\216\265 Audio & Vibe:\n* **Background Music**: Upbeat, modern lo-fi / indie tech acoustic with positive momentum.\n* **Tone of Voiceover**: Confident, welcoming, energetic, and professional.\n\n---\n\n### **Scene 1: The Hook & The Problem (0:00 \342\200\223 0:15)**\n* **Visual on Screen**: \n  - Montage of Homepage hero banner, popular cities (Hanoi, Saigon, Da Nang, Hoi An), and the national license badge.\n* **On-Screen Text**: *Say Goodbye to Tourist Scams & Cookie-Cutter Tours*\n* **Voiceover (VO)**: \n  > *\"Traveling to Southeast Asia is unforgettable, but finding trusted, licensed local guides without paying huge middleman fees has always been a hassle. Meet Tour Guide Hub \342\200\224 the next-generation marketplace connecting travelers directly with verified local experts.\"*\n\n---\n\n### **Scene 2: AI Tour Planner & Custom Request Posting (0:15 \342\200\223 0:35)**\n* **Screen Action**:\n  1. Log in as **Sarah Jenkins** (`sarah@example.com`).\n  2. Click **AI Tour Planner \342\234\250**, choose destination `Ho Chi Minh City`, style `Street Food & Photography`, and click **Generate Smart Itinerary**.\n  3. Show Gemini generating the day-by-day plan. Click **Convert into Custom Trip Request**.\n  4. Post request with target budget (`$85 USD`).\n* **On-Screen Text**: *\342\234\250 AI-Powered Smart Itineraries $\\rightarrow$ Instant Request Board*\n* **VO**: \n  > *\"Start by designing your dream trip in seconds with our Gemini AI Tour Planner. Convert it instantly into an open trip request with your custom schedule and budget.\"*\n\n---\n\n### **Scene 3: Guide Bidding & Multi-Round Price Negotiation (0:35 \342\200\223 0:55)**\n* **Screen Action**:\n  1. Switch browser / split screen to **Nguyen Van Minh** (`minh.tourguide@gmail.com`).\n  2. Show Guide Requests board: Minh spots Sarah\'s post and submits a bid of `$80 USD`.\n  3. Switch back to Sarah: In-app notification pop-up. Sarah opens **Negotiation History**, sends counter `$75 USD`, and Minh accepts.\n* **On-Screen Text**: *\360\237\222\254 Transparent Multi-Round Negotiation & Live Bidding*\n* **VO**: \n  > *\"Certified local guides in your city bid on your request. Use our interactive negotiation hub to discuss customized routes, propose counter-offers, and agree on fair pricing with zero hidden fees.\"*\n\n---\n\n### **Scene 4: Zero-Risk Escrow Payment & Google Workspace Sync (0:55 \342\200\223 1:15)**\n* **Screen Action**:\n  1. Sarah clicks **Accept & Authorize Escrow Hold**. Show Mock Payment Gateway (Cards, MoMo, VietQR).\n  2. Show the generated **6-Digit Safety PIN** (`784920`).\n  3. Click **Save to Google Contacts** (Google People API modal opens) and **Add to Google Calendar**.\n* **On-Screen Text**: *\360\237\233\241\357\270\217 100% Escrow Protection \342\200\242 Google Calendar & Contacts Sync*\n* **VO**: \n  > *\"Travel with total peace of mind. Your funds are secured in platform escrow and never released until you complete the tour. Plus, sync your guide\'s direct phone number to Google Contacts and schedule reminders directly into Google Calendar with a single click.\"*\n\n---\n\n### **Scene 5: Grab-Style Instant Dispatch & Live Tour Radar (1:15 \342\200\223 1:35)**\n* **Screen Action**:\n  1. Open **Landmark Discovery** or **Instant Guide Booking**.\n  2. Show the radar pulsing animation matching a guide on a scooter in 3 minutes.\n  3. Open **Live Tour Operations Hub**: show live GPS tracking, in-tour messaging, and the built-in **WebRTC Video Call Room**.\n  4. Guide arrives, inputs traveler\'s 6-digit Safety PIN to verify arrival.\n* **On-Screen Text**: *\342\232\241 Grab-Style Instant Dispatch \342\200\242 Live GPS Radar & Video Room*\n* **VO**: \n  > *\"Need a guide right now? Use our Grab-style on-demand dispatch to summon a licensed guide to your landmark in minutes. Track their arrival on live GPS radar, communicate via video call, and verify identity with a secure safety PIN.\"*\n\n---\n\n### **Scene 6: Dual Tour Completion, Guide Payout & Admin KYC (1:35 \342\200\223 1:55)**\n* **Screen Action**:\n  1. Sarah and Minh both click **Confirm Tour Completed**.\n  2. Escrow status transitions to `Released`. Show Minh\342\200\231s **Payout Ledger & VietQR balance withdrawal**.\n  3. Quick cut to **Alexander Wright** (`admin@tourguidehub.com`) inside the **Admin Dashboard**: show KYC license queue approval and real-time revenue analytics.\n* **On-Screen Text**: *\360\237\222\260 Dual Escrow Settlement \342\200\242 Automated VietQR Payouts \342\200\242 VNAT KYC Verified*\n* **VO**: \n  > *\"Once both parties confirm completion, escrow funds are automatically disbursed to the guide\'s digital ledger for instant VietQR withdrawal. Backed by full admin KYC oversight and national licensing validation.\"*\n\n---\n\n### **Scene 7: Call to Action & Outro (1:55 \342\200\223 2:10)**\n* **Screen Action**:\n  - Zoom out to the Homepage featuring popular cities and bilingual toggle (English / Vietnamese).\n  - Show platform logo and URL.\n* **On-Screen Text**: *Explore Like a Local. Verified. Safe. Unforgettable.*\n* **VO**: \n  > *\"Tour Guide Hub \342\200\224 Experience Southeast Asia like a true local. Sign up today and start your journey!\"*\n\n---\n\n# \360\237\233\240\357\270\217 Part 4: Step-by-Step Production Roadmap\n\n### Step 1: Preparation & Demo Data Setup\n* Make sure your local or hosted instance is running with test seeds.\n* Quick Demo Accounts:\n  - **Traveler**: `sarah@example.com` / `password123`\n  - **Verified Guide**: `minh.tourguide@gmail.com` / `password123`\n  - **Admin**: `admin@tourguidehub.com` / `password123`\n\n### Step 2: Screen Recording Setup\n* **Resolution**: 1920x1080 (1080p) or 2560x1440 (2K) at 60 FPS.\n* **Browser**: Clean Chrome profile with bookmarks bar hidden, zoom set to 100% or 110% for crisp UI readability.\n* **Tools**: OBS Studio, Screen Studio, Loom, or Camtasia.\n* **Tip**: Use **Screen Studio** if you want automatic smooth cursor zooming and camera tracking on button clicks.\n\n### Step 3: Recording the Clips\n* Record each scene separately according to the script above (take 2\342\200\2233 takes per scene).\n* Record a split-screen or dual-window test for the real-time interaction between Sarah and Guide Minh.\n\n### Step 4: Voiceover (VO) Generation\n* **Option 1 (AI Voice)**: Use ElevenLabs (voices: *Adam*, *Rachel*, or *Antony* - friendly tech startup style).\n* **Option 2 (Human Voice)**: Record using a USB microphone with noise suppression and normalization.\n\n### Step 5: Video Editing & Motion Graphics\n* Use **CapCut**, **DaVinci Resolve**, or **Premiere Pro**:\n  - Add zoom-ins when showing the **AI Tour Planner**, **Safety PIN**, and **VietQR payout code**.\n  - Add subtle sound effects (click sounds, whooshes, chime when escrow is released).\n  - Add lower-third captions with teal/emerald accents matching the app\'s theme.\n\n### Step 6: Export & Publishing\n* **Settings**: MP4 (H.264), 1080p/4K, 30/60fps, 15\342\200\22320 Mbps bitrate.\n* **Thumbnails**: Screenshot of the AI Planner alongside the Live GPS Radar and \"Verified Guide\" badge."
+    thinking_duration {
+      seconds: 2
+      nanos: 263435001
+    }
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_USER_INPUT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786956965
+      nanos: 988090481
+    }
+    source: CORTEX_STEP_SOURCE_USER_EXPLICIT
+  }
+  user_input {
+    user_response: "I mean, idea for this video to be stunning to the viewer"
+    items {
+      text: "I mean, idea for this video to be stunning to the viewer"
+    }
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786956965
+      nanos: 989423571
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786956968
+      nanos: 717973748
+    }
+    finished_generating_at {
+      seconds: 1786956978
+      nanos: 116865372
+    }
+    completed_at {
+      seconds: 1786956978
+      nanos: 116865372
+    }
+    model_usage {
+      input_tokens: 21563
+      output_tokens: 2263
+      message_id: "psyCasvIBKbU_uMP7OzgsQo"
+      response_output_tokens: 2263
+      response_id: "psyCasvIBKbU_uMP7OzgsQo"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 19
+      metadata_index: 5
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786956978
+      nanos: 116865372
+    }
+  }
+  planner_response {
+    response: "To make this video **genuinely stunning, viral, and jaw-dropping** (instead of a boring software tutorial), we need to borrow the cinematic playbook used by **Apple Keynotes, Airbnb product launches, and high-energy travel documentaries**.\n\nHere are **3 showstopping creative directions**, followed by a **frame-by-frame visual effects (VFX) and sound design blueprint** that will instantly hook viewers.\n\n---\n\n# \360\237\232\200 3 Stunning Creative Concepts (Choose Your Vibe)\n\n### \360\237\245\207 Concept 1: \"The Split-World Parallel\" (The Cinematic Masterpiece \342\200\224 *Recommended*)\n* **The Visual Hook**: A dynamic split-screen showing **Real-World Travel Cinematics** on the Left and **Interactive App UI Moments** on the Right, synced with precision beat drops.\n  - *Left*: Drone footage soaring through Ha Long Bay or a POV weaving through Saigon scooter traffic at night.\n  - *Right*: A tap on \"AI Tour Planner\" or \"Grab Instant Guide\" that matches the exact real-world scene.\n* **Why it stuns**: It anchors the digital product to real adrenaline, exotic smells, delicious food, and authentic human connection.\n\n### \360\237\245\210 Concept 2: \"The 3D Glass & Spatial Dimension\" (Apple / Linear App Aesthetic)\n* **The Visual Hook**: 3D mockups floating in a dark, atmospheric studio with anamorphic lens flares. UI cards (Safety PIN, Escrow Vault, Live Radar, Google Contacts Card) break out of the browser frame in 3D parallax with glowing emerald/cyan neon edges.\n* **Why it stuns**: Looks like a multi-million-dollar Silicon Valley SaaS launch film.\n\n### \360\237\245\211 Concept 3: \"The 60-Second Adrenaline Speedrun\" (TikTok / Reels / YouTube Shorts Viral Cut)\n* **The Visual Hook**: Hyper-fast whip-pans, sound design with tactile ASMR clicks, keyboard mechanical taps, and cash register dings. A traveler lands at Da Nang airport at 7:00 PM with zero plans $\\rightarrow$ at 7:03 PM they are on a scooter eating secret street food with a verified guide.\n\n---\n\n# \360\237\216\250 Frame-by-Frame Stunning Video Blueprint (The \"Split-World\" Cut)\n\n### \342\217\261\357\270\217 Section 1: The 5-Second Sensory Hook (0:00 \342\200\223 0:08)\n* **Visuals**:\n  1. **(0.0s)** Full screen pitch black. *SFX: Heartbeat thump + distant scooter engine.*\n  2. **(0.5s)** Rapid 0.3-second flash cuts:\n     - Sizzling street food pan in Hanoi Old Quarter.\n     - A scammer waving an overpriced paper brochure.\n     - A tourist looking stressed and lost at a dark intersection.\n  3. **(2.5s)** *Glitch Transition & Glass shatter sound.* Screen clears to a clean, illuminated emerald UI card: **\"LICENSED & VERIFIED BY VNAT\"**.\n  4. **(5.0s)** Logo sweeps in with a sonic shimmer: **Tour Guide Hub**.\n* **Voiceover**: *\"What if you could unlock the secrets of Southeast Asia\342\200\246 with zero scams, zero middleman markups, and 100% verified local masters?\"*\n\n---\n\n### \342\217\261\357\270\217 Section 2: \"Magic at Your Fingertips\" \342\200\223 The AI Spark (0:08 \342\200\223 0:28)\n* **Visuals**:\n  - The UI floats slightly tilted in 3D perspective with soft ambient lighting.\n  - The cursor clicks **AI Tour Planner \342\234\250**.\n  - **VFX**: As Gemini generates the text, tiny golden sparkles emit from the typing cursor.\n  - Smooth 3D camera push into the day-by-day itinerary card (*\"Secret Coffee Roastery & French Colonial Architecture\"*).\n  - The user drags budget slider to `$75`. Click **Post Request** $\\rightarrow$ A gentle ripple wave expands across the map.\n* **Audio / SFX**:\n  - Sci-fi subtle digital chime during AI generation.\n  - Crisp \"Swoosh\" when published.\n* **VO**: *\"Describe your dream vibe in five words. Gemini AI drafts a custom multi-day adventure, turning your vision into an open marketplace bid in one click.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 3: \"The Negotiation Symphony\" \342\200\223 Live Dual Screen (0:28 \342\200\223 0:50)\n* **Visuals**:\n  - **Dynamic Split Screen**: Left side = Sarah (Traveler in hotel lobby, iPhone UI). Right side = Minh (Licensed Guide at a coffee shop, Laptop UI).\n  - Minh\342\200\231s screen: Notification pops up $\\rightarrow$ places bid `$80`.\n  - Sarah\342\200\231s screen: Instant haptic notification $\\rightarrow$ opens **Negotiation History** timeline $\\rightarrow$ counters with `$75`.\n  - Minh taps **Accept** $\\rightarrow$ Green lock icon snaps shut with a metallic heavy latch sound: **\"ESCROW VAULT SECURED\"**.\n  - Sarah\342\200\231s phone generates a glowing golden **6-Digit Safety PIN: [ 7 8 4 9 2 0 ]**.\n* **SFX**: Haptic buzz, typewriter counter, heavy metallic bank vault click.\n* **VO**: *\"No rigid packages. Local guides bid on your terms. Negotiate in real-time, and lock your payment into a zero-risk escrow vault. Money is only released when you say the tour is done.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 4: \"The 1-Click Ecosystem\" \342\200\223 Google Workspace Power (0:50 \342\200\223 1:05)\n* **Visuals**:\n  - Quick macro zoom into the **\"Add to Google Calendar\"** button.\n  - A colorful Google Calendar event card smoothly animates out from the button and slots into a sleek calendar grid.\n  - Click **\"Save to Google Contacts\"**: Minh\342\200\231s portrait, phone number, and verified badge slide into an Apple/Google Contacts card.\n* **VO**: *\"Direct sync to your digital life. One tap populates your Google Calendar and saves your guide\342\200\231s direct line to Google Contacts.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 5: \"The Hero Climax\" \342\200\223 Grab-Style Radar & Street POV (1:05 \342\200\223 1:30)\n* **Visuals**:\n  - Traveler standing outside the Saigon Central Post Office looking at their phone.\n  - Tap **\"Request On-Demand Guide\"**.\n  - **VFX**: The app map turns into a futuristic dark-mode radar with glowing pulse rings.\n  - A scooter icon travels along the GPS route in 3D: *\"Arriving in 3 mins\"*.\n  - Real footage cut: Guide pulls up on a vintage scooter with a spare helmet, smiling.\n  - They high-five. Traveler shows the **Safety PIN**, guide inputs it on phone $\\rightarrow$ **\"Tour Started\"**.\n  - 5-second fast montage of them laughing at a hidden rooftop bar, tasting authentic pho, and photographing hidden alleys.\n* **Audio**: High-energy beat drop with brass and acoustic percussion.\n* **VO**: *\"Need a guide right now? Summon a licensed expert to your GPS coordinates in 3 minutes flat. Verify with your Safety PIN, hop on, and live like a local.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 6: The Golden Finish \342\200\223 Instant Payout & Community Trust (1:30 \342\200\223 1:50)\n* **Visuals**:\n  - Both tap **\"Confirm Completed\"**.\n  - The Escrow Vault unlocks.\n  - Minh\342\200\231s screen instantly updates: balance reflects earnings, VietQR payment barcode pops up on screen with instant notification.\n  - Fly-through into the **Admin KYC Portal**: Green checkmarks approving verified tour guide licenses.\n* **VO**: *\"Tour complete? Dual-approval releases funds instantly to the guide\'s wallet. Total transparency. Fair wages for guides. Unforgettable memories for travelers.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 7: Grand Finale & Outro (1:50 \342\200\223 2:00)\n* **Visuals**:\n  - Cinematic drone shot over limestone karsts at golden hour.\n  - Minimalist floating glass device displaying the Tour Guide Hub homepage.\n  - Big bold typography: **\"TRAVEL REAL. TRAVEL VERIFIED.\"**\n  - App URL & QR code on bottom right.\n* **VO**: *\"Tour Guide Hub. The authentic way to explore Vietnam. Start your journey today.\"*\n\n---\n\n# \360\237\233\240\357\270\217 Secrets to Elevate the Video to Top 1% Quality\n\n### 1. Motion Graphics & Polish Tools\n| Element | Recommended Tool / Preset |\n| :--- | :--- |\n| **Cursor & Smooth Zooms** | Use **Screen Studio** (macOS) or **Camtasia** / **CapCut cursor smoothing**. It turns robotic mouse clicks into silky Apple-like fluid motion. |\n| **Device Frames & 3D Tilt** | Use **Mockup.studio**, **Rotato**, or **Jitter.video** to put the screens inside realistic iPhone 16 / MacBook Pro glass chassis with 3D tilt. |\n| **Sound Design (Foley)** | Add subtle sound for every single UI interaction: *mouse click, bubble pop, bank vault clink, map ping, neon sparkle*. |\n\n### 2. High-Quality B-Roll Footage Sources (Free / Royalty-Free)\nIf you don\'t have custom filmed footage of Vietnam/travel, grab free 4K cinematic footage from:\n- **Pexels / Pixabay**: Search *\"Saigon street food\", \"Hanoi Old quarter scooter\", \"Ha Long Bay drone\", \"Lanterns Hoi An\"*.\n- **YouTube Creative Commons**: 4K walking tours of Vietnam landmarks.\n\n### 3. Voiceover & Accent Choice\n- **Recommendation**: A warm, slightly cosmopolitan voice (e.g., ElevenLabs *\342\200\234Charlie\342\200\235* or *\342\200\234Rachel\342\200\235*) with crisp diction. Keep the pacing at ~130\342\200\223140 words per minute to let the visuals breathe.\n\n### 4. Color Grading\n- Grade the UI screen captures with a subtle teal-and-warm-gold tint (matching the app\'s emerald `#059669` and amber accents). This creates a cohesive, cinematic harmony between the software UI and travel b-roll."
+    modified_response: "To make this video **genuinely stunning, viral, and jaw-dropping** (instead of a boring software tutorial), we need to borrow the cinematic playbook used by **Apple Keynotes, Airbnb product launches, and high-energy travel documentaries**.\n\nHere are **3 showstopping creative directions**, followed by a **frame-by-frame visual effects (VFX) and sound design blueprint** that will instantly hook viewers.\n\n---\n\n# \360\237\232\200 3 Stunning Creative Concepts (Choose Your Vibe)\n\n### \360\237\245\207 Concept 1: \"The Split-World Parallel\" (The Cinematic Masterpiece \342\200\224 *Recommended*)\n* **The Visual Hook**: A dynamic split-screen showing **Real-World Travel Cinematics** on the Left and **Interactive App UI Moments** on the Right, synced with precision beat drops.\n  - *Left*: Drone footage soaring through Ha Long Bay or a POV weaving through Saigon scooter traffic at night.\n  - *Right*: A tap on \"AI Tour Planner\" or \"Grab Instant Guide\" that matches the exact real-world scene.\n* **Why it stuns**: It anchors the digital product to real adrenaline, exotic smells, delicious food, and authentic human connection.\n\n### \360\237\245\210 Concept 2: \"The 3D Glass & Spatial Dimension\" (Apple / Linear App Aesthetic)\n* **The Visual Hook**: 3D mockups floating in a dark, atmospheric studio with anamorphic lens flares. UI cards (Safety PIN, Escrow Vault, Live Radar, Google Contacts Card) break out of the browser frame in 3D parallax with glowing emerald/cyan neon edges.\n* **Why it stuns**: Looks like a multi-million-dollar Silicon Valley SaaS launch film.\n\n### \360\237\245\211 Concept 3: \"The 60-Second Adrenaline Speedrun\" (TikTok / Reels / YouTube Shorts Viral Cut)\n* **The Visual Hook**: Hyper-fast whip-pans, sound design with tactile ASMR clicks, keyboard mechanical taps, and cash register dings. A traveler lands at Da Nang airport at 7:00 PM with zero plans $\\rightarrow$ at 7:03 PM they are on a scooter eating secret street food with a verified guide.\n\n---\n\n# \360\237\216\250 Frame-by-Frame Stunning Video Blueprint (The \"Split-World\" Cut)\n\n### \342\217\261\357\270\217 Section 1: The 5-Second Sensory Hook (0:00 \342\200\223 0:08)\n* **Visuals**:\n  1. **(0.0s)** Full screen pitch black. *SFX: Heartbeat thump + distant scooter engine.*\n  2. **(0.5s)** Rapid 0.3-second flash cuts:\n     - Sizzling street food pan in Hanoi Old Quarter.\n     - A scammer waving an overpriced paper brochure.\n     - A tourist looking stressed and lost at a dark intersection.\n  3. **(2.5s)** *Glitch Transition & Glass shatter sound.* Screen clears to a clean, illuminated emerald UI card: **\"LICENSED & VERIFIED BY VNAT\"**.\n  4. **(5.0s)** Logo sweeps in with a sonic shimmer: **Tour Guide Hub**.\n* **Voiceover**: *\"What if you could unlock the secrets of Southeast Asia\342\200\246 with zero scams, zero middleman markups, and 100% verified local masters?\"*\n\n---\n\n### \342\217\261\357\270\217 Section 2: \"Magic at Your Fingertips\" \342\200\223 The AI Spark (0:08 \342\200\223 0:28)\n* **Visuals**:\n  - The UI floats slightly tilted in 3D perspective with soft ambient lighting.\n  - The cursor clicks **AI Tour Planner \342\234\250**.\n  - **VFX**: As Gemini generates the text, tiny golden sparkles emit from the typing cursor.\n  - Smooth 3D camera push into the day-by-day itinerary card (*\"Secret Coffee Roastery & French Colonial Architecture\"*).\n  - The user drags budget slider to `$75`. Click **Post Request** $\\rightarrow$ A gentle ripple wave expands across the map.\n* **Audio / SFX**:\n  - Sci-fi subtle digital chime during AI generation.\n  - Crisp \"Swoosh\" when published.\n* **VO**: *\"Describe your dream vibe in five words. Gemini AI drafts a custom multi-day adventure, turning your vision into an open marketplace bid in one click.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 3: \"The Negotiation Symphony\" \342\200\223 Live Dual Screen (0:28 \342\200\223 0:50)\n* **Visuals**:\n  - **Dynamic Split Screen**: Left side = Sarah (Traveler in hotel lobby, iPhone UI). Right side = Minh (Licensed Guide at a coffee shop, Laptop UI).\n  - Minh\342\200\231s screen: Notification pops up $\\rightarrow$ places bid `$80`.\n  - Sarah\342\200\231s screen: Instant haptic notification $\\rightarrow$ opens **Negotiation History** timeline $\\rightarrow$ counters with `$75`.\n  - Minh taps **Accept** $\\rightarrow$ Green lock icon snaps shut with a metallic heavy latch sound: **\"ESCROW VAULT SECURED\"**.\n  - Sarah\342\200\231s phone generates a glowing golden **6-Digit Safety PIN: [ 7 8 4 9 2 0 ]**.\n* **SFX**: Haptic buzz, typewriter counter, heavy metallic bank vault click.\n* **VO**: *\"No rigid packages. Local guides bid on your terms. Negotiate in real-time, and lock your payment into a zero-risk escrow vault. Money is only released when you say the tour is done.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 4: \"The 1-Click Ecosystem\" \342\200\223 Google Workspace Power (0:50 \342\200\223 1:05)\n* **Visuals**:\n  - Quick macro zoom into the **\"Add to Google Calendar\"** button.\n  - A colorful Google Calendar event card smoothly animates out from the button and slots into a sleek calendar grid.\n  - Click **\"Save to Google Contacts\"**: Minh\342\200\231s portrait, phone number, and verified badge slide into an Apple/Google Contacts card.\n* **VO**: *\"Direct sync to your digital life. One tap populates your Google Calendar and saves your guide\342\200\231s direct line to Google Contacts.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 5: \"The Hero Climax\" \342\200\223 Grab-Style Radar & Street POV (1:05 \342\200\223 1:30)\n* **Visuals**:\n  - Traveler standing outside the Saigon Central Post Office looking at their phone.\n  - Tap **\"Request On-Demand Guide\"**.\n  - **VFX**: The app map turns into a futuristic dark-mode radar with glowing pulse rings.\n  - A scooter icon travels along the GPS route in 3D: *\"Arriving in 3 mins\"*.\n  - Real footage cut: Guide pulls up on a vintage scooter with a spare helmet, smiling.\n  - They high-five. Traveler shows the **Safety PIN**, guide inputs it on phone $\\rightarrow$ **\"Tour Started\"**.\n  - 5-second fast montage of them laughing at a hidden rooftop bar, tasting authentic pho, and photographing hidden alleys.\n* **Audio**: High-energy beat drop with brass and acoustic percussion.\n* **VO**: *\"Need a guide right now? Summon a licensed expert to your GPS coordinates in 3 minutes flat. Verify with your Safety PIN, hop on, and live like a local.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 6: The Golden Finish \342\200\223 Instant Payout & Community Trust (1:30 \342\200\223 1:50)\n* **Visuals**:\n  - Both tap **\"Confirm Completed\"**.\n  - The Escrow Vault unlocks.\n  - Minh\342\200\231s screen instantly updates: balance reflects earnings, VietQR payment barcode pops up on screen with instant notification.\n  - Fly-through into the **Admin KYC Portal**: Green checkmarks approving verified tour guide licenses.\n* **VO**: *\"Tour complete? Dual-approval releases funds instantly to the guide\'s wallet. Total transparency. Fair wages for guides. Unforgettable memories for travelers.\"*\n\n---\n\n### \342\217\261\357\270\217 Section 7: Grand Finale & Outro (1:50 \342\200\223 2:00)\n* **Visuals**:\n  - Cinematic drone shot over limestone karsts at golden hour.\n  - Minimalist floating glass device displaying the Tour Guide Hub homepage.\n  - Big bold typography: **\"TRAVEL REAL. TRAVEL VERIFIED.\"**\n  - App URL & QR code on bottom right.\n* **VO**: *\"Tour Guide Hub. The authentic way to explore Vietnam. Start your journey today.\"*\n\n---\n\n# \360\237\233\240\357\270\217 Secrets to Elevate the Video to Top 1% Quality\n\n### 1. Motion Graphics & Polish Tools\n| Element | Recommended Tool / Preset |\n| :--- | :--- |\n| **Cursor & Smooth Zooms** | Use **Screen Studio** (macOS) or **Camtasia** / **CapCut cursor smoothing**. It turns robotic mouse clicks into silky Apple-like fluid motion. |\n| **Device Frames & 3D Tilt** | Use **Mockup.studio**, **Rotato**, or **Jitter.video** to put the screens inside realistic iPhone 16 / MacBook Pro glass chassis with 3D tilt. |\n| **Sound Design (Foley)** | Add subtle sound for every single UI interaction: *mouse click, bubble pop, bank vault clink, map ping, neon sparkle*. |\n\n### 2. High-Quality B-Roll Footage Sources (Free / Royalty-Free)\nIf you don\'t have custom filmed footage of Vietnam/travel, grab free 4K cinematic footage from:\n- **Pexels / Pixabay**: Search *\"Saigon street food\", \"Hanoi Old quarter scooter\", \"Ha Long Bay drone\", \"Lanterns Hoi An\"*.\n- **YouTube Creative Commons**: 4K walking tours of Vietnam landmarks.\n\n### 3. Voiceover & Accent Choice\n- **Recommendation**: A warm, slightly cosmopolitan voice (e.g., ElevenLabs *\342\200\234Charlie\342\200\235* or *\342\200\234Rachel\342\200\235*) with crisp diction. Keep the pacing at ~130\342\200\223140 words per minute to let the visuals breathe.\n\n### 4. Color Grading\n- Grade the UI screen captures with a subtle teal-and-warm-gold tint (matching the app\'s emerald `#059669` and amber accents). This creates a cohesive, cinematic harmony between the software UI and travel b-roll."
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_USER_INPUT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786960293
+      nanos: 365051940
+    }
+    source: CORTEX_STEP_SOURCE_USER_EXPLICIT
+  }
+  user_input {
+    user_response: "which AI can I use to generate video?"
+    items {
+      text: "which AI can I use to generate video?"
+    }
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786960293
+      nanos: 366532485
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786960294
+      nanos: 167380582
+    }
+    finished_generating_at {
+      seconds: 1786960299
+      nanos: 779182536
+    }
+    completed_at {
+      seconds: 1786960299
+      nanos: 779182536
+    }
+    model_usage {
+      input_tokens: 24014
+      output_tokens: 1318
+      message_id: "pdmCauu3HZXnqtsPx6LYmAU"
+      response_output_tokens: 1318
+      response_id: "pdmCauu3HZXnqtsPx6LYmAU"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 21
+      metadata_index: 6
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786960299
+      nanos: 779182536
+    }
+  }
+  planner_response {
+    response: "To make a high-production, cinematic video combining **real-world travel footage, 3D app mockups, hyper-realistic voiceover, and seamless sound design**, here are the best AI video generators and tools categorized by what they do best:\n\n---\n\n# \360\237\217\206 Top AI Video Generators by Category\n\n---\n\n## 1. \360\237\216\245 Cinematic B-Roll & Real-World Footage Generation\n*(Use these to generate breathtaking 4K clips of Vietnam street food, drone shots over Ha Long Bay, scooters in Saigon, and smiling travelers)*\n\n| Tool | Best Feature | Why Choose It |\n| :--- | :--- | :--- |\n| **Google Veo 2 / VideoFX** | Photorealism, natural physics & lighting | Unbelievable detail for realistic travel landscapes and street scenes. |\n| **Luma Dream Machine (Ray 2)** | Dynamic camera motion & cinematic panning | Excellent for fast drone zooms, tracking shots behind scooters, and dramatic lighting. |\n| **Runway Gen-3 Alpha** | Camera control & text-to-video / image-to-video | Industry standard for filmmaker-level visuals, cinematic speed ramps, and texture. |\n| **Kling AI (v1.5 / v2.0)** | Super realistic human expressions & hands | Best at generating people eating street food, smiling, and talking without weird artifacts. |\n| **Minimax (Hailuo AI)** | Great motion prompt following & natural action | Very smooth human and vehicle movement. |\n\n> \360\237\222\241 **Pro-Tip for Travel B-Roll**: You can generate a still image first in Midjourney or Flux, and then upload it to **Runway Gen-3** or **Luma Dream Machine** (Image-to-Video) to get exact, photorealistic camera movement!\n\n---\n\n## 2. \360\237\222\273 AI App Demo, Screen Motion & 3D UI Animation\n*(Use these to turn raw screenshots/recordings of your app into floating 3D glass cards with Apple-style smooth camera moves)*\n\n| Tool | Best Feature | Why Choose It |\n| :--- | :--- | :--- |\n| **Jitter.video (AI Motion)** | Animated UI cards, icons, notifications & popups | Turn Figma or PNG exports of your app into slick animated motion graphics in seconds. |\n| **Screen Studio (AI Camera)** | Automatic smart zoom & smooth cursor tracking | Records your screen and automatically zooms into buttons when you click with cinematic ease curves. |\n| **Rotato** | 3D device mockups (iPhone 16 / MacBook Pro) | Renders your screen recording onto rotating, realistic 3D glass devices with studio lighting and lens blur. |\n\n---\n\n## 3. \360\237\216\231\357\270\217 AI Voiceover (Studio Quality)\n*(Use these to generate charismatic, confident narration that sounds 100% human)*\n\n| Tool | Best Feature | Recommended Voices |\n| :--- | :--- | :--- |\n| **ElevenLabs** | Industry-leading human cadence, breathing, and emotion | *\342\200\234Adam\342\200\235* (Tech launch style), *\342\200\234Rachel\342\200\235* (Warm & clear), *\342\200\234Charlie\342\200\235* (Casual cosmopolitan) |\n| **OpenAI Voice Engine / TTS** | Ultra-clean, modern podcast/keynote delivery | *\342\200\234Alloy\342\200\235*, *\342\200\234Echo\342\200\235*, *\342\200\234Nova\342\200\235* |\n\n---\n\n## 4. \360\237\216\254 All-in-One AI Video Editors (Text-to-Full-Video)\n*(If you want an end-to-end tool that generates voiceover, auto-captions, stock clips, and music all at once)*\n\n| Tool | Best Feature | Why Choose It |\n| :--- | :--- | :--- |\n| **CapCut (AI Video Tools)** | Auto-captions with kinetic animations, SFX library | The fastest tool to combine AI clips, screen recordings, text animations, and trending music. |\n| **InVideo AI** | Prompt to full draft video with voiceover and b-roll | Type your script prompt and it creates an entire sequenced draft video with VO and music. |\n| **Descript** | Edit video by editing text, AI eye contact, audio clean-up | Perfect if you record yourself talking to camera and want AI to fix mistakes and polish the sound. |\n\n---\n\n## 5. \360\237\216\265 AI Sound Effects & Music Generation\n*(For cinematic whooshes, haptic clicks, bank vault locks, and background beats)*\n\n| Tool | Purpose |\n| :--- | :--- |\n| **ElevenLabs SFX** | Generate custom sound effects from text prompts (e.g. *\"Heavy metallic bank vault locking\"*, *\"Futuristic radar ping chime\"*, *\"Scooter accelerating on cobblestones\"*). |\n| **Suno AI / Udio** | Generate custom, royalty-free modern lo-fi / indie acoustic travel background tracks with specific BPM and mood. |\n\n---\n\n# \360\237\232\200 The Recommended Workflow (Takes ~1 to 2 Hours)\n\nHere is the exact stack top tech creators use to produce viral product videos:\n\n1. **Script**: Use the script provided above.\n2. **Voiceover**: Paste script into **ElevenLabs** $\\rightarrow$ download WAV.\n3. **App Clips**: Record your app with **Screen Studio** or mock them up in **Jitter / Rotato** (for the AI Tour Planner, Negotiation Hub, Safety PIN, and GPS Radar).\n4. **Cinematic Travel B-Roll**: Generate 4\342\200\2235 five-second clips using **Runway Gen-3** or **Luma Dream Machine** (e.g., *\"FPV drone flying low over Hoi An lantern river at dusk, cinematic 4K\"*).\n5. **Assembly & Polish**: Drop the voiceover, screen recordings, and AI travel clips into **CapCut**:\n   - Add **Auto-Captions** (styled with yellow/emerald bold text).\n   - Add background music from **Suno** or CapCut\'s library.\n   - Add sound effects (**ElevenLabs SFX**) on button taps and transitions.\n6. **Export**: 1080p or 4K 60FPS."
+    modified_response: "To make a high-production, cinematic video combining **real-world travel footage, 3D app mockups, hyper-realistic voiceover, and seamless sound design**, here are the best AI video generators and tools categorized by what they do best:\n\n---\n\n# \360\237\217\206 Top AI Video Generators by Category\n\n---\n\n## 1. \360\237\216\245 Cinematic B-Roll & Real-World Footage Generation\n*(Use these to generate breathtaking 4K clips of Vietnam street food, drone shots over Ha Long Bay, scooters in Saigon, and smiling travelers)*\n\n| Tool | Best Feature | Why Choose It |\n| :--- | :--- | :--- |\n| **Google Veo 2 / VideoFX** | Photorealism, natural physics & lighting | Unbelievable detail for realistic travel landscapes and street scenes. |\n| **Luma Dream Machine (Ray 2)** | Dynamic camera motion & cinematic panning | Excellent for fast drone zooms, tracking shots behind scooters, and dramatic lighting. |\n| **Runway Gen-3 Alpha** | Camera control & text-to-video / image-to-video | Industry standard for filmmaker-level visuals, cinematic speed ramps, and texture. |\n| **Kling AI (v1.5 / v2.0)** | Super realistic human expressions & hands | Best at generating people eating street food, smiling, and talking without weird artifacts. |\n| **Minimax (Hailuo AI)** | Great motion prompt following & natural action | Very smooth human and vehicle movement. |\n\n> \360\237\222\241 **Pro-Tip for Travel B-Roll**: You can generate a still image first in Midjourney or Flux, and then upload it to **Runway Gen-3** or **Luma Dream Machine** (Image-to-Video) to get exact, photorealistic camera movement!\n\n---\n\n## 2. \360\237\222\273 AI App Demo, Screen Motion & 3D UI Animation\n*(Use these to turn raw screenshots/recordings of your app into floating 3D glass cards with Apple-style smooth camera moves)*\n\n| Tool | Best Feature | Why Choose It |\n| :--- | :--- | :--- |\n| **Jitter.video (AI Motion)** | Animated UI cards, icons, notifications & popups | Turn Figma or PNG exports of your app into slick animated motion graphics in seconds. |\n| **Screen Studio (AI Camera)** | Automatic smart zoom & smooth cursor tracking | Records your screen and automatically zooms into buttons when you click with cinematic ease curves. |\n| **Rotato** | 3D device mockups (iPhone 16 / MacBook Pro) | Renders your screen recording onto rotating, realistic 3D glass devices with studio lighting and lens blur. |\n\n---\n\n## 3. \360\237\216\231\357\270\217 AI Voiceover (Studio Quality)\n*(Use these to generate charismatic, confident narration that sounds 100% human)*\n\n| Tool | Best Feature | Recommended Voices |\n| :--- | :--- | :--- |\n| **ElevenLabs** | Industry-leading human cadence, breathing, and emotion | *\342\200\234Adam\342\200\235* (Tech launch style), *\342\200\234Rachel\342\200\235* (Warm & clear), *\342\200\234Charlie\342\200\235* (Casual cosmopolitan) |\n| **OpenAI Voice Engine / TTS** | Ultra-clean, modern podcast/keynote delivery | *\342\200\234Alloy\342\200\235*, *\342\200\234Echo\342\200\235*, *\342\200\234Nova\342\200\235* |\n\n---\n\n## 4. \360\237\216\254 All-in-One AI Video Editors (Text-to-Full-Video)\n*(If you want an end-to-end tool that generates voiceover, auto-captions, stock clips, and music all at once)*\n\n| Tool | Best Feature | Why Choose It |\n| :--- | :--- | :--- |\n| **CapCut (AI Video Tools)** | Auto-captions with kinetic animations, SFX library | The fastest tool to combine AI clips, screen recordings, text animations, and trending music. |\n| **InVideo AI** | Prompt to full draft video with voiceover and b-roll | Type your script prompt and it creates an entire sequenced draft video with VO and music. |\n| **Descript** | Edit video by editing text, AI eye contact, audio clean-up | Perfect if you record yourself talking to camera and want AI to fix mistakes and polish the sound. |\n\n---\n\n## 5. \360\237\216\265 AI Sound Effects & Music Generation\n*(For cinematic whooshes, haptic clicks, bank vault locks, and background beats)*\n\n| Tool | Purpose |\n| :--- | :--- |\n| **ElevenLabs SFX** | Generate custom sound effects from text prompts (e.g. *\"Heavy metallic bank vault locking\"*, *\"Futuristic radar ping chime\"*, *\"Scooter accelerating on cobblestones\"*). |\n| **Suno AI / Udio** | Generate custom, royalty-free modern lo-fi / indie acoustic travel background tracks with specific BPM and mood. |\n\n---\n\n# \360\237\232\200 The Recommended Workflow (Takes ~1 to 2 Hours)\n\nHere is the exact stack top tech creators use to produce viral product videos:\n\n1. **Script**: Use the script provided above.\n2. **Voiceover**: Paste script into **ElevenLabs** $\\rightarrow$ download WAV.\n3. **App Clips**: Record your app with **Screen Studio** or mock them up in **Jitter / Rotato** (for the AI Tour Planner, Negotiation Hub, Safety PIN, and GPS Radar).\n4. **Cinematic Travel B-Roll**: Generate 4\342\200\2235 five-second clips using **Runway Gen-3** or **Luma Dream Machine** (e.g., *\"FPV drone flying low over Hoi An lantern river at dusk, cinematic 4K\"*).\n5. **Assembly & Polish**: Drop the voiceover, screen recordings, and AI travel clips into **CapCut**:\n   - Add **Auto-Captions** (styled with yellow/emerald bold text).\n   - Add background music from **Suno** or CapCut\'s library.\n   - Add sound effects (**ElevenLabs SFX**) on button taps and transitions.\n6. **Export**: 1080p or 4K 60FPS."
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_USER_INPUT
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786961006
+      nanos: 214620258
+    }
+    source: CORTEX_STEP_SOURCE_USER_EXPLICIT
+  }
+  user_input {
+    user_response: "Concept 1: \"The Split-World Parallel\" (The Cinematic Masterpiece \342\200\224 Recommended)\nThe Visual Hook: A dynamic split-screen showing Real-World Travel Cinematics on the Left and Interactive App UI Moments on the Right, synced with precision beat drops.\nLeft: Drone footage soaring through Ha Long Bay or a POV weaving through Saigon scooter traffic at night.\nRight: A tap on \"AI Tour Planner\" or \"Grab Instant Guide\" that matches the exact real-world scene.\nWhy it stuns: It anchors the digital product to real adrenaline, exotic smells, delicious food, and authentic human connection.\n\n\nSuggest me script on this"
+    items {
+      text: "Concept 1: \"The Split-World Parallel\" (The Cinematic Masterpiece \342\200\224 Recommended)\nThe Visual Hook: A dynamic split-screen showing Real-World Travel Cinematics on the Left and Interactive App UI Moments on the Right, synced with precision beat drops.\nLeft: Drone footage soaring through Ha Long Bay or a POV weaving through Saigon scooter traffic at night.\nRight: A tap on \"AI Tour Planner\" or \"Grab Instant Guide\" that matches the exact real-world scene.\nWhy it stuns: It anchors the digital product to real adrenaline, exotic smells, delicious food, and authentic human connection.\n\n\nSuggest me script on this"
+    }
+  }
+}
+steps {
+  type: CORTEX_STEP_TYPE_PLANNER_RESPONSE
+  status: CORTEX_STEP_STATUS_DONE
+  metadata {
+    created_at {
+      seconds: 1786961006
+      nanos: 215735575
+    }
+    source: CORTEX_STEP_SOURCE_MODEL
+    viewable_at {
+      seconds: 1786961015
+      nanos: 323364159
+    }
+    finished_generating_at {
+      seconds: 1786961024
+      nanos: 35389120
+    }
+    completed_at {
+      seconds: 1786961024
+      nanos: 35389120
+    }
+    model_usage {
+      input_tokens: 25645
+      output_tokens: 2594
+      message_id: "btyCauffErOLmtkPgNeyyAs"
+      response_output_tokens: 2594
+      response_id: "btyCauffErOLmtkPgNeyyAs"
+    }
+    generator_model: MODEL_GOOGLE_GEMINI_INTERNAL_BYOM
+    execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    source_trajectory_step_info {
+      trajectory_id: "fcc068bb-bc34-469d-9fd3-4942ca294309"
+      step_index: 23
+      metadata_index: 7
+      cascade_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+    }
+    step_generation_version: 1
+    model_info {
+      model_name: "gemini-3.7-flash"
+      thinking_budget: 4000
+    }
+    started_at {
+      seconds: 1786961024
+      nanos: 35389120
+    }
+  }
+  planner_response {
+    response: "Here is the **production-ready, frame-by-frame master script** for **Concept 1: \"The Split-World Parallel\"**. \n\nIt includes exact split-screen visual choreography, AI video generation prompts, UI actions, sound design (SFX), beat timing, and voiceover copy.\n\n---\n\n# \360\237\216\254 Video Master Data\n* **Working Title**: *The Split-World Parallel \342\200\224 Tour Guide Hub*\n* **Total Duration**: **90 Seconds**\n* **Aspect Ratio**: 16:9 (1920x1080 or 4K)\n* **Pacing**: High-energy, cinematic rhythm with beat drops on UI interactions.\n* **Music**: Modern cinematic indie-electronic with ambient traditional Vietnamese acoustic instruments (Dan Bau / bamboo flute chime) blending into an upbeat electronic drop at 0:10.\n\n---\n\n## \342\217\261\357\270\217 Scene 1: The Parallel Awakening (0:00 \342\200\223 0:12)\n* **Screen Split**: 50/50 Vertical Split Screen (Divider line: 1px glowing neon teal thread).\n* **Left Side (Real World Cinematic)**:\n  - **(0.0s)** Black screen $\\rightarrow$ Sudden burst of sunlight through mist. Drone diving fast over emerald waters and limestone karsts of Ha Long Bay.\n  - **(0.4s)** Cut to quick POV: Walking through steam billowing off a hot bowl of Pho in Hanoi Old Quarter.\n* **Right Side (App UI World)**:\n  - Sleek dark-mode browser view.\n  - Glowing badge: `\360\237\233\241\357\270\217 100% VNAT National License Verified`.\n  - Search bar typing dynamically: *\"Authentic Street Food & Secret Alleys \342\200\224 Hanoi\"*.\n* **AI Video Prompt (Runway Gen-3 / Luma Dream Machine)**:\n  > *\"Cinematic 4K FPV drone soaring low over misty emerald waters of Ha Long Bay Vietnam at sunrise, anamorphic lens flare, high speed motion, ultra-detailed 8k photorealistic\"*\n* **Audio & SFX**: \n  - Ambient whoosh of sea mist $\\rightarrow$ Sizzle of street food skillet $\\rightarrow$ Deep synthetic sub-bass hit.\n* **Voiceover (Warm, energetic, charismatic)**:\n  > *\"Travel isn\'t about tourist traps or cookie-cutter brochures. It\342\200\231s about feeling the pulse of a city through the eyes of the people who call it home.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 2: The Spark \342\200\224 Gemini AI Tour Planner (0:12 \342\200\223 0:25)\n* **Screen Split**: 40% Left (Cinematic) / 60% Right (App UI).\n* **Left Side (Real World)**:\n  - Cozy caf\303\251 in Saigon. Traveler sitting with an iced milk coffee (C\303\240 ph\303\252 s\341\273\257a \304\221\303\241), daydreaming looking at vintage colonial architecture.\n* **Right Side (App UI)**:\n  - Cursor clicks **\"AI Tour Planner \342\234\250\"**.\n  - Dropdown picks: Destination: `Ho Chi Minh City`, Vibe: `Artisan Coffee, Secret Speakeasies & Photography`.\n  - Click **\"Generate Smart Itinerary\"**.\n  - **VFX**: Golden micro-particles radiate as the multi-day plan streams onto the screen in real-time.\n  - User drags budget slider to `$85` $\\rightarrow$ Clicks **\"Convert into Public Trip Request\"**.\n* **AI Video Prompt (Runway / Luma)**:\n  > *\"Cinematic medium close-up of a female traveler with camera smiling in a sunlit modern French-colonial caf\303\251 in Saigon, condensation on an iced coffee glass, 35mm film aesthetic, photorealistic\"*\n* **Audio & SFX**: \n  - Mechanical keyboard clicks $\\rightarrow$ Futuristic sparkle chime when AI generates $\\rightarrow$ Bass boom when request publishes.\n* **Voiceover**:\n  > *\"Meet Tour Guide Hub. Type in your dream vibe, and our Gemini AI crafts a personalized itinerary in seconds\342\200\224turning your vision into an open bid for local masters across Vietnam.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 3: The Live Bidding & Real-Time Negotiation (0:25 \342\200\223 0:42)\n* **Screen Split**: 50/50 Dual Perspective.\n* **Left Side (Real World Guide)**:\n  - Minh (Licensed Tour Guide) sitting on his vintage Vespa in front of Ben Thanh Market, receiving a notification on his phone, smiling with confidence.\n* **Right Side (App UI Interaction)**:\n  - Minh\342\200\231s Guide portal opens: Submits a bid of `$80`.\n  - Split cuts to Traveler\342\200\231s screen: Notification bell rings \360\237\224\224.\n  - Traveler opens **Negotiation History Modal**: types counter-offer `$75` with message: *\"Includes night street food stops?\"*.\n  - Guide taps **\"Accept Counter Offer\"**.\n  - **VFX**: Both screens trigger a glowing green checkmark.\n* **AI Video Prompt**:\n  > *\"Young stylish Vietnamese male tour guide wearing a modern linen shirt standing next to a vintage teal Vespa scooter in front of a vibrant city street market, checking his smartphone with a proud smile, cinematic warm golden hour light\"*\n* **Audio & SFX**: \n  - iPhone haptic vibration sound $\\rightarrow$ Crisp bubble pop when counter sent $\\rightarrow$ Positive agreement chime.\n* **Voiceover**:\n  > *\"No fixed agencies. Certified local guides bid on your terms. Chat directly, negotiate live counter-offers, and agree on fair pricing with zero middleman markup.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 4: The Escrow Vault & 6-Digit Safety PIN (0:42 \342\200\223 0:56)\n* **Screen Split**: Dynamic 3D Floating UI with Real-World Background blur.\n* **Visuals**:\n  - The UI elevates in 3D perspective.\n  - Traveler clicks **\"Authorize Escrow Payment\"** (Mock Payment Gateway pops up: MoMo, VietQR, Visa).\n  - Heavy 3D metal vault door graphic locks shut with a green shield: **\"FUNDS HELD IN ESCROW\"**.\n  - Screen reveals bold golden digits: **Safety PIN: [ 7 8 4 9 2 0 ]**.\n  - Seamless 1-tap: **\"Save to Google Contacts\"** & **\"Add to Google Calendar\"** fly into the user\'s phone widgets.\n* **Audio & SFX**: \n  - Heavy mechanical bank vault click `*CLANK-SHUT*` $\\rightarrow$ Tech confirmation tone $\\rightarrow$ Calendar notification ding.\n* **Voiceover**:\n  > *\"Zero financial risk. Your payment stays securely locked in platform escrow\342\200\224synced to Google Calendar and Contacts\342\200\224and released only when your adventure is done.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 5: Grab-Style On-Demand Dispatch & The Ride (0:56 \342\200\223 1:12)\n* **Screen Split**: 50/50 High-Speed Split Screen (Action Climax).\n* **Left Side (Real World)**:\n  - **(0:56)** Traveler outside Hanoi St. Joseph\'s Cathedral checking live map.\n  - **(1:02)** Guide on scooter pulls up wearing a helmet, handing a spare helmet to the traveler with a warm *\"Xin ch\303\240o!\"*.\n  - **(1:08)** High-speed tracking shot weaving through neon-lit lanterns in Hoi An ancient town at night.\n* **Right Side (App UI)**:\n  - **(0:56)** Traveler taps **\"Grab Instant Guide\"**.\n  - Radar pulse animation scans nearby verified guides $\\rightarrow$ *\"Minh Nguyen matched \342\200\224 3 mins away\"*.\n  - Live GPS tracking radar updates position.\n  - Guide inputs traveler\'s **6-Digit Safety PIN** to initiate the tour $\\rightarrow$ Status turns **\"TOUR IN PROGRESS\"**.\n* **AI Video Prompt**:\n  > *\"Action camera POV riding on the back of a motorbike through illuminated vibrant lantern streets of Hoi An Vietnam at night, golden warm glow, motion blur, hyper-realistic 4K 60fps\"*\n* **Audio & SFX**: \n  - Radar ping `*Sonar-Beep*` $\\rightarrow$ Scooter engine revving $\\rightarrow$ Street bustle, laughing, and high-energy music beat.\n* **Voiceover**:\n  > *\"Need a guide right now? Summon a licensed expert to your GPS pin in minutes. Verify your 6-digit Safety PIN, hop on, and experience secret spots tourists never see.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 6: Dual Completion & Instant VietQR Payout (1:12 \342\200\223 1:22)\n* **Screen Split**: 40% Left (Cinematic) / 60% Right (App UI).\n* **Left Side (Real World)**:\n  - Traveler and Guide laughing together on a panoramic rooftop bar overlooking the sparkling Saigon skyline at night, clinking glasses.\n* **Right Side (App UI)**:\n  - Both screens tap **\"Confirm Tour Completed\"**.\n  - Escrow status updates: `ESCROW RELEASED TO GUIDE`.\n  - Guide\342\200\231s Payout Ledger pops up with automated **VietQR Withdrawal Code** and instant balance increase.\n* **AI Video Prompt**:\n  > *\"Two happy friends, a western female traveler and a Vietnamese male local guide, laughing and clinking glasses at a luxury rooftop lounge overlooking the neon skyline of Ho Chi Minh City at night\"*\n* **Audio & SFX**: \n  - Glass clink $\\rightarrow$ Cash register ding `*Cha-Ching*` $\\rightarrow$ Uplifting melodic swell.\n* **Voiceover**:\n  > *\"When the day ends, dual confirmation releases funds instantly to your guide\'s wallet. Total transparency. Fair earnings for locals. Pure magic for travelers.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 7: Grand Finale & Call to Action (1:22 \342\200\223 1:30)\n* **Visuals**:\n  - Full screen merging into one breathtaking shot: Golden hour drone shot sweeping across the terraced rice fields of Mu Cang Chai.\n  - A sleek floating glass mockup of the **Tour Guide Hub** application sits in the center with subtle 3D parallax.\n  - Bold animated text: \n    ```\n    TRAVEL REAL. TRAVEL VERIFIED.\n    Tour Guide Hub\n    Explore Southeast Asia with Licensed Local Guides\n    ```\n  - App URL and QR Code on lower right.\n* **Audio & SFX**: \n  - Music finishes on an epic, triumphant crescendo.\n* **Voiceover**:\n  > *\"Tour Guide Hub. The authentic, verified way to explore Vietnam. Start your journey today.\"*\n\n---\n\n# \360\237\233\240\357\270\217 Practical Quick-Start Production Checklist\n\n1. **Voiceover**: Copy the VO script above into **ElevenLabs** (Use voice *\342\200\234Adam\342\200\235* or *\342\200\234Rachel\342\200\235*, Stability 0.50, Clarity 0.85).\n2. **AI B-Roll**: Paste the 4 specific AI prompts into **Runway Gen-3 Alpha** or **Luma Dream Machine Ray 2** (set duration to 5s each, 16:9).\n3. **App UI Screen Capture**:\n   - Open your app in Google Chrome at 1920x1080.\n   - Perform the clicks according to the timeline (AI Planner $\\rightarrow$ Negotiation modal $\\rightarrow$ Safety PIN $\\rightarrow$ Instant Grab Radar $\\rightarrow$ VietQR Payout).\n4. **Edit in CapCut / Premiere / DaVinci**:\n   - Put Real World on Video Track 1 (cropped left 50%).\n   - Put App UI on Video Track 2 (cropped right 50%).\n   - Add a 2px vertical white/teal solid line down the center.\n   - Sync the UI button taps to the beat drops of your background track."
+    modified_response: "Here is the **production-ready, frame-by-frame master script** for **Concept 1: \"The Split-World Parallel\"**. \n\nIt includes exact split-screen visual choreography, AI video generation prompts, UI actions, sound design (SFX), beat timing, and voiceover copy.\n\n---\n\n# \360\237\216\254 Video Master Data\n* **Working Title**: *The Split-World Parallel \342\200\224 Tour Guide Hub*\n* **Total Duration**: **90 Seconds**\n* **Aspect Ratio**: 16:9 (1920x1080 or 4K)\n* **Pacing**: High-energy, cinematic rhythm with beat drops on UI interactions.\n* **Music**: Modern cinematic indie-electronic with ambient traditional Vietnamese acoustic instruments (Dan Bau / bamboo flute chime) blending into an upbeat electronic drop at 0:10.\n\n---\n\n## \342\217\261\357\270\217 Scene 1: The Parallel Awakening (0:00 \342\200\223 0:12)\n* **Screen Split**: 50/50 Vertical Split Screen (Divider line: 1px glowing neon teal thread).\n* **Left Side (Real World Cinematic)**:\n  - **(0.0s)** Black screen $\\rightarrow$ Sudden burst of sunlight through mist. Drone diving fast over emerald waters and limestone karsts of Ha Long Bay.\n  - **(0.4s)** Cut to quick POV: Walking through steam billowing off a hot bowl of Pho in Hanoi Old Quarter.\n* **Right Side (App UI World)**:\n  - Sleek dark-mode browser view.\n  - Glowing badge: `\360\237\233\241\357\270\217 100% VNAT National License Verified`.\n  - Search bar typing dynamically: *\"Authentic Street Food & Secret Alleys \342\200\224 Hanoi\"*.\n* **AI Video Prompt (Runway Gen-3 / Luma Dream Machine)**:\n  > *\"Cinematic 4K FPV drone soaring low over misty emerald waters of Ha Long Bay Vietnam at sunrise, anamorphic lens flare, high speed motion, ultra-detailed 8k photorealistic\"*\n* **Audio & SFX**: \n  - Ambient whoosh of sea mist $\\rightarrow$ Sizzle of street food skillet $\\rightarrow$ Deep synthetic sub-bass hit.\n* **Voiceover (Warm, energetic, charismatic)**:\n  > *\"Travel isn\'t about tourist traps or cookie-cutter brochures. It\342\200\231s about feeling the pulse of a city through the eyes of the people who call it home.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 2: The Spark \342\200\224 Gemini AI Tour Planner (0:12 \342\200\223 0:25)\n* **Screen Split**: 40% Left (Cinematic) / 60% Right (App UI).\n* **Left Side (Real World)**:\n  - Cozy caf\303\251 in Saigon. Traveler sitting with an iced milk coffee (C\303\240 ph\303\252 s\341\273\257a \304\221\303\241), daydreaming looking at vintage colonial architecture.\n* **Right Side (App UI)**:\n  - Cursor clicks **\"AI Tour Planner \342\234\250\"**.\n  - Dropdown picks: Destination: `Ho Chi Minh City`, Vibe: `Artisan Coffee, Secret Speakeasies & Photography`.\n  - Click **\"Generate Smart Itinerary\"**.\n  - **VFX**: Golden micro-particles radiate as the multi-day plan streams onto the screen in real-time.\n  - User drags budget slider to `$85` $\\rightarrow$ Clicks **\"Convert into Public Trip Request\"**.\n* **AI Video Prompt (Runway / Luma)**:\n  > *\"Cinematic medium close-up of a female traveler with camera smiling in a sunlit modern French-colonial caf\303\251 in Saigon, condensation on an iced coffee glass, 35mm film aesthetic, photorealistic\"*\n* **Audio & SFX**: \n  - Mechanical keyboard clicks $\\rightarrow$ Futuristic sparkle chime when AI generates $\\rightarrow$ Bass boom when request publishes.\n* **Voiceover**:\n  > *\"Meet Tour Guide Hub. Type in your dream vibe, and our Gemini AI crafts a personalized itinerary in seconds\342\200\224turning your vision into an open bid for local masters across Vietnam.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 3: The Live Bidding & Real-Time Negotiation (0:25 \342\200\223 0:42)\n* **Screen Split**: 50/50 Dual Perspective.\n* **Left Side (Real World Guide)**:\n  - Minh (Licensed Tour Guide) sitting on his vintage Vespa in front of Ben Thanh Market, receiving a notification on his phone, smiling with confidence.\n* **Right Side (App UI Interaction)**:\n  - Minh\342\200\231s Guide portal opens: Submits a bid of `$80`.\n  - Split cuts to Traveler\342\200\231s screen: Notification bell rings \360\237\224\224.\n  - Traveler opens **Negotiation History Modal**: types counter-offer `$75` with message: *\"Includes night street food stops?\"*.\n  - Guide taps **\"Accept Counter Offer\"**.\n  - **VFX**: Both screens trigger a glowing green checkmark.\n* **AI Video Prompt**:\n  > *\"Young stylish Vietnamese male tour guide wearing a modern linen shirt standing next to a vintage teal Vespa scooter in front of a vibrant city street market, checking his smartphone with a proud smile, cinematic warm golden hour light\"*\n* **Audio & SFX**: \n  - iPhone haptic vibration sound $\\rightarrow$ Crisp bubble pop when counter sent $\\rightarrow$ Positive agreement chime.\n* **Voiceover**:\n  > *\"No fixed agencies. Certified local guides bid on your terms. Chat directly, negotiate live counter-offers, and agree on fair pricing with zero middleman markup.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 4: The Escrow Vault & 6-Digit Safety PIN (0:42 \342\200\223 0:56)\n* **Screen Split**: Dynamic 3D Floating UI with Real-World Background blur.\n* **Visuals**:\n  - The UI elevates in 3D perspective.\n  - Traveler clicks **\"Authorize Escrow Payment\"** (Mock Payment Gateway pops up: MoMo, VietQR, Visa).\n  - Heavy 3D metal vault door graphic locks shut with a green shield: **\"FUNDS HELD IN ESCROW\"**.\n  - Screen reveals bold golden digits: **Safety PIN: [ 7 8 4 9 2 0 ]**.\n  - Seamless 1-tap: **\"Save to Google Contacts\"** & **\"Add to Google Calendar\"** fly into the user\'s phone widgets.\n* **Audio & SFX**: \n  - Heavy mechanical bank vault click `*CLANK-SHUT*` $\\rightarrow$ Tech confirmation tone $\\rightarrow$ Calendar notification ding.\n* **Voiceover**:\n  > *\"Zero financial risk. Your payment stays securely locked in platform escrow\342\200\224synced to Google Calendar and Contacts\342\200\224and released only when your adventure is done.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 5: Grab-Style On-Demand Dispatch & The Ride (0:56 \342\200\223 1:12)\n* **Screen Split**: 50/50 High-Speed Split Screen (Action Climax).\n* **Left Side (Real World)**:\n  - **(0:56)** Traveler outside Hanoi St. Joseph\'s Cathedral checking live map.\n  - **(1:02)** Guide on scooter pulls up wearing a helmet, handing a spare helmet to the traveler with a warm *\"Xin ch\303\240o!\"*.\n  - **(1:08)** High-speed tracking shot weaving through neon-lit lanterns in Hoi An ancient town at night.\n* **Right Side (App UI)**:\n  - **(0:56)** Traveler taps **\"Grab Instant Guide\"**.\n  - Radar pulse animation scans nearby verified guides $\\rightarrow$ *\"Minh Nguyen matched \342\200\224 3 mins away\"*.\n  - Live GPS tracking radar updates position.\n  - Guide inputs traveler\'s **6-Digit Safety PIN** to initiate the tour $\\rightarrow$ Status turns **\"TOUR IN PROGRESS\"**.\n* **AI Video Prompt**:\n  > *\"Action camera POV riding on the back of a motorbike through illuminated vibrant lantern streets of Hoi An Vietnam at night, golden warm glow, motion blur, hyper-realistic 4K 60fps\"*\n* **Audio & SFX**: \n  - Radar ping `*Sonar-Beep*` $\\rightarrow$ Scooter engine revving $\\rightarrow$ Street bustle, laughing, and high-energy music beat.\n* **Voiceover**:\n  > *\"Need a guide right now? Summon a licensed expert to your GPS pin in minutes. Verify your 6-digit Safety PIN, hop on, and experience secret spots tourists never see.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 6: Dual Completion & Instant VietQR Payout (1:12 \342\200\223 1:22)\n* **Screen Split**: 40% Left (Cinematic) / 60% Right (App UI).\n* **Left Side (Real World)**:\n  - Traveler and Guide laughing together on a panoramic rooftop bar overlooking the sparkling Saigon skyline at night, clinking glasses.\n* **Right Side (App UI)**:\n  - Both screens tap **\"Confirm Tour Completed\"**.\n  - Escrow status updates: `ESCROW RELEASED TO GUIDE`.\n  - Guide\342\200\231s Payout Ledger pops up with automated **VietQR Withdrawal Code** and instant balance increase.\n* **AI Video Prompt**:\n  > *\"Two happy friends, a western female traveler and a Vietnamese male local guide, laughing and clinking glasses at a luxury rooftop lounge overlooking the neon skyline of Ho Chi Minh City at night\"*\n* **Audio & SFX**: \n  - Glass clink $\\rightarrow$ Cash register ding `*Cha-Ching*` $\\rightarrow$ Uplifting melodic swell.\n* **Voiceover**:\n  > *\"When the day ends, dual confirmation releases funds instantly to your guide\'s wallet. Total transparency. Fair earnings for locals. Pure magic for travelers.\"*\n\n---\n\n## \342\217\261\357\270\217 Scene 7: Grand Finale & Call to Action (1:22 \342\200\223 1:30)\n* **Visuals**:\n  - Full screen merging into one breathtaking shot: Golden hour drone shot sweeping across the terraced rice fields of Mu Cang Chai.\n  - A sleek floating glass mockup of the **Tour Guide Hub** application sits in the center with subtle 3D parallax.\n  - Bold animated text: \n    ```\n    TRAVEL REAL. TRAVEL VERIFIED.\n    Tour Guide Hub\n    Explore Southeast Asia with Licensed Local Guides\n    ```\n  - App URL and QR Code on lower right.\n* **Audio & SFX**: \n  - Music finishes on an epic, triumphant crescendo.\n* **Voiceover**:\n  > *\"Tour Guide Hub. The authentic, verified way to explore Vietnam. Start your journey today.\"*\n\n---\n\n# \360\237\233\240\357\270\217 Practical Quick-Start Production Checklist\n\n1. **Voiceover**: Copy the VO script above into **ElevenLabs** (Use voice *\342\200\234Adam\342\200\235* or *\342\200\234Rachel\342\200\235*, Stability 0.50, Clarity 0.85).\n2. **AI B-Roll**: Paste the 4 specific AI prompts into **Runway Gen-3 Alpha** or **Luma Dream Machine Ray 2** (set duration to 5s each, 16:9).\n3. **App UI Screen Capture**:\n   - Open your app in Google Chrome at 1920x1080.\n   - Perform the clicks according to the timeline (AI Planner $\\rightarrow$ Negotiation modal $\\rightarrow$ Safety PIN $\\rightarrow$ Instant Grab Radar $\\rightarrow$ VietQR Payout).\n4. **Edit in CapCut / Premiere / DaVinci**:\n   - Put Real World on Video Track 1 (cropped left 50%).\n   - Put App UI on Video Track 2 (cropped right 50%).\n   - Add a 2px vertical white/teal solid line down the center.\n   - Sync the UI button taps to the beat drops of your background track."
+    stop_reason: STOP_REASON_STOP_PATTERN
+  }
+}
+generator_metadata {
+  step_indices: 23
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 21
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 19
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 17
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 13
+  step_indices: 14
+  step_indices: 15
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 10
+  step_indices: 11
+  step_indices: 12
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 7
+  step_indices: 8
+  step_indices: 9
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}
+generator_metadata {
+  step_indices: 2
+  step_indices: 3
+  step_indices: 4
+  step_indices: 5
+  planner_config {
+  }
+  execution_id: "d83159d2-373b-49c2-b1b8-58d47fb41bc7"
+}

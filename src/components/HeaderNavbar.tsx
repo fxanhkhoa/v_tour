@@ -11,6 +11,7 @@ interface HeaderNavbarProps {
   onOpenAuth: () => void;
   onOpenExportRepo: () => void;
   onOpenTracker?: () => void;
+  onOpenAITourPlanner?: () => void;
   onLogout: () => void;
   pendingKYCCount?: number;
   language: Language;
@@ -24,6 +25,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onOpenAuth,
   onOpenExportRepo,
   onOpenTracker,
+  onOpenAITourPlanner,
   onLogout,
   pendingKYCCount = 0,
   language,
@@ -123,9 +125,22 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           )}
         </nav>
 
-        {/* Right Actions: City Dropdown, Tracker, Notification Bell, Language Switcher & User Avatar */}
+        {/* Right Actions: AI Tour Planner ✨, City Dropdown, Tracker, Notification Bell, Language Switcher & User Avatar */}
         <div className="flex items-center space-x-2 sm:space-x-3">
           
+          {/* AI Tour Planner ✨ Button */}
+          {onOpenAITourPlanner && (
+            <button
+              id="ai-tour-planner-btn"
+              onClick={onOpenAITourPlanner}
+              className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 text-slate-950 font-black text-xs shadow-md shadow-amber-500/20 flex items-center space-x-1.5 transition-all cursor-pointer transform hover:scale-105 active:scale-95 border border-amber-300/40"
+              title="Open AI Personalized Tour Planner ✨"
+            >
+              <span className="material-symbols-outlined text-sm text-slate-950 font-bold animate-pulse">auto_awesome</span>
+              <span>AI Tour Planner ✨</span>
+            </button>
+          )}
+
           {/* In-App Notification Bell */}
           <NotificationBell currentUser={currentUser} onOpenTracker={onOpenTracker} language={language} />
 

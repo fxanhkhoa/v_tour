@@ -1,6 +1,1 @@
-{
-  "name": "Tour Guide Hub",
-  "description": "Discover local landmarks and book personalized tours with expert guides in Grab-style instant or scheduled bookings.",
-  "requestFramePermissions": ["geolocation", "camera"],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
-}
+{"name":"Tour Guide Hub","description":"Discover local landmarks and book personalized tours with expert guides in Grab-style instant or scheduled bookings.","requestFramePermissions":["geolocation","camera"],"majorCapabilities":["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]}

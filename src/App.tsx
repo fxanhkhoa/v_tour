@@ -8,6 +8,7 @@ import { TravelerDashboard } from './modules/traveler/TravelerDashboard';
 import { AuthModal } from './components/AuthModal';
 import { ExportRepoModal } from './components/ExportRepoModal';
 import { LiveBookingTrackerModal } from './components/LiveBookingTrackerModal';
+import { AITourPlannerModal } from './components/AITourPlannerModal';
 import { Language, getDefaultLanguage } from './lib/translations';
 import { 
   User, 
@@ -73,6 +74,7 @@ export default function App() {
   const [isAuthOpen, setIsAuthOpen] = useState<boolean>(false);
   const [isExportRepoOpen, setIsExportRepoOpen] = useState<boolean>(false);
   const [isTrackerOpen, setIsTrackerOpen] = useState<boolean>(false);
+  const [isAITourPlannerOpen, setIsAITourPlannerOpen] = useState<boolean>(false);
 
   // Safe fetch helper to handle non-JSON / HTML responses gracefully
   const safeFetchJson = async (url: string, options?: RequestInit) => {
@@ -662,6 +664,7 @@ export default function App() {
         onOpenAuth={() => setIsAuthOpen(true)}
         onOpenExportRepo={() => setIsExportRepoOpen(true)}
         onOpenTracker={() => setIsTrackerOpen(true)}
+        onOpenAITourPlanner={() => setIsAITourPlannerOpen(true)}
         onLogout={handleLogout}
         pendingKYCCount={(kycList || []).filter(k => k.status === 'pending').length}
         language={language}
@@ -811,6 +814,15 @@ export default function App() {
         onUpdateStatus={handleUpdateBookingStatus}
         onConfirmCompletion={handleConfirmCompletion}
         language={language}
+      />
+
+      <AITourPlannerModal
+        isOpen={isAITourPlannerOpen}
+        onClose={() => setIsAITourPlannerOpen(false)}
+        selectedCity={selectedCity}
+        onConvertToPublicPost={(payload) => {
+          handleCreateTravelerPost(payload);
+        }}
       />
 
     </div>
