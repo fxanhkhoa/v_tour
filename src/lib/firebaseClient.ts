@@ -4,24 +4,37 @@ import {
   GoogleAuthProvider, 
   signInWithPopup, 
   signOut as firebaseSignOut,
+  onAuthStateChanged,
   Auth,
   User as FirebaseUser
 } from 'firebase/auth';
 import { User, UserRole } from '../types';
+import appletConfig from '../../firebase-applet-config.json';
 
-// Load config from Vite client environment variables
+// Load config from Vite client environment variables or fallback to firebase-applet-config.json
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-  appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY || appletConfig.apiKey || '',
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || appletConfig.authDomain || '',
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || appletConfig.projectId || '',
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || appletConfig.storageBucket || '',
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || appletConfig.messagingSenderId || '',
+  appId: import.meta.env.VITE_FIREBASE_APP_ID || appletConfig.appId || ''
 };
 
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
+
+// In-memory token cache as required by OAuth / Workspace guidelines (NEVER stored in localStorage)
+let inMemoryGoogleAccessToken: string | null = null;
+
+export function getGoogleAccessToken(): string | null {
+  return inMemoryGoogleAccessToken;
+}
+
+export function setGoogleAccessToken(token: string | null): void {
+  inMemoryGoogleAccessToken = token;
+}
 
 export function isFirebaseClientConfigured(): boolean {
   return Boolean(firebaseConfig.apiKey && firebaseConfig.projectId);
@@ -51,6 +64,12 @@ export function getFirebaseAuth(): Auth | null {
 
   try {
     auth = getAuth(firebaseApp);
+    // Clear in-memory token on auth state changed if user signed out
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        inMemoryGoogleAccessToken = null;
+      }
+    });
     return auth;
   } catch (err) {
     console.warn('Firebase Auth initialization error:', err);
@@ -64,6 +83,8 @@ export function getGoogleAuthProvider(): GoogleAuthProvider {
     googleProvider.setCustomParameters({
       prompt: 'select_account'
     });
+    // Request contacts scope for Google Contacts integration
+    googleProvider.addScope('https://www.googleapis.com/auth/contacts');
   }
   return googleProvider;
 }
@@ -94,6 +115,12 @@ export async function signInWithGoogleViaFirebase(
       const userCredential = await signInWithPopup(firebaseAuth, provider);
       const fbUser: FirebaseUser = userCredential.user;
       const idToken = await fbUser.getIdToken();
+
+      // Extract and cache OAuth access token in memory
+      const credential = GoogleAuthProvider.credentialFromResult(userCredential);
+      if (credential?.accessToken) {
+        setGoogleAccessToken(credential.accessToken);
+      }
 
       // Verify and sync with backend
       const res = await fetch('/api/auth/google-verify', {
@@ -161,8 +188,40 @@ export async function signOutFirebase(): Promise<void> {
   if (firebaseAuth) {
     try {
       await firebaseSignOut(firebaseAuth);
+      setGoogleAccessToken(null);
     } catch (e) {
       console.warn('Firebase signOut error:', e);
     }
   }
 }
+
+/**
+ * Prompt traveler to authorize Google Contacts OAuth scope and return in-memory accessToken
+ */
+export async function requestGoogleContactsPermission(): Promise<string> {
+  const existingToken = getGoogleAccessToken();
+  if (existingToken) return existingToken;
+
+  const firebaseAuth = getFirebaseAuth();
+  if (!firebaseAuth) {
+    throw new Error('Firebase Auth is not initialized. Please ensure Firebase configuration is set.');
+  }
+
+  const provider = getGoogleAuthProvider();
+  try {
+    const userCredential = await signInWithPopup(firebaseAuth, provider);
+    const credential = GoogleAuthProvider.credentialFromResult(userCredential);
+    if (!credential?.accessToken) {
+      throw new Error('Failed to obtain Google Contacts access token from Google OAuth.');
+    }
+    setGoogleAccessToken(credential.accessToken);
+    return credential.accessToken;
+  } catch (err: any) {
+    console.error('Google Contacts Authorization Error:', err);
+    if (err.code === 'auth/popup-closed-by-user') {
+      throw new Error('Authorization cancelled. Google Contacts popup was closed.');
+    }
+    throw err;
+  }
+}
+

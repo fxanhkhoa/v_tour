@@ -3,6 +3,7 @@ import { TravelerPostRequest, NegotiationOffer, TourBooking } from '../../types'
 import { Language, translations } from '../../lib/translations';
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
 import { TourBookingHubModal } from '../../components/TourBookingHubModal';
+import { AddToGoogleContactsButton } from '../../components/AddToGoogleContactsButton';
 import { formatLanguageWithFlag } from '../../lib/languages';
 
 interface TravelerPostsAndBidsProps {
@@ -545,7 +546,20 @@ export const TravelerPostsAndBids: React.FC<TravelerPostsAndBidsProps> = ({
                   )}
                 </div>
 
-                <div className="flex items-center space-x-2 shrink-0">
+                <div className="flex items-center space-x-2 shrink-0 flex-wrap gap-y-1.5">
+                  <AddToGoogleContactsButton
+                    payload={{
+                      name: neg.guideName,
+                      phone: '+84 908 123 456',
+                      tourTitle: neg.tourTitle || 'Tour Negotiation',
+                      notes: `Guide bid offer: $${neg.offeredPriceUSD} USD`,
+                      role: 'Licensed Tour Guide'
+                    }}
+                    variant="outline"
+                    size="sm"
+                    language={language}
+                  />
+
                   <button
                     type="button"
                     onClick={() => setHistoryModalNegotiation(neg)}

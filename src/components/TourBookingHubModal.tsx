@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { TourBooking, ChatMessage, User } from '../types';
 import { Language } from '../lib/translations';
 import { AddToGoogleCalendarButton } from './AddToGoogleCalendarButton';
+import { AddToGoogleContactsButton } from './AddToGoogleContactsButton';
 import { TourVideoCallRoom } from './TourVideoCallRoom';
 import { exportPdfFromElement, triggerSystemPrint } from '../lib/printUtils';
 
@@ -761,7 +762,23 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                       <span>{language === 'vi' ? 'Lịch Trình Đã Xác Nhận' : 'Confirmed Tour Schedule'}</span>
                     </span>
 
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1.5">
+                      {userRole === 'traveler' && (
+                        <AddToGoogleContactsButton
+                          payload={{
+                            name: selectedBooking.guideName,
+                            phone: selectedBooking.guidePhone || '+84 908 123 456',
+                            tourTitle: selectedBooking.tourTitle,
+                            bookingId: selectedBooking.id,
+                            pinCode: selectedBooking.pinCode,
+                            role: 'Licensed Tour Guide'
+                          }}
+                          variant="compact"
+                          size="sm"
+                          language={language}
+                        />
+                      )}
+
                       <AddToGoogleCalendarButton
                         payload={{
                           title: selectedBooking.tourTitle,
@@ -1163,21 +1180,36 @@ export const TourBookingHubModal: React.FC<TourBookingHubModalProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 pt-2 border-t border-slate-100 text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-slate-100 text-xs">
                     <a
                       href={`tel:${selectedBooking.guidePhone || '+84908123456'}`}
-                      className="p-3 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 font-bold flex items-center justify-center space-x-2 hover:bg-teal-100 transition-colors cursor-pointer"
+                      className="p-2.5 rounded-2xl bg-teal-50 border border-teal-200 text-teal-900 font-bold flex items-center justify-center space-x-1.5 hover:bg-teal-100 transition-colors cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-lg">call</span>
-                      <span>{language === 'vi' ? 'Gọi HDV' : 'Call Guide'} ({selectedBooking.guidePhone || '+84 908 123 456'})</span>
+                      <span className="material-symbols-outlined text-base">call</span>
+                      <span className="truncate">{language === 'vi' ? 'Gọi HDV' : 'Call Guide'} ({selectedBooking.guidePhone || '+84 908 123 456'})</span>
                     </a>
+
+                    <AddToGoogleContactsButton
+                      payload={{
+                        name: selectedBooking.guideName,
+                        phone: selectedBooking.guidePhone || '+84 908 123 456',
+                        tourTitle: selectedBooking.tourTitle,
+                        bookingId: selectedBooking.id,
+                        pinCode: selectedBooking.pinCode,
+                        role: 'Licensed Tour Guide'
+                      }}
+                      variant="outline"
+                      size="md"
+                      language={language}
+                      className="w-full justify-center"
+                    />
 
                     <button
                       onClick={() => setActiveTab('chat')}
-                      className="p-3 rounded-2xl bg-slate-900 text-white font-bold flex items-center justify-center space-x-2 hover:bg-slate-800 transition-colors cursor-pointer"
+                      className="p-2.5 rounded-2xl bg-slate-900 text-white font-bold flex items-center justify-center space-x-1.5 hover:bg-slate-800 transition-colors cursor-pointer"
                     >
-                      <span className="material-symbols-outlined text-lg">chat</span>
-                      <span>{language === 'vi' ? 'Mở Trò Chuyện Trực Tiếp' : 'Open Live Chat'}</span>
+                      <span className="material-symbols-outlined text-base">chat</span>
+                      <span>{language === 'vi' ? 'Mở Trò Chuyện' : 'Open Live Chat'}</span>
                     </button>
                   </div>
                 </div>

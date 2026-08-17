@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { GuideProfile, TourPackage, ScheduleSlot, NegotiationOffer } from '../../types';
 import { Language, translations } from '../../lib/translations';
+import { AddToGoogleContactsButton } from '../../components/AddToGoogleContactsButton';
 
 interface GuideDirectoryAndNegotiateProps {
   tours?: TourPackage[];
@@ -393,7 +394,7 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
                 alt={selectedTour.title}
                 className="w-full sm:w-36 h-28 rounded-2xl object-cover border border-slate-200 shrink-0"
               />
-              <div className="space-y-1">
+              <div className="space-y-1 flex-1">
                 <div className="flex items-center space-x-2">
                   <span className="px-2.5 py-0.5 rounded-full bg-teal-100 text-teal-800 text-[10px] font-extrabold uppercase">
                     {selectedTour.category}
@@ -401,9 +402,23 @@ export const GuideDirectoryAndNegotiate: React.FC<GuideDirectoryAndNegotiateProp
                   <span className="text-xs font-bold text-slate-500">📍 {selectedTour.city}</span>
                 </div>
                 <h4 className="font-black text-slate-900 text-lg leading-snug">{selectedTour.title}</h4>
-                <p className="text-xs text-slate-500">
-                  {language === 'vi' ? 'Được tạo bởi HDV:' : 'Hosted by:'} <strong className="text-slate-800">{selectedTour.guideName}</strong> • ⭐ {selectedTour.rating}
-                </p>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <p className="text-xs text-slate-500">
+                    {language === 'vi' ? 'Được tạo bởi HDV:' : 'Hosted by:'} <strong className="text-slate-800">{selectedTour.guideName}</strong> • ⭐ {selectedTour.rating}
+                  </p>
+                  <AddToGoogleContactsButton
+                    payload={{
+                      name: selectedTour.guideName,
+                      phone: '+84 908 123 456',
+                      tourTitle: selectedTour.title,
+                      city: selectedTour.city,
+                      role: 'Licensed Tour Guide'
+                    }}
+                    variant="outline"
+                    size="sm"
+                    language={language}
+                  />
+                </div>
               </div>
             </div>
 

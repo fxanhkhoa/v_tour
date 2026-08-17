@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { NegotiationOffer } from '../types';
 import { AddToGoogleCalendarButton } from './AddToGoogleCalendarButton';
+import { AddToGoogleContactsButton } from './AddToGoogleContactsButton';
 import { Language } from '../lib/translations';
 
 interface NegotiationHistoryModalProps {
@@ -225,6 +226,21 @@ export const NegotiationHistoryModal: React.FC<NegotiationHistoryModalProps> = (
                 This agreed tour offer of <strong className="font-black text-emerald-900">${negotiation.offeredPriceUSD} USD</strong> has been confirmed into a tour booking and added to your calendar schedule.
               </p>
               <div className="pt-2 flex flex-wrap items-center justify-center gap-2">
+                {currentUserRole === 'traveler' && (
+                  <AddToGoogleContactsButton
+                    payload={{
+                      name: negotiation.guideName,
+                      phone: '+84 908 123 456',
+                      tourTitle: negotiation.tourTitle || 'Custom Tour Offer',
+                      notes: `Agreed booking price: $${negotiation.offeredPriceUSD} USD`,
+                      role: 'Licensed Tour Guide'
+                    }}
+                    variant="outline"
+                    size="sm"
+                    language={language}
+                  />
+                )}
+
                 <AddToGoogleCalendarButton
                   payload={{
                     title: negotiation.tourTitle || `Custom Tour with ${currentUserRole === 'guide' ? negotiation.travelerName : negotiation.guideName}`,

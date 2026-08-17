@@ -1,19 +1,22 @@
 # 🧪 End-to-End (E2E) Full Flow Testing & Architecture Guide
-### Dual Persona (Traveler & Tour Guide) Complete User Journeys
-**Platform:** Tour Guide Hub — React + Vite + Express + Firebase Firestore
+### Tri-Persona (Traveler, Tour Guide & System Admin) Complete User Journeys
+**Platform:** Vietnam Local Tour Guide Hub — React + Vite + Express + Firebase Firestore + Google Workspace
+**Comprehensive Guide:** See [FULL_FLOW_E2E_GUIDE.md](./FULL_FLOW_E2E_GUIDE.md) for the complete master architectural breakdown.
 
 ---
 
 ## 📌 Executive Summary & Test Scope
 
-This guide details the complete End-to-End (E2E) verification framework for **Tour Guide Hub**, covering both **Traveler** and **Tour Guide** personas across all primary marketplace lifecycle workflows:
+This guide details the complete End-to-End (E2E) verification framework for **Tour Guide Hub**, covering all three roles (**Traveler**, **Tour Guide**, and **System Admin**) across all marketplace workflows:
 
-1. **Authentication & Session Tokens**: Sign up, login, credential verification, and role switching.
+1. **Authentication & Session Tokens**: Sign up, login, Google OAuth with Firebase, credential verification, and role switching.
 2. **Traveler Flow 1 (Custom Request Board)**: Create custom request $\rightarrow$ Multi-round bidding & counters $\rightarrow$ Accept & escrow deposit $\rightarrow$ Start live tracking (`matched` $\rightarrow$ `en_route` $\rightarrow$ `in_progress`) $\rightarrow$ End tour & dual escrow release.
 3. **Traveler Flow 2 (Tour Package Search & Negotiation)**: Search directory $\rightarrow$ Custom slot & price negotiation (multi-round) $\rightarrow$ Accept $\rightarrow$ Start tracking $\rightarrow$ End tour.
-4. **Event Calendar Flow**: Interactive monthly agenda, filtering confirmed bookings vs. active negotiations, date normalization, and direct Tour Hub launch.
-5. **Tour Guide Flow 1 (Package Lifecycle)**: Create tour package $\rightarrow$ Receive traveler slot bids $\rightarrow$ Multi-round counter negotiation $\rightarrow$ Confirm booking $\rightarrow$ Live tour operations.
-6. **Tour Guide Flow 2 (Traveler Request Bidding)**: Browse public requests board $\rightarrow$ Place bid $\rightarrow$ Negotiate multi-round terms $\rightarrow$ Win bid $\rightarrow$ Execute tour $\rightarrow$ Escrow payout.
+4. **Google Workspace Sync (Google Contacts & Calendar)**: One-click export to Google Contacts (People API) with guide phone numbers and Google Calendar events.
+5. **Event Calendar Flow**: Interactive monthly agenda, filtering confirmed bookings vs. active negotiations, date normalization, and direct Tour Hub launch.
+6. **Tour Guide Flow 1 (Package Lifecycle)**: Create tour package $\rightarrow$ Receive traveler slot bids $\rightarrow$ Multi-round counter negotiation $\rightarrow$ Confirm booking $\rightarrow$ Live tour operations.
+7. **Tour Guide Flow 2 (Traveler Request Bidding)**: Browse public requests board $\rightarrow$ Place bid $\rightarrow$ Negotiate multi-round terms $\rightarrow$ Win bid $\rightarrow$ Execute tour $\rightarrow$ Escrow payout.
+8. **Admin Operations**: System analytics, Tour Guide KYC document approvals, tour listing moderation, and user account management.
 
 ---
 

@@ -24,7 +24,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [isGoogleLoading, setIsGoogleLoading] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [verificationSuccess, setVerificationSuccess] = useState<string | null>(null);
-  const [showFirebaseGuide, setShowFirebaseGuide] = useState<boolean>(false);
   const [googleRoleSelect, setGoogleRoleSelect] = useState<UserRole>('traveler');
 
   // Form states
@@ -130,8 +129,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
         setVerificationSuccess(
           language === 'vi'
-            ? `Đăng nhập Google (Firebase Mode) thành công! Xin chào ${data.user.name}`
-            : `Firebase Google Sign-In successful! Welcome, ${data.user.name}`
+            ? `Đăng nhập Google thành công! Xin chào ${data.user.name}`
+            : `Google Sign-In successful! Welcome, ${data.user.name}`
         );
 
         setTimeout(() => {
@@ -142,7 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
     } catch (err: any) {
       console.error('Google Sign-in Error:', err);
-      setAuthError(err.message || 'Google authentication error. See instructions below.');
+      setAuthError(err.message || (language === 'vi' ? 'Lỗi xác thực Google' : 'Google authentication error.'));
       setIsGoogleLoading(false);
     }
   };
@@ -315,7 +314,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             type="button"
             disabled={isGoogleLoading || isAuthenticating}
             onClick={handleGoogleLogin}
-            className="w-full py-3 px-4 rounded-2xl border border-slate-200 hover:border-teal-500 bg-white hover:bg-slate-50 text-slate-800 flex items-center justify-between transition-all cursor-pointer group shadow-sm hover:shadow-md active:scale-98 disabled:opacity-50"
+            className="w-full py-3 px-4 rounded-2xl border border-slate-200 hover:border-teal-500 bg-white hover:bg-slate-50 text-slate-800 flex items-center justify-center transition-all cursor-pointer group shadow-sm hover:shadow-md active:scale-98 disabled:opacity-50"
           >
             <div className="flex items-center space-x-2.5">
               {isGoogleLoading ? (
@@ -347,59 +346,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 }
               </span>
             </div>
-
-            <span className="text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-              Firebase Auth
-            </span>
           </button>
-
-          {/* Firebase Guide Accordion Button */}
-          <div className="text-right">
-            <button
-              type="button"
-              onClick={() => setShowFirebaseGuide(!showFirebaseGuide)}
-              className="text-[10px] font-bold text-teal-700 hover:text-teal-800 underline inline-flex items-center space-x-1 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-xs">help</span>
-              <span>{language === 'vi' ? 'Hướng dẫn cấu hình Firebase Console' : 'Firebase Console Setup Checklist'}</span>
-            </button>
-          </div>
-
-          {showFirebaseGuide && (
-            <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-700 text-slate-200 text-xs space-y-2 animate-fade-in shadow-xl">
-              <div className="flex items-center justify-between pb-1 border-b border-slate-800">
-                <span className="font-black text-white text-[11px] flex items-center space-x-1.5">
-                  <span className="text-amber-400">🔥</span>
-                  <span>Firebase Console Setup Checklist</span>
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setShowFirebaseGuide(false)}
-                  className="text-slate-400 hover:text-white text-xs cursor-pointer"
-                >
-                  ✕
-                </button>
-              </div>
-
-              <ol className="list-decimal pl-4 space-y-1 text-[11px] text-slate-300 font-medium">
-                <li>
-                  Open <strong className="text-teal-300">Firebase Console</strong> &rarr; Select your project.
-                </li>
-                <li>
-                  Go to <strong className="text-teal-300">Authentication</strong> &rarr; <strong className="text-teal-300">Sign-in method</strong> tab.
-                </li>
-                <li>
-                  Click <strong className="text-teal-300">Add new provider</strong> &rarr; Choose <strong className="text-teal-300">Google</strong> &rarr; Toggle <strong>Enable</strong>.
-                </li>
-                <li>
-                  In <strong className="text-teal-300">Settings</strong> &rarr; <strong className="text-teal-300">Authorized domains</strong>, ensure <code className="bg-slate-800 px-1 rounded text-amber-300 font-mono">{window.location.hostname}</code> is listed.
-                </li>
-                <li>
-                  Copy your Web App config into <code className="bg-slate-800 px-1 rounded text-teal-300 font-mono">.env</code> (e.g. <code className="text-slate-400 font-mono">VITE_FIREBASE_API_KEY</code>, <code className="text-slate-400 font-mono">VITE_FIREBASE_AUTH_DOMAIN</code>).
-                </li>
-              </ol>
-            </div>
-          )}
         </div>
 
         {/* Divider */}

@@ -7,6 +7,7 @@ import { TravelerSpendingDashboard } from './TravelerSpendingDashboard';
 import { PortalEventsCalendar } from '../../components/PortalEventsCalendar';
 import { NegotiationHistoryModal } from '../../components/NegotiationHistoryModal';
 import { AddToGoogleCalendarButton } from '../../components/AddToGoogleCalendarButton';
+import { AddToGoogleContactsButton } from '../../components/AddToGoogleContactsButton';
 import { Language, translations } from '../../lib/translations';
 
 interface TravelerDashboardProps {
@@ -317,6 +318,20 @@ export const TravelerDashboard: React.FC<TravelerDashboardProps> = ({
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-end sm:items-center gap-2">
+                  <AddToGoogleContactsButton
+                    payload={{
+                      name: b.guideName,
+                      phone: b.guidePhone || '+84 908 123 456',
+                      tourTitle: b.tourTitle,
+                      bookingId: b.id,
+                      pinCode: b.pinCode,
+                      role: 'Licensed Tour Guide'
+                    }}
+                    variant="compact"
+                    size="sm"
+                    language={language}
+                  />
+
                   <AddToGoogleCalendarButton
                     payload={{
                       title: b.tourTitle,
